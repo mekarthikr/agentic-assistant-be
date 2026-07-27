@@ -3,7 +3,7 @@
   "fluid": true,
   "functions": {
     "api/index.ts": {
-      "includeFiles": ["src/docs/**", "src/rag/**"],
+      "includeFiles": "{src/docs/**,src/rag/**}",
       "maxDuration": 300,
       "supportsCancellation": true
     }
