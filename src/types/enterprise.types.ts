@@ -9,6 +9,7 @@ export interface ApiResponse<T> {
 /** Parameter metadata parsed from the enterprise Markdown documentation. */
 export interface EnterpriseEndpointParameter {
   name: string;
+  type: "string";
   location: "path" | "query";
   required: boolean;
   description: string;

@@ -27,19 +27,22 @@ test("discovers endpoint tools and parameters from the Markdown", async () => {
   assert.deepEqual(
     endpoints.map(({ id }) => id),
     [
+      "get_health",
       "get_contracts",
       "get_contracts_by_contract_number",
       "get_applications",
       "get_applications_by_contract_number",
     ],
   );
-  assert.equal(endpoints[0].parameters.length, 7);
-  assert.deepEqual(endpoints[1].parameters[0], {
+  assert.equal(endpoints[1].parameters.length, 7);
+  assert.deepEqual(endpoints[2].parameters[0], {
     name: "contractNumber",
+    type: "string",
     location: "path",
     required: true,
-    description: "The contract number",
+    description: "Exact issued contract identifier",
   });
+  assert.equal(endpoints[1].path, "/api/v1/contracts");
 });
 
 test("persists the index and retrieves relevant documented operations", async () => {
@@ -52,7 +55,7 @@ test("persists the index and retrieves relevant documented operations", async ()
     const rag = await EnterpriseRagService.load(documentationPath, indexPath);
     const storedIndex = JSON.parse(await readFile(indexPath, "utf8"));
 
-    assert.equal(storedIndex.entries.length, 4);
+    assert.equal(storedIndex.entries.length, 5);
     assert.equal(
       rag.retrieve("approval status for contract 1561438").toolNames[0],
       "get_applications_by_contract_number",

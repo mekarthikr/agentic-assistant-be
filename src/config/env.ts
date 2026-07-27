@@ -28,7 +28,7 @@ export const env: AppEnvironment = {
   GROQ_MODEL: process.env.GROQ_MODEL?.trim() || "llama-3.1-8b-instant",
   ENTERPRISE_API_BASE_URL:
     process.env.ENTERPRISE_API_BASE_URL?.trim() ||
-    "https://mock-api-server-zeta.vercel.app/api/v1",
+    "https://mock-api-server-zeta.vercel.app",
   ENTERPRISE_API_DOC_PATH: path.resolve(
     process.cwd(),
     process.env.ENTERPRISE_API_DOC_PATH?.trim() ||

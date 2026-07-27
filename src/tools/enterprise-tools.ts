@@ -17,11 +17,24 @@ const toStringInput = (
   input: unknown,
   endpoint: EnterpriseEndpoint,
 ): Record<string, string> => {
-  if (typeof input !== "object" || input === null || Array.isArray(input)) {
+  let normalizedInput = input;
+  if (typeof normalizedInput === "string") {
+    try {
+      normalizedInput = normalizedInput.trim()
+        ? JSON.parse(normalizedInput)
+        : {};
+    } catch {
+      throw new Error("Tool input must be valid JSON.");
+    }
+  }
+  if (normalizedInput === undefined || normalizedInput === null) {
+    normalizedInput = {};
+  }
+  if (typeof normalizedInput !== "object" || Array.isArray(normalizedInput)) {
     throw new Error("Tool input must be an object.");
   }
 
-  const record = input as ToolInput;
+  const record = normalizedInput as ToolInput;
   return Object.fromEntries(
     endpoint.parameters.flatMap((parameter) => {
       const value = record[parameter.name];
@@ -57,7 +70,7 @@ export const createEnterpriseTools = (
           endpoint.parameters.map((parameter) => [
             parameter.name,
             {
-              type: "string",
+              type: parameter.type,
               description: parameter.description,
             },
           ]),

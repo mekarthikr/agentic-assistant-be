@@ -57,10 +57,16 @@ export class EnterpriseApiProvider {
       endpointPath = this.replacePathParameter(endpointPath, parameter, value);
     }
 
-    const url = new URL(
-      endpointPath.replace(/^\//, ""),
-      `${env.ENTERPRISE_API_BASE_URL}/`,
-    );
+    const configuredBaseUrl = new URL(`${env.ENTERPRISE_API_BASE_URL}/`);
+    const configuredBasePath = configuredBaseUrl.pathname.replace(/\/+$/, "");
+    const endpointAlreadyIncludesBasePath =
+      configuredBasePath &&
+      configuredBasePath !== "/" &&
+      (endpointPath === configuredBasePath ||
+        endpointPath.startsWith(`${configuredBasePath}/`));
+    const url = endpointAlreadyIncludesBasePath
+      ? new URL(endpointPath, configuredBaseUrl.origin)
+      : new URL(endpointPath.replace(/^\//, ""), configuredBaseUrl.toString());
     for (const parameter of endpoint.parameters) {
       const value = input[parameter.name]?.trim();
       if (parameter.location === "query" && value) {
