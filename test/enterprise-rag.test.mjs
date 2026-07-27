@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -12,6 +13,8 @@ import { AIOrchestrator } from "../dist/service/ai-orchestrator.service.js";
 import { ConversationService } from "../dist/service/conversation.service.js";
 import { ToolRegistry } from "../dist/service/tool-registry.service.js";
 import { INSURANCE_ASSISTANT_SYSTEM_PROMPT } from "../dist/prompts/index.js";
+import app from "../dist/app.js";
+import { flowTracer } from "../dist/observability/index.js";
 
 const documentationPath = path.resolve(
   "src/docs/enterprise-api-documentation.md",
@@ -85,4 +88,43 @@ test("applies the insurance system prompt to every model request", async () => {
   await orchestrator.chat("prompt-test", "Hello");
 
   assert.equal(receivedRequest.system, INSURANCE_ASSISTANT_SYSTEM_PROMPT);
+});
+
+test("serves the live flow dashboard and streams sanitized history", async () => {
+  const server = createServer(app);
+  await new Promise((resolve) => server.listen(0, resolve));
+  const address = server.address();
+  assert.equal(typeof address, "object");
+  const baseUrl = `http://127.0.0.1:${address.port}`;
+  const marker = `flow-test-${Date.now()}`;
+
+  try {
+    flowTracer.record({
+      stage: "system",
+      action: marker,
+      summary: "Flow dashboard test event.",
+      details: { apiKey: "must-not-leak", visible: "retained" },
+    });
+
+    const pageResponse = await fetch(`${baseUrl}/view-flow`);
+    const page = await pageResponse.text();
+    assert.equal(pageResponse.status, 200);
+    assert.match(page, /Backend decision flow/);
+
+    const streamResponse = await fetch(`${baseUrl}/view-flow/events`);
+    const reader = streamResponse.body.getReader();
+    const { value } = await reader.read();
+    const initialStream = new TextDecoder().decode(value);
+    await reader.cancel();
+
+    assert.equal(streamResponse.status, 200);
+    assert.match(initialStream, /event: snapshot/);
+    assert.match(initialStream, new RegExp(marker));
+    assert.doesNotMatch(initialStream, /must-not-leak/);
+    assert.match(initialStream, /\[REDACTED\]/);
+  } finally {
+    await new Promise((resolve, reject) =>
+      server.close((error) => (error ? reject(error) : resolve())),
+    );
+  }
 });

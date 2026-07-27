@@ -9,8 +9,15 @@ import {
 import { createServer } from "http";
 import { ChatSocketServer } from "@app/socket";
 import { createEnterpriseTools } from "@app/tools/enterprise-tools";
+import { flowTracer } from "@app/observability";
 import app from "./app";
 
+const finishBootstrap = flowTracer.start({
+  stage: "system",
+  action: "backend.bootstrap.started",
+  summary: "Local backend dependency initialization started.",
+  context: { traceId: "backend-bootstrap", transport: "system" },
+});
 const httpServer = createServer(app);
 const conversationService = new ConversationService();
 const provider = new GroqProvider(groqConfiguration);
@@ -34,6 +41,16 @@ httpServer.headersTimeout = 35_000;
 httpServer.keepAliveTimeout = 5_000;
 
 httpServer.listen(env.PORT, () => {
+  finishBootstrap({
+    level: "success",
+    action: "backend.bootstrap.completed",
+    summary: `Backend is listening on port ${env.PORT}.`,
+    details: {
+      port: env.PORT,
+      websocketPath: env.WS_PATH,
+      model: env.GROQ_MODEL,
+    },
+  });
   console.log(`Server started on port ${env.PORT}`);
 });
 

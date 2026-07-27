@@ -6,6 +6,7 @@ import type {
   EnterpriseEndpoint,
   EnterpriseEndpointParameter,
 } from "@app/types";
+import { flowTracer } from "@app/observability";
 
 const INDEX_VERSION = 2;
 const DEFAULT_RESULT_LIMIT = 3;
@@ -219,6 +220,12 @@ export class EnterpriseRagService {
     documentationPath: string,
     indexPath: string,
   ): Promise<EnterpriseRagService> {
+    const finishLoad = flowTracer.start({
+      stage: "system",
+      action: "rag.index.loading",
+      summary: "Loading enterprise retrieval documentation and index.",
+      details: { documentationPath, indexPath },
+    });
     const markdown = await readFile(documentationPath, "utf8");
     const sourceHash = createHash("sha256").update(markdown).digest("hex");
     const cachedIndex = await this.readCachedIndex(indexPath);
@@ -227,12 +234,24 @@ export class EnterpriseRagService {
       cachedIndex?.version === INDEX_VERSION &&
       cachedIndex.sourceHash === sourceHash
     ) {
+      finishLoad({
+        level: "success",
+        action: "rag.index.cache_hit",
+        summary: "The cached RAG index matched the documentation hash.",
+        details: { endpointCount: cachedIndex.entries.length },
+      });
       return new EnterpriseRagService(cachedIndex);
     }
 
     const index = this.buildIndex(markdown, sourceHash);
     await mkdir(path.dirname(indexPath), { recursive: true });
     await writeFile(indexPath, `${JSON.stringify(index, null, 2)}\n`, "utf8");
+    finishLoad({
+      level: "success",
+      action: "rag.index.rebuilt",
+      summary: "The RAG index was rebuilt from enterprise documentation.",
+      details: { endpointCount: index.entries.length },
+    });
     return new EnterpriseRagService(index);
   }
 
@@ -273,6 +292,26 @@ export class EnterpriseRagService {
       .sort((left, right) => right.score - left.score)
       .filter(({ score }) => score > 0)
       .slice(0, Math.max(1, limit));
+
+    flowTracer.record({
+      stage: "retrieval",
+      level: "decision",
+      action: "rag.scored",
+      summary: matches.length
+        ? `${matches.length} documented operation(s) passed the relevance threshold.`
+        : "No documented operation passed the relevance threshold.",
+      details: {
+        query,
+        queryContainsIdentifier,
+        resultLimit: limit,
+        matches: matches.map(({ endpoint, score }) => ({
+          toolName: endpoint.id,
+          method: endpoint.method,
+          path: endpoint.path,
+          score: Math.round(score * 10_000) / 10_000,
+        })),
+      },
+    });
 
     if (!matches.length) return undefined;
 

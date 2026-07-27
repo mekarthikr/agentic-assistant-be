@@ -7,6 +7,7 @@ import {
   type Message,
   type MessageRole,
 } from "@app/types";
+import { flowTracer } from "@app/observability";
 
 /** Stores conversation history in memory and returns mutation-safe snapshots. */
 export class ConversationService {
@@ -63,6 +64,17 @@ export class ConversationService {
       updatedAt: message.createdAt,
     };
     this.conversations.set(conversation.id, updatedConversation);
+    flowTracer.record({
+      stage: "conversation",
+      action: "conversation.message.stored",
+      summary: `${role} message stored in conversation history.`,
+      context: { conversationId: conversation.id },
+      details: {
+        role,
+        messageCount: updatedConversation.messages.length,
+        contentLength: content.length,
+      },
+    });
     return this.toSnapshot(updatedConversation);
   }
 
@@ -80,6 +92,12 @@ export class ConversationService {
       updatedAt: now,
     };
     this.conversations.set(conversationId, conversation);
+    flowTracer.record({
+      stage: "conversation",
+      action: "conversation.created",
+      summary: "A new in-memory conversation was created.",
+      context: { conversationId },
+    });
     return conversation;
   }
 

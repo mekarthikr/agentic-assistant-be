@@ -26,6 +26,7 @@ export type ClientMessage =
   AuthMessage | ChatSendMessage | ChatCancelMessage | PingMessage;
 
 export type LiveSocket = WebSocket & {
+  flowTraceId: string;
   isAlive: boolean;
   isAuthenticated: boolean;
   requestCount: number;

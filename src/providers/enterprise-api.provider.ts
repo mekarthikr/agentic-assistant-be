@@ -5,6 +5,7 @@ import type {
   EnterpriseEndpointParameter,
 } from "@app/types";
 import { EnterpriseApiError as EnterpriseError } from "@app/types";
+import { flowTracer } from "@app/observability";
 
 /** HTTP client for the documented enterprise Contracts and Applications APIs. */
 export class EnterpriseApiProvider {
@@ -23,6 +24,13 @@ export class EnterpriseApiProvider {
     signal?: AbortSignal,
   ): Promise<ApiResponse<unknown>> {
     if (endpoint.method !== "GET") {
+      flowTracer.record({
+        stage: "enterprise",
+        level: "decision",
+        action: "enterprise.request.blocked",
+        summary: `Blocked non-read-only ${endpoint.method} enterprise operation.`,
+        details: { method: endpoint.method, path: endpoint.path },
+      });
       throw new EnterpriseError(
         `The documented ${endpoint.method} operation is not enabled.`,
         405,
@@ -60,6 +68,17 @@ export class EnterpriseApiProvider {
       }
     }
 
+    const finishRequest = flowTracer.start({
+      stage: "enterprise",
+      action: "enterprise.request.started",
+      summary: `Calling ${endpoint.method} ${endpoint.path}.`,
+      details: {
+        toolName: endpoint.id,
+        method: endpoint.method,
+        documentedPath: endpoint.path,
+        input,
+      },
+    });
     let response: Response;
     try {
       response = await fetch(url, {
@@ -68,6 +87,11 @@ export class EnterpriseApiProvider {
         signal,
       });
     } catch {
+      finishRequest({
+        level: "error",
+        action: "enterprise.request.unreachable",
+        summary: "The enterprise API could not be reached.",
+      });
       signal?.throwIfAborted();
       throw new EnterpriseError(
         "The enterprise API could not be reached.",
@@ -79,12 +103,28 @@ export class EnterpriseApiProvider {
       .json()
       .catch(() => null)) as ApiResponse<unknown> | null;
     if (!response.ok || !payload) {
+      finishRequest({
+        level: "error",
+        action: "enterprise.request.failed",
+        summary: `The enterprise API returned HTTP ${response.status}.`,
+        details: { status: response.status, responseMessage: payload?.message },
+      });
       throw new EnterpriseError(
         payload?.message || "The enterprise API returned an invalid response.",
         response.status || 502,
       );
     }
 
+    finishRequest({
+      level: "success",
+      action: "enterprise.request.completed",
+      summary: `The enterprise API returned HTTP ${response.status}.`,
+      details: {
+        status: response.status,
+        success: payload.success,
+        responseMessage: payload.message,
+      },
+    });
     return payload;
   }
 

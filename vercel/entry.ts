@@ -1,6 +1,7 @@
 import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { flowTracer } from "@app/observability";
 
 // Vercel functions can only persist runtime-generated files under the OS temp
 // directory. Set this before loading the application configuration module.
@@ -11,6 +12,12 @@ if (process.env.VERCEL) {
   );
 }
 
+const finishBootstrap = flowTracer.start({
+  stage: "system",
+  action: "backend.bootstrap.started",
+  summary: "Vercel backend dependency initialization started.",
+  context: { traceId: "backend-bootstrap", transport: "system" },
+});
 const [
   { env, groqConfiguration },
   { GroqProvider },
@@ -45,5 +52,15 @@ const orchestrator = new AIOrchestrator(
 );
 
 new ChatSocketServer(httpServer, orchestrator);
+finishBootstrap({
+  level: "success",
+  action: "backend.bootstrap.completed",
+  summary: "The Vercel HTTP and WebSocket server is ready.",
+  details: {
+    websocketPath: env.WS_PATH,
+    model: env.GROQ_MODEL,
+    enterpriseToolCount: enterpriseRag.getEndpoints().length,
+  },
+});
 
 export default httpServer;
