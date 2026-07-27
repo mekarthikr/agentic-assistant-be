@@ -3,11 +3,21 @@ const path = require("node:path");
 
 const outputRoot = path.resolve(__dirname, ".vercel/output");
 const functionDirectory = path.join(outputRoot, "functions/index.func");
+const documentationSource = path.resolve(
+  __dirname,
+  "src/docs/enterprise-api-documentation.md",
+);
+const documentationOutput = path.join(
+  functionDirectory,
+  "src/docs/enterprise-api-documentation.md",
+);
 
 class VercelBuildOutputPlugin {
   apply(compiler) {
     compiler.hooks.afterEmit.tap("VercelBuildOutputPlugin", () => {
       fs.mkdirSync(functionDirectory, { recursive: true });
+      fs.mkdirSync(path.dirname(documentationOutput), { recursive: true });
+      fs.copyFileSync(documentationSource, documentationOutput);
 
       fs.writeFileSync(
         path.join(outputRoot, "config.json"),
@@ -26,7 +36,7 @@ class VercelBuildOutputPlugin {
         `${JSON.stringify(
           {
             runtime: "nodejs22.x",
-            handler: "index.cjs",
+            handler: "index.mjs",
             launcherType: "Nodejs",
             shouldAddHelpers: true,
           },
@@ -41,10 +51,14 @@ class VercelBuildOutputPlugin {
 module.exports = {
   mode: "production",
   target: "node22",
-  entry: path.resolve(__dirname, "src/app.ts"),
+  entry: path.resolve(__dirname, "vercel/entry.ts"),
   devtool: "source-map",
   externalsPresets: { node: true },
+  experiments: {
+    outputModule: true,
+  },
   module: {
+    exprContextCritical: false,
     rules: [
       {
         test: /\.tsx?$/,
@@ -52,7 +66,9 @@ module.exports = {
         use: {
           loader: "ts-loader",
           options: {
-            transpileOnly: true,
+            compilerOptions: {
+              rootDir: __dirname,
+            },
           },
         },
       },
@@ -61,16 +77,17 @@ module.exports = {
   resolve: {
     alias: {
       "@app": path.resolve(__dirname, "src"),
+      bufferutil: false,
+      "utf-8-validate": false,
     },
     extensions: [".ts", ".tsx", ".js"],
   },
   output: {
     path: functionDirectory,
-    filename: "index.cjs",
+    filename: "index.mjs",
     clean: true,
     library: {
-      type: "commonjs2",
-      export: "default",
+      type: "module",
     },
   },
   optimization: {
