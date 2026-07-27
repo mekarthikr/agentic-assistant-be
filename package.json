@@ -2,6 +2,9 @@
   "name": "agentic-assistant-be",
   "version": "1.0.0",
   "main": "index.js",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc && tsc-alias",
@@ -27,15 +30,13 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "inversify": "^8.2.2",
-    "reflect-metadata": "^0.2.2",
-    "ws": "^8.21.1"
+    "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^26.1.1",
-    "@types/ws": "^8.18.1",
     "eslint": "^10.7.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.7.0",

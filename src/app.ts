@@ -1,18 +1,30 @@
 import express from "express";
 import cors from "cors";
 
-import { healthRoutes } from "@app/route";
+import { env } from "@app/config";
+import { chatRoutes, healthRoutes } from "@app/route";
 
 /** Configured Express application shared by the HTTP server and tests. */
 const app = express();
 
 app.disable("x-powered-by");
 
-app.use(cors());
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || env.CORS_ORIGINS.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(new Error("Origin is not allowed by CORS."));
+    },
+  }),
+);
 
-app.use(express.json());
+app.use(express.json({ limit: "64kb" }));
 
 app.use("/health", healthRoutes);
+app.use("/chat", chatRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({ success: false, message: "Route not found." });

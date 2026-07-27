@@ -2,6 +2,7 @@ import {
   type ChatOptions,
   EmptyPromptError,
   type LLMProvider,
+  type Message,
   ProviderError,
 } from "@app/types";
 import { ConversationService } from "./conversation.service";
@@ -73,6 +74,32 @@ export class AIOrchestrator {
 
     this.validateResponse(response);
     this.conversationService.addAssistantMessage(conversationId, response);
+  }
+
+  public async *streamHistory(
+    messages: readonly Message[],
+    options: ChatOptions = {},
+  ): AsyncGenerator<string> {
+    let response = "";
+
+    try {
+      for await (const token of this.provider.stream({
+        messages,
+        signal: options.signal,
+      })) {
+        options.signal?.throwIfAborted();
+        response += token;
+        yield token;
+      }
+    } catch (error) {
+      this.throwIfAborted(options.signal);
+      throw new ProviderError(
+        "The AI provider could not stream a response.",
+        error,
+      );
+    }
+
+    this.validateResponse(response);
   }
 
   private validatePrompt(userMessage: string): string {

@@ -1,64 +1,45 @@
 # Agentic Assistant backend
 
-Express and native WebSocket (`ws`) backend for Agentic Assistant.
+Express and TypeScript API for Agentic Assistant. Chat responses are streamed
+over `POST /chat`, which works locally and as a Vercel Function.
 
-## Setup
+## Local setup
 
-```bash
+```powershell
 npm install
-copy .env.example .env
+Copy-Item .env.example .env
 npm run dev
 ```
 
-The HTTP health check is available at `GET /health`. WebSocket chat uses
-`ws://localhost:5000/ws` by default.
+The health check is available at `GET http://localhost:5000/health`.
 
-## Configuration
+## Environment variables
 
-- `PORT`: HTTP and WebSocket port; defaults to `5000`.
-- `CORS_ORIGIN`: comma-separated allowed browser origins. Required in
-  production.
-- `WS_PATH`: WebSocket upgrade path; defaults to `/ws`.
-- `SOCKET_AUTH_TOKEN`: required in production. When configured, the first
-  client frame must be `{"type":"auth","token":"..."}`.
+| Variable | Required on Vercel | Description |
+| --- | --- | --- |
+| `GROQ_API_KEY` | Yes | Secret API key from Groq. |
+| `GROQ_MODEL` | Yes | Groq model ID, for example `openai/gpt-oss-120b`. |
+| `CORS_ORIGIN` | Yes | Exact frontend origin, for example `https://your-fe.vercel.app`. Use commas for multiple origins. |
+| `PORT` | No | Local server port. Vercel supplies its own runtime port. Defaults to `5000`. |
 
-HTTP CORS and WebSocket `Origin` validation use the same origin allowlist.
+Add the required variables to Production, Preview, and Development in the
+Vercel project if all three environments should work. Never expose
+`GROQ_API_KEY` in the frontend project.
 
-## WebSocket protocol
+## Deploy as the backend Vercel project
 
-Send a chat request:
+1. Import this repository in Vercel as a new project.
+2. Keep the project root at the repository root.
+3. Vercel detects the included Express configuration; do not set an output
+   directory.
+4. Add the backend environment variables above.
+5. Deploy, then verify `https://your-be.vercel.app/health`.
 
-```json
-{
-  "type": "chat.send",
-  "requestId": "request-123",
-  "conversationId": "conversation-123",
-  "message": "Hi"
-}
-```
-
-The server emits `connection.ready`, `chat.started`, one or more `chat.delta`
-messages, then `chat.complete`. Failures use `chat.error`. A running request
-can be cancelled with:
-
-```json
-{ "type": "chat.cancel", "requestId": "request-123" }
-```
-
-The included backend mock returns `Hello! How can I help you today?` for a
-greeting and provides deterministic placeholders for contract, approval, and
-product questions. Replace `mockChatHandler` in `src/socket/chat-socket.ts`
-with the production AI agent handler when it is ready.
-
-## Production safeguards
-
-The server includes graceful shutdown, WebSocket heartbeats, authentication,
-origin checks, JSON validation, message and payload limits, request
-cancellation, and per-connection rate limiting.
+For local Vercel parity, install the Vercel CLI and run `vercel dev`.
 
 ## Scripts
 
 - `npm run dev` starts the TypeScript server in watch mode.
-- `npm run build` creates the `dist` build.
-- `npm start` runs the production build.
+- `npm run build` compiles the production server.
+- `npm start` runs the compiled server.
 - `npm run lint` checks the source.

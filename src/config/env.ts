@@ -12,17 +12,17 @@ const requireEnvironmentVariable = (name: string): string => {
   return value;
 };
 
-const socketAuthToken = process.env.SOCKET_AUTH_TOKEN;
+const corsOrigins = (process.env.CORS_ORIGIN || "http://localhost:5173")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
 
-/** Validated runtime configuration consumed by the HTTP and WebSocket servers. */
+/** Validated runtime configuration consumed by the HTTP server. */
 export const env: AppEnvironment = {
   PORT: Number(process.env.PORT || "5000"),
   GROQ_API_KEY: requireEnvironmentVariable("GROQ_API_KEY"),
   GROQ_MODEL: requireEnvironmentVariable("GROQ_MODEL"),
-  SOCKET_AUTH_TOKEN: socketAuthToken,
-  WS_PATH: process.env.WS_PATH || "/ws",
-  WS_MAX_PAYLOAD_BYTES: 64 * 1024,
+  CORS_ORIGINS: corsOrigins,
   CHAT_MAX_MESSAGE_LENGTH: 1_000,
-  RATE_LIMIT_WINDOW_MS: 60_000,
-  RATE_LIMIT_MAX: 30,
+  CHAT_MAX_HISTORY_MESSAGES: 50,
 };

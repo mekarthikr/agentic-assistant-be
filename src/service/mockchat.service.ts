@@ -29,5 +29,9 @@ const getMockReply = (message: string): string => {
 };
 
 /** Mock handler used until the production AI integration is available. */
-export const mockChatHandler: ChatHandler = async ({ message }) =>
-  getMockReply(message);
+export const mockChatHandler: ChatHandler = async ({ messages }) => {
+  const message =
+    [...messages].reverse().find((entry) => entry.role === "user")?.content ??
+    "";
+  return getMockReply(message);
+};

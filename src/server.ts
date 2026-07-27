@@ -1,25 +1,11 @@
-import { env, groqConfiguration, serviceContainer } from "@app/config";
-import { GroqProvider } from "@app/providers";
-import { AIOrchestrator, ConversationService } from "@app/service";
-import { createServer } from "http";
-import { ChatSocketServer } from "@app/socket";
+import { env } from "@app/config";
 import app from "./app";
 
-const httpServer = createServer(app);
-const conversationService = serviceContainer.get(ConversationService);
-const provider = new GroqProvider(groqConfiguration);
-const orchestrator = new AIOrchestrator(conversationService, provider);
-const socketServer = new ChatSocketServer(httpServer, orchestrator);
-
-httpServer.requestTimeout = 30_000;
-httpServer.headersTimeout = 35_000;
-httpServer.keepAliveTimeout = 5_000;
-
-httpServer.listen(env.PORT, () => {
+const server = app.listen(env.PORT, () => {
   console.log(`Server started on port ${env.PORT}`);
 });
 
-httpServer.on("error", (error) => {
+server.on("error", (error) => {
   console.error("HTTP server failed:", error);
   process.exitCode = 1;
 });
@@ -27,7 +13,7 @@ httpServer.on("error", (error) => {
 let isShuttingDown = false;
 
 /**
- * Gracefully stops WebSocket and HTTP traffic for a process signal.
+ * Gracefully stops HTTP traffic for a process signal.
  *
  * @param signal - Signal that initiated the shutdown.
  */
@@ -45,17 +31,15 @@ const shutdown = (signal: NodeJS.Signals): void => {
   }, 10_000);
   forceShutdownTimer.unref();
 
-  socketServer.close((socketError) => {
-    httpServer.close((httpError) => {
-      clearTimeout(forceShutdownTimer);
+  server.close((error) => {
+    clearTimeout(forceShutdownTimer);
 
-      if (socketError || httpError) {
-        console.error("Error while closing server:", socketError ?? httpError);
-        process.exitCode = 1;
-      }
+    if (error) {
+      console.error("Error while closing server:", error);
+      process.exitCode = 1;
+    }
 
-      console.log("Server closed.");
-    });
+    console.log("Server closed.");
   });
 };
 
