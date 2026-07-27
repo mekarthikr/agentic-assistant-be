@@ -1,5 +1,6 @@
 const fs = require("node:fs");
 const path = require("node:path");
+const webpack = require("webpack");
 
 const outputRoot = path.resolve(__dirname, ".vercel/output");
 const functionDirectory = path.join(outputRoot, "functions/index.func");
@@ -77,8 +78,6 @@ module.exports = {
   resolve: {
     alias: {
       "@app": path.resolve(__dirname, "src"),
-      bufferutil: false,
-      "utf-8-validate": false,
     },
     extensions: [".ts", ".tsx", ".js"],
   },
@@ -93,5 +92,11 @@ module.exports = {
   optimization: {
     minimize: false,
   },
-  plugins: [new VercelBuildOutputPlugin()],
+  plugins: [
+    new webpack.DefinePlugin({
+      "process.env.WS_NO_BUFFER_UTIL": JSON.stringify("1"),
+      "process.env.WS_NO_UTF_8_VALIDATE": JSON.stringify("1"),
+    }),
+    new VercelBuildOutputPlugin(),
+  ],
 };
