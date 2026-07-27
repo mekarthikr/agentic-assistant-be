@@ -9,7 +9,7 @@ import {
 import { createServer } from "http";
 import { ChatSocketServer } from "./socket/index.js";
 import { createEnterpriseTools } from "./tools/enterprise-tools.js";
-import app from "./app";
+import app from "./app.js";
 
 const httpServer = createServer(app);
 const conversationService = serviceContainer.get(ConversationService);

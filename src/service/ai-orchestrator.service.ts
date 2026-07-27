@@ -4,12 +4,12 @@ import {
   type LLMProvider,
   ProviderError,
 } from "../types/index.js";
-import { ConversationService } from "./conversation.service";
+import { ConversationService } from "./conversation.service.js";
 import {
   EnterpriseRagService,
   type EnterpriseRetrieval,
-} from "./enterprise-rag.service";
-import { ToolRegistry } from "./tool-registry.service";
+} from "./enterprise-rag.service.js";
+import { ToolRegistry } from "./tool-registry.service.js";
 
 const DEFAULT_MAX_TOOL_ROUNDS = 8;
 
