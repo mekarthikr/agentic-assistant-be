@@ -89,6 +89,19 @@ The production server uses Groq, the RAG-selected generated tools, and the
 documented enterprise API provider. A deterministic mock provider remains
 available for isolated development and testing.
 
+## Insurance-agent behavior
+
+Every model turn receives an insurance-only system prompt. The model performs
+the semantic decision: it answers general insurance questions directly, refuses
+unrelated requests, or selects a relevant API tool when the answer requires
+current or customer-specific data. The orchestration layer remains in control
+of execution: it validates and runs the selected tool, returns the API result to
+the model, and lets the model format that result into a concise answer.
+
+The prompt also requires the agent to ask for missing required parameters,
+preserve API values exactly, avoid inventing records, and report tool failures
+honestly.
+
 ## Production safeguards
 
 The server includes graceful shutdown, WebSocket heartbeats, authentication,

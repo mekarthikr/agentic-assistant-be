@@ -4,6 +4,7 @@ import {
   type LLMProvider,
   ProviderError,
 } from "../types/index.js";
+import { buildInsuranceAgentSystemPrompt } from "../prompts/insurance-agent.prompt.js";
 import { ConversationService } from "./conversation.service.js";
 import {
   EnterpriseRagService,
@@ -81,14 +82,7 @@ export class AIOrchestrator {
 
     for (let round = 0; round <= maxToolRounds; round += 1) {
       const response = await this.provider.generate({
-        system: retrieval
-          ? [
-              "You are an enterprise assistant. Use the retrieved API documentation and available tools when enterprise data is required.",
-              "Never invent endpoint behavior or enterprise records. Ask for a required parameter when it is missing.",
-              "Retrieved enterprise API documentation:",
-              retrieval.context,
-            ].join("\n\n")
-          : undefined,
+        system: buildInsuranceAgentSystemPrompt(retrieval),
         messages: history,
         tools: this.toolRegistry.toToolSet(retrieval?.toolNames),
         signal: options.signal,
