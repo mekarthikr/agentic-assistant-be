@@ -1,4 +1,4 @@
-import type { LLMProvider, LLMRequest } from "../types/index.js";
+import type { LLMProvider, LLMRequest, LLMResponse } from "@app/types";
 
 const MOCK_STREAM_TOKENS = ["Hello ", "I ", "am ", "Mock ", "AI"];
 const TOKEN_DELAY_MS = 25;
@@ -20,9 +20,14 @@ const delay = (milliseconds: number, signal?: AbortSignal): Promise<void> =>
   });
 
 export class MockProvider implements LLMProvider {
-  public async generate({ signal }: LLMRequest): Promise<string> {
+  public async generate({ signal }: LLMRequest): Promise<LLMResponse> {
     signal?.throwIfAborted();
-    return "This is a mock AI response.";
+    const text = "This is a mock AI response.";
+    return {
+      text,
+      toolCalls: [],
+      assistantMessage: { role: "assistant", content: text },
+    };
   }
 
   public async *stream({ signal }: LLMRequest): AsyncGenerator<string> {

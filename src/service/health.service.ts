@@ -1,6 +1,6 @@
 import { injectable } from "inversify";
 
-import type { HealthStatus } from "../types/index.js";
+import type { HealthStatus } from "@app/types";
 
 /** Provides application health information independently of the HTTP layer. */
 @injectable()

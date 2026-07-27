@@ -1,11 +1,8 @@
 import { createGroq } from "@ai-sdk/groq";
-import { generateText, streamText, type ModelMessage } from "ai";
+import { generateText, streamText, type AssistantModelMessage } from "ai";
 
-import type { GroqConfiguration } from "../config/groq.js";
-import type { LLMProvider, LLMRequest, Message } from "../types/index.js";
-
-const toModelMessages = (messages: readonly Message[]): ModelMessage[] =>
-  messages.map(({ role, content }) => ({ role, content }));
+import type { GroqConfiguration } from "@app/config/groq";
+import type { LLMProvider, LLMRequest, LLMResponse } from "@app/types";
 
 export class GroqProviderError extends Error {
   public constructor(operation: "generate" | "stream", cause: unknown) {
@@ -25,27 +22,59 @@ export class GroqProvider implements LLMProvider {
     this.client = client ?? createGroq({ apiKey: configuration.apiKey });
   }
 
-  public async generate({ messages, signal }: LLMRequest): Promise<string> {
+  public async generate({
+    system,
+    messages,
+    tools,
+    signal,
+  }: LLMRequest): Promise<LLMResponse> {
     try {
       const result = await generateText({
         model: this.client(this.configuration.model),
-        messages: toModelMessages(messages),
+        system,
+        messages: [...messages],
+        tools,
         abortSignal: signal,
       });
-      return result.text;
+      const toolCalls = result.toolCalls.map(
+        ({ toolCallId, toolName, input }) => ({
+          toolCallId,
+          toolName,
+          input,
+        }),
+      );
+      const assistantMessage: AssistantModelMessage = {
+        role: "assistant",
+        content: toolCalls.length
+          ? [
+              ...(result.text
+                ? [{ type: "text" as const, text: result.text }]
+                : []),
+              ...toolCalls.map((call) => ({
+                type: "tool-call" as const,
+                ...call,
+              })),
+            ]
+          : result.text,
+      };
+      return { text: result.text, toolCalls, assistantMessage };
     } catch (error) {
       this.throwProviderError("generate", error, signal);
     }
   }
 
   public async *stream({
+    system,
     messages,
+    tools,
     signal,
   }: LLMRequest): AsyncGenerator<string> {
     try {
       const result = streamText({
         model: this.client(this.configuration.model),
-        messages: toModelMessages(messages),
+        system,
+        messages: [...messages],
+        tools,
         abortSignal: signal,
       });
 

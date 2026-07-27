@@ -6,7 +6,7 @@ import {
   type Conversation,
   type Message,
   type MessageRole,
-} from "../types/index.js";
+} from "@app/types";
 
 export class ConversationService {
   private readonly conversations = new Map<string, Conversation>();

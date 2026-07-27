@@ -1,4 +1,4 @@
-import type { ChatHandler } from "../types/index.js";
+import type { ChatHandler } from "@app/types";
 
 /**
  * Returns a deterministic development response for a user message.
@@ -29,9 +29,5 @@ const getMockReply = (message: string): string => {
 };
 
 /** Mock handler used until the production AI integration is available. */
-export const mockChatHandler: ChatHandler = async ({ messages }) => {
-  const message =
-    [...messages].reverse().find((entry) => entry.role === "user")?.content ??
-    "";
-  return getMockReply(message);
-};
+export const mockChatHandler: ChatHandler = async ({ message }) =>
+  getMockReply(message);

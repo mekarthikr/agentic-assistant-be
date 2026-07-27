@@ -2,15 +2,23 @@ import {
   type ChatOptions,
   EmptyPromptError,
   type LLMProvider,
-  type Message,
   ProviderError,
-} from "../types/index.js";
-import { ConversationService } from "./conversation.service.js";
+} from "@app/types";
+import { ConversationService } from "./conversation.service";
+import {
+  EnterpriseRagService,
+  type EnterpriseRetrieval,
+} from "./enterprise-rag.service";
+import { ToolRegistry } from "./tool-registry.service";
+
+const DEFAULT_MAX_TOOL_ROUNDS = 8;
 
 export class AIOrchestrator {
   public constructor(
     private readonly conversationService: ConversationService,
     private readonly provider: LLMProvider,
+    private readonly toolRegistry: ToolRegistry,
+    private readonly enterpriseRag?: EnterpriseRagService,
   ) {}
 
   public async chat(
@@ -23,13 +31,21 @@ export class AIOrchestrator {
       conversationId,
       prompt,
     );
+    const retrieval = this.enterpriseRag?.retrieve(
+      conversation.messages
+        .filter(({ role }) => role === "user")
+        .slice(-4)
+        .map(({ content }) => content)
+        .join("\n"),
+    );
 
     let response: string;
     try {
-      response = await this.provider.generate({
-        messages: conversation.messages,
-        signal: options.signal,
-      });
+      response = await this.generateWithTools(
+        conversation.messages.map(({ role, content }) => ({ role, content })),
+        options,
+        retrieval,
+      );
     } catch (error) {
       this.throwIfAborted(options.signal);
       throw new ProviderError(
@@ -49,57 +65,50 @@ export class AIOrchestrator {
     options: ChatOptions = {},
   ): AsyncGenerator<string> {
     const prompt = this.validatePrompt(userMessage);
-    const conversation = this.conversationService.addUserMessage(
-      conversationId,
-      prompt,
-    );
-    let response = "";
-
-    try {
-      for await (const token of this.provider.stream({
-        messages: conversation.messages,
-        signal: options.signal,
-      })) {
-        options.signal?.throwIfAborted();
-        response += token;
-        yield token;
-      }
-    } catch (error) {
-      this.throwIfAborted(options.signal);
-      throw new ProviderError(
-        "The AI provider could not stream a response.",
-        error,
-      );
-    }
-
-    this.validateResponse(response);
-    this.conversationService.addAssistantMessage(conversationId, response);
+    // Tool calls require a complete model turn before their result can be
+    // supplied. Reuse the tool-aware path so streaming conversations preserve
+    // the same semantics; transports still receive the final response chunk.
+    yield await this.chat(conversationId, prompt, options);
   }
 
-  public async *streamHistory(
-    messages: readonly Message[],
-    options: ChatOptions = {},
-  ): AsyncGenerator<string> {
-    let response = "";
+  private async generateWithTools(
+    messages: Parameters<LLMProvider["generate"]>[0]["messages"],
+    options: ChatOptions,
+    retrieval?: EnterpriseRetrieval,
+  ): Promise<string> {
+    const maxToolRounds = options.maxToolRounds ?? DEFAULT_MAX_TOOL_ROUNDS;
+    let history = [...messages];
 
-    try {
-      for await (const token of this.provider.stream({
-        messages,
+    for (let round = 0; round <= maxToolRounds; round += 1) {
+      const response = await this.provider.generate({
+        system: retrieval
+          ? [
+              "You are an enterprise assistant. Use the retrieved API documentation and available tools when enterprise data is required.",
+              "Never invent endpoint behavior or enterprise records. Ask for a required parameter when it is missing.",
+              "Retrieved enterprise API documentation:",
+              retrieval.context,
+            ].join("\n\n")
+          : undefined,
+        messages: history,
+        tools: this.toolRegistry.toToolSet(retrieval?.toolNames),
         signal: options.signal,
-      })) {
-        options.signal?.throwIfAborted();
-        response += token;
-        yield token;
+      });
+
+      if (response.toolCalls.length === 0) return response.text;
+      if (round === maxToolRounds) {
+        throw new ProviderError(
+          "The AI provider exceeded the tool-call limit.",
+        );
       }
-    } catch (error) {
-      this.throwIfAborted(options.signal);
-      throw new ProviderError(
-        "The AI provider could not stream a response.",
-        error,
-      );
+
+      history = [
+        ...history,
+        response.assistantMessage,
+        await this.toolRegistry.executeAll(response.toolCalls, options.signal),
+      ];
     }
 
-    this.validateResponse(response);
+    throw new ProviderError("The AI provider exceeded the tool-call limit.");
   }
 
   private validatePrompt(userMessage: string): string {

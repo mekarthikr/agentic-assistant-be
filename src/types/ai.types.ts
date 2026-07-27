@@ -1,3 +1,5 @@
+import type { AssistantModelMessage, ModelMessage, ToolSet } from "ai";
+
 export type MessageRole = "system" | "user" | "assistant";
 
 export interface Message {
@@ -14,17 +16,37 @@ export interface Conversation {
 }
 
 export interface LLMRequest {
-  readonly messages: readonly Message[];
+  /** Retrieved instructions and knowledge supplied separately from chat history. */
+  readonly system?: string;
+  /** AI SDK model messages, including the transient tool-turn messages. */
+  readonly messages: readonly ModelMessage[];
+  /** Declarative schemas only. Execution remains outside the provider. */
+  readonly tools?: ToolSet;
   readonly signal?: AbortSignal;
 }
 
+export interface LLMToolCall {
+  readonly toolCallId: string;
+  readonly toolName: string;
+  readonly input: unknown;
+}
+
+export interface LLMResponse {
+  readonly text: string;
+  readonly toolCalls: readonly LLMToolCall[];
+  /** Must be appended before corresponding tool-result messages. */
+  readonly assistantMessage: AssistantModelMessage;
+}
+
 export interface LLMProvider {
-  generate(request: LLMRequest): Promise<string>;
+  generate(request: LLMRequest): Promise<LLMResponse>;
   stream(request: LLMRequest): AsyncIterable<string>;
 }
 
 export interface ChatOptions {
   readonly signal?: AbortSignal;
+  /** Safety limit for consecutive model-to-tool rounds in one chat turn. */
+  readonly maxToolRounds?: number;
 }
 
 export class InvalidConversationError extends Error {

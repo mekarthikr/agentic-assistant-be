@@ -1,8 +1,8 @@
 import type { Request, Response } from "express";
 import { injectable } from "inversify";
 
-import { serviceContainer } from "../config/index.js";
-import { HealthService } from "../service/index.js";
+import { HealthService } from "@app/service";
+import { serviceContainer } from "@app/config";
 
 /** Handles HTTP requests for backend health information. */
 @injectable()

@@ -6,6 +6,9 @@
 
     "rootDir": "./src",
     "outDir": "./dist",
+    "paths": {
+      "@app/*": ["./src/*"]
+    },
 
     "strict": true,
 
@@ -20,5 +23,9 @@
     "skipLibCheck": true
   },
 
-  "include": ["src"]
+  "include": ["src"],
+  "tsc-alias": {
+    "resolveFullPaths": true,
+    "resolveFullExtension": ".js"
+  }
 }
