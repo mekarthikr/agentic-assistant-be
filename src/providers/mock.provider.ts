@@ -1,4 +1,4 @@
-import type { LLMProvider, LLMRequest, LLMResponse } from "@app/types";
+import type { LLMProvider, LLMRequest, LLMResponse } from "../types/index.js";
 
 const MOCK_STREAM_TOKENS = ["Hello ", "I ", "am ", "Mock ", "AI"];
 const TOKEN_DELAY_MS = 25;

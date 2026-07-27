@@ -3,9 +3,13 @@ import type { Server as HttpServer, IncomingMessage } from "node:http";
 import type { Duplex } from "node:stream";
 import { WebSocket, WebSocketServer } from "ws";
 
-import { env } from "@app/config";
-import { AIOrchestrator } from "@app/service";
-import type { ClientMessage, LiveSocket, WebSocketRawData } from "@app/types";
+import { env } from "../config/index.js";
+import { AIOrchestrator } from "../service/index.js";
+import type {
+  ClientMessage,
+  LiveSocket,
+  WebSocketRawData,
+} from "../types/index.js";
 
 const AUTH_TIMEOUT_MS = 5_000;
 const HEARTBEAT_INTERVAL_MS = 30_000;

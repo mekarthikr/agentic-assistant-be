@@ -1,10 +1,10 @@
-import { env } from "@app/config";
+import { env } from "../config/index.js";
 import type {
   ApiResponse,
   EnterpriseEndpoint,
   EnterpriseEndpointParameter,
-} from "@app/types";
-import { EnterpriseApiError as EnterpriseError } from "@app/types";
+} from "../types/index.js";
+import { EnterpriseApiError as EnterpriseError } from "../types/index.js";
 
 /** HTTP client for the documented enterprise Contracts and Applications APIs. */
 export class EnterpriseApiProvider {

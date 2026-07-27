@@ -1,14 +1,14 @@
-import { env, groqConfiguration, serviceContainer } from "@app/config";
-import { GroqProvider } from "@app/providers";
+import { env, groqConfiguration, serviceContainer } from "./config/index.js";
+import { GroqProvider } from "./providers/index.js";
 import {
   AIOrchestrator,
   ConversationService,
   EnterpriseRagService,
   ToolRegistry,
-} from "@app/service";
+} from "./service/index.js";
 import { createServer } from "http";
-import { ChatSocketServer } from "@app/socket";
-import { createEnterpriseTools } from "@app/tools/enterprise-tools";
+import { ChatSocketServer } from "./socket/index.js";
+import { createEnterpriseTools } from "./tools/enterprise-tools.js";
 import app from "./app";
 
 const httpServer = createServer(app);

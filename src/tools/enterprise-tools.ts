@@ -1,8 +1,8 @@
 import { jsonSchema } from "ai";
 
-import { EnterpriseApiProvider } from "@app/providers";
-import type { ApplicationTool } from "@app/service";
-import type { EnterpriseEndpoint } from "@app/types";
+import { EnterpriseApiProvider } from "../providers/index.js";
+import type { ApplicationTool } from "../service/index.js";
+import type { EnterpriseEndpoint } from "../types/index.js";
 
 type ToolInput = Record<string, unknown>;
 

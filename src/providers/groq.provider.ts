@@ -1,8 +1,8 @@
 import { createGroq } from "@ai-sdk/groq";
 import { generateText, streamText, type AssistantModelMessage } from "ai";
 
-import type { GroqConfiguration } from "@app/config/groq";
-import type { LLMProvider, LLMRequest, LLMResponse } from "@app/types";
+import type { GroqConfiguration } from "../config/groq.js";
+import type { LLMProvider, LLMRequest, LLMResponse } from "../types/index.js";
 
 export class GroqProviderError extends Error {
   public constructor(operation: "generate" | "stream", cause: unknown) {

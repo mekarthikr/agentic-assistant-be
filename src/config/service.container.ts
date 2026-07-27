@@ -2,7 +2,7 @@ import "reflect-metadata";
 
 import { Container } from "inversify";
 
-import type { ClassRef } from "@app/types";
+import type { ClassRef } from "../types/index.js";
 
 class ServiceContainer {
   private static container: Container;

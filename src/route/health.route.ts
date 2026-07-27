@@ -1,7 +1,7 @@
 import { Router } from "express";
 
-import { serviceContainer } from "@app/config";
-import { HealthController } from "@app/controller";
+import { serviceContainer } from "../config/index.js";
+import { HealthController } from "../controller/index.js";
 
 /** Router exposing backend health endpoints. */
 const router = Router();

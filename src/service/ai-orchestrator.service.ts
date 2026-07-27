@@ -3,7 +3,7 @@ import {
   EmptyPromptError,
   type LLMProvider,
   ProviderError,
-} from "@app/types";
+} from "../types/index.js";
 import { ConversationService } from "./conversation.service";
 import {
   EnterpriseRagService,

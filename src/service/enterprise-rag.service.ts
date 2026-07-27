@@ -5,7 +5,7 @@ import path from "node:path";
 import type {
   EnterpriseEndpoint,
   EnterpriseEndpointParameter,
-} from "@app/types";
+} from "../types/index.js";
 
 const INDEX_VERSION = 1;
 const DEFAULT_RESULT_LIMIT = 3;

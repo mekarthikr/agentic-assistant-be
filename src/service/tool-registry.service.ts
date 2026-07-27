@@ -1,6 +1,6 @@
 import type { FlexibleSchema, ToolModelMessage, ToolSet } from "ai";
 
-import type { LLMToolCall } from "@app/types";
+import type { LLMToolCall } from "../types/index.js";
 
 export interface ToolExecutionContext {
   readonly toolCallId: string;
