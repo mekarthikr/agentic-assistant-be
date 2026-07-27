@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 
-import { healthRoutes } from "./route/index.js";
+import { healthRoutes } from "@app/route";
 
 /** Configured Express application shared by the HTTP server and tests. */
 const app = express();

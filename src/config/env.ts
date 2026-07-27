@@ -1,10 +1,16 @@
 import dotenv from "dotenv";
 import path from "node:path";
 
-import type { AppEnvironment } from "../types/index.js";
+import type { AppEnvironment } from "@app/types";
 
 dotenv.config();
 
+/**
+ * Reads a required environment variable and rejects empty values at startup.
+ *
+ * @param name - Environment variable name.
+ * @returns The trimmed configured value.
+ */
 const requireEnvironmentVariable = (name: string): string => {
   const value = process.env[name]?.trim();
   if (!value) {

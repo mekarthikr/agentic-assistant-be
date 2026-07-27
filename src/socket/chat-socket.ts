@@ -3,22 +3,21 @@ import type { Server as HttpServer, IncomingMessage } from "node:http";
 import type { Duplex } from "node:stream";
 import { WebSocket, WebSocketServer } from "ws";
 
-import { env } from "../config/index.js";
-import { AIOrchestrator } from "../service/index.js";
-import type {
-  ClientMessage,
-  LiveSocket,
-  WebSocketRawData,
-} from "../types/index.js";
+import { env } from "@app/config";
+import { AIOrchestrator } from "@app/service";
+import type { ClientMessage, LiveSocket, WebSocketRawData } from "@app/types";
 
 const AUTH_TIMEOUT_MS = 5_000;
 const HEARTBEAT_INTERVAL_MS = 30_000;
+
+/** Sends a JSON payload only while the client connection is open. */
 const sendJson = (socket: WebSocket, payload: object): void => {
   if (socket.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify(payload));
   }
 };
 
+/** Parses every supported `ws` raw-data representation as a client message. */
 const parseMessage = (data: WebSocketRawData): ClientMessage | null => {
   try {
     const buffer = Array.isArray(data)
@@ -32,6 +31,7 @@ const parseMessage = (data: WebSocketRawData): ClientMessage | null => {
   }
 };
 
+/** Counts messages in the current window and reports whether its limit is exceeded. */
 const isRateLimited = (socket: LiveSocket): boolean => {
   const now = Date.now();
 

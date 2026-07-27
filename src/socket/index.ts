@@ -1,1 +1,1 @@
-export * from "./chat-socket.js";
+export * from "./chat-socket";

@@ -40,7 +40,6 @@ export interface LLMResponse {
 
 export interface LLMProvider {
   generate(request: LLMRequest): Promise<LLMResponse>;
-  stream(request: LLMRequest): AsyncIterable<string>;
 }
 
 export interface ChatOptions {
@@ -49,6 +48,7 @@ export interface ChatOptions {
   readonly maxToolRounds?: number;
 }
 
+/** Indicates that a caller supplied an empty or whitespace conversation ID. */
 export class InvalidConversationError extends Error {
   public constructor(message = "A valid conversation ID is required.") {
     super(message);
@@ -56,6 +56,7 @@ export class InvalidConversationError extends Error {
   }
 }
 
+/** Indicates that a caller supplied an empty or whitespace chat prompt. */
 export class EmptyPromptError extends Error {
   public constructor(message = "A non-empty prompt is required.") {
     super(message);
@@ -63,6 +64,7 @@ export class EmptyPromptError extends Error {
   }
 }
 
+/** Indicates that a requested in-memory conversation does not exist. */
 export class ConversationNotFoundError extends Error {
   public constructor(id: string) {
     super(`Conversation "${id}" was not found.`);
@@ -70,6 +72,7 @@ export class ConversationNotFoundError extends Error {
   }
 }
 
+/** Hides provider-specific errors behind an application-level failure. */
 export class ProviderError extends Error {
   public constructor(message: string, cause?: unknown) {
     super(message, cause === undefined ? undefined : { cause });

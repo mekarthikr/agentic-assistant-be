@@ -5,10 +5,42 @@ import path from "node:path";
 import type {
   EnterpriseEndpoint,
   EnterpriseEndpointParameter,
-} from "../types/index.js";
+} from "@app/types";
 
-const INDEX_VERSION = 1;
+const INDEX_VERSION = 2;
 const DEFAULT_RESULT_LIMIT = 3;
+const STOP_WORDS = new Set([
+  "a",
+  "an",
+  "and",
+  "are",
+  "as",
+  "at",
+  "be",
+  "by",
+  "for",
+  "from",
+  "how",
+  "i",
+  "in",
+  "is",
+  "it",
+  "of",
+  "on",
+  "or",
+  "that",
+  "the",
+  "this",
+  "to",
+  "was",
+  "what",
+  "when",
+  "where",
+  "who",
+  "with",
+  "you",
+  "your",
+]);
 
 type SparseVector = Record<string, number>;
 
@@ -30,6 +62,7 @@ export interface EnterpriseRetrieval {
   toolNames: string[];
 }
 
+/** Splits text into normalized searchable terms and removes common filler words. */
 const tokenize = (value: string): string[] =>
   value
     .replace(/([a-z])([A-Z])/g, "$1 $2")
@@ -40,8 +73,9 @@ const tokenize = (value: string): string[] =>
         .replace(/(applications?|approval|approved)$/i, "approv")
         .replace(/(contracts?)$/i, "contract"),
     )
-    .filter((token) => token.length > 1) ?? [];
+    .filter((token) => token.length > 1 && !STOP_WORDS.has(token)) ?? [];
 
+/** Scales a sparse vector to unit length for cosine-similarity comparison. */
 const normalize = (weights: SparseVector): SparseVector => {
   const magnitude = Math.sqrt(
     Object.values(weights).reduce((sum, value) => sum + value * value, 0),
@@ -52,6 +86,7 @@ const normalize = (weights: SparseVector): SparseVector => {
   );
 };
 
+/** Builds a normalized TF-IDF sparse vector for a block of text. */
 const vectorize = (text: string, idf: SparseVector): SparseVector => {
   const counts = new Map<string, number>();
   for (const token of tokenize(text)) {
@@ -68,12 +103,14 @@ const vectorize = (text: string, idf: SparseVector): SparseVector => {
   );
 };
 
+/** Calculates similarity for vectors that have already been normalized. */
 const cosineSimilarity = (left: SparseVector, right: SparseVector): number =>
   Object.entries(left).reduce(
     (score, [term, weight]) => score + weight * (right[term] ?? 0),
     0,
   );
 
+/** Converts an HTTP method and path into a stable model-safe tool identifier. */
 const toToolId = (method: string, endpointPath: string): string => {
   const pathParts = endpointPath
     .split("/")
@@ -90,6 +127,12 @@ const toToolId = (method: string, endpointPath: string): string => {
     .toLowerCase();
 };
 
+/**
+ * Parses one documented path or query parameter bullet.
+ *
+ * @param line - Markdown list item containing a parameter definition.
+ * @param location - Whether the parameter belongs in the URL path or query.
+ */
 const parseParameter = (
   line: string,
   location: "path" | "query",
@@ -166,6 +209,12 @@ export const parseEnterpriseApiDocumentation = (
 export class EnterpriseRagService {
   private constructor(private readonly index: StoredIndex) {}
 
+  /**
+   * Loads a valid cached index or rebuilds it from the Markdown source.
+   *
+   * @param documentationPath - Absolute path to the source documentation.
+   * @param indexPath - Absolute path used for the generated JSON index.
+   */
   public static async load(
     documentationPath: string,
     indexPath: string,
@@ -187,14 +236,22 @@ export class EnterpriseRagService {
     return new EnterpriseRagService(index);
   }
 
+  /** Returns endpoint definitions used to generate executable enterprise tools. */
   public getEndpoints(): EnterpriseEndpoint[] {
     return this.index.entries.map(({ endpoint }) => endpoint);
   }
 
+  /**
+   * Retrieves endpoint documentation that overlaps with the user's query.
+   *
+   * @param query - Recent user messages used as retrieval context.
+   * @param limit - Maximum number of endpoint matches.
+   * @returns Matching documentation and tool names, or `undefined` when unrelated.
+   */
   public retrieve(
     query: string,
     limit = DEFAULT_RESULT_LIMIT,
-  ): EnterpriseRetrieval {
+  ): EnterpriseRetrieval | undefined {
     const queryVector = vectorize(query, this.index.inverseDocumentFrequency);
     const queryTerms = new Set(tokenize(query));
     const queryContainsIdentifier =
@@ -214,7 +271,10 @@ export class EnterpriseRagService {
             : 0),
       }))
       .sort((left, right) => right.score - left.score)
+      .filter(({ score }) => score > 0)
       .slice(0, Math.max(1, limit));
+
+    if (!matches.length) return undefined;
 
     return {
       toolNames: matches.map(({ endpoint }) => endpoint.id),
@@ -233,6 +293,7 @@ export class EnterpriseRagService {
     };
   }
 
+  /** Reads a cached index, treating missing or malformed files as a cache miss. */
   private static async readCachedIndex(
     indexPath: string,
   ): Promise<StoredIndex | null> {
@@ -243,6 +304,7 @@ export class EnterpriseRagService {
     }
   }
 
+  /** Parses documentation and computes the persisted TF-IDF index. */
   private static buildIndex(markdown: string, sourceHash: string): StoredIndex {
     const endpoints = parseEnterpriseApiDocumentation(markdown);
     if (!endpoints.length) {

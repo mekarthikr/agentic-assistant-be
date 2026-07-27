@@ -1,11 +1,18 @@
 import { jsonSchema } from "ai";
 
-import { EnterpriseApiProvider } from "../providers/index.js";
-import type { ApplicationTool } from "../service/index.js";
-import type { EnterpriseEndpoint } from "../types/index.js";
+import { EnterpriseApiProvider } from "@app/providers";
+import type { ApplicationTool } from "@app/service";
+import type { EnterpriseEndpoint } from "@app/types";
 
 type ToolInput = Record<string, unknown>;
 
+/**
+ * Validates unknown model input against the parameters parsed for an endpoint.
+ *
+ * @param input - Untrusted input produced by the model.
+ * @param endpoint - Endpoint whose documented parameters are allowed.
+ * @returns Trimmed string values for recognized parameters only.
+ */
 const toStringInput = (
   input: unknown,
   endpoint: EnterpriseEndpoint,
@@ -28,7 +35,13 @@ const toStringInput = (
   );
 };
 
-/** Generates read-only tools directly from operations parsed from the API docs. */
+/**
+ * Generates executable read-only tools from parsed API operations.
+ *
+ * @param endpoints - Operations discovered in the enterprise documentation.
+ * @param enterpriseApi - Provider responsible for the actual HTTP request.
+ * @returns One application tool for each documented `GET` operation.
+ */
 export const createEnterpriseTools = (
   endpoints: readonly EnterpriseEndpoint[],
   enterpriseApi = new EnterpriseApiProvider(),

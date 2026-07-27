@@ -1,13 +1,22 @@
-import { env } from "../config/index.js";
+import { env } from "@app/config";
 import type {
   ApiResponse,
   EnterpriseEndpoint,
   EnterpriseEndpointParameter,
-} from "../types/index.js";
-import { EnterpriseApiError as EnterpriseError } from "../types/index.js";
+} from "@app/types";
+import { EnterpriseApiError as EnterpriseError } from "@app/types";
 
 /** HTTP client for the documented enterprise Contracts and Applications APIs. */
 export class EnterpriseApiProvider {
+  /**
+   * Calls one validated, read-only endpoint discovered from the API documentation.
+   *
+   * @param endpoint - Parsed endpoint definition that controls the request.
+   * @param input - Validated path and query parameter values.
+   * @param signal - Optional cancellation signal forwarded to `fetch`.
+   * @returns The parsed enterprise API response.
+   * @throws {EnterpriseError} When the endpoint or remote response is invalid.
+   */
   public async call(
     endpoint: EnterpriseEndpoint,
     input: Record<string, string>,
@@ -79,6 +88,14 @@ export class EnterpriseApiProvider {
     return payload;
   }
 
+  /**
+   * Inserts a URL-encoded value into either supported path-parameter syntax.
+   *
+   * @param path - Documented endpoint path.
+   * @param parameter - Path parameter metadata.
+   * @param value - Raw value supplied by the tool call.
+   * @returns The path with the named placeholder replaced.
+   */
   private replacePathParameter(
     path: string,
     parameter: EnterpriseEndpointParameter,

@@ -1,3 +1,4 @@
+/** Standard response envelope returned by the enterprise API. */
 export interface ApiResponse<T> {
   success: boolean;
   message: string;
@@ -5,6 +6,7 @@ export interface ApiResponse<T> {
   timestamp: string;
 }
 
+/** Parameter metadata parsed from the enterprise Markdown documentation. */
 export interface EnterpriseEndpointParameter {
   name: string;
   location: "path" | "query";
@@ -23,34 +25,7 @@ export interface EnterpriseEndpoint {
   documentation: string;
 }
 
-export interface Contract {
-  contractNumber: string;
-  clientName: string;
-  productName: string;
-  issuedDate: string;
-  currentValue: number;
-  anniversaryDate: string;
-  taxType: string;
-  contractStatus: string;
-  taxQualification: string;
-  distributionCompany: string;
-}
-
-export interface Application {
-  clientName: string;
-  product: string;
-  anticipatedPremium: number;
-  startDate: string;
-  taxType: string;
-  status: string;
-  contractNumber: string;
-  productId: string;
-  agentNumber: string;
-  applicationLink: string;
-  contactId: string;
-  applicationName: string;
-}
-
+/** HTTP-style error raised while validating or calling an enterprise endpoint. */
 export class EnterpriseApiError extends Error {
   public constructor(
     message: string,

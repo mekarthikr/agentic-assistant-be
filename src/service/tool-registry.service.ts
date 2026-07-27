@@ -1,6 +1,6 @@
 import type { FlexibleSchema, ToolModelMessage, ToolSet } from "ai";
 
-import type { LLMToolCall } from "../types/index.js";
+import type { LLMToolCall } from "@app/types";
 
 export interface ToolExecutionContext {
   readonly toolCallId: string;
@@ -24,6 +24,11 @@ export interface ApplicationTool {
 export class ToolRegistry {
   private readonly tools = new Map<string, ApplicationTool>();
 
+  /**
+   * Registers application tools and rejects ambiguous duplicate names.
+   *
+   * @param tools - Executable application capabilities available to the model.
+   */
   public constructor(tools: readonly ApplicationTool[] = []) {
     for (const tool of tools) {
       if (this.tools.has(tool.name)) {
@@ -33,7 +38,12 @@ export class ToolRegistry {
     }
   }
 
-  /** Returns only the AI SDK schema metadata; no executable code crosses this boundary. */
+  /**
+   * Converts registered tools to provider-safe AI SDK schemas.
+   *
+   * @param names - Optional allowlist of tool names selected by retrieval.
+   * @returns Declarative tool metadata without executable implementations.
+   */
   public toToolSet(names?: readonly string[]): ToolSet {
     const selectedNames = names ? new Set(names) : null;
     return Object.fromEntries(
@@ -46,6 +56,15 @@ export class ToolRegistry {
     ) as ToolSet;
   }
 
+  /**
+   * Executes tool calls concurrently and converts results to one model message.
+   *
+   * Individual tool errors are returned to the model so it can recover, while
+   * cancellation is always propagated to the caller.
+   *
+   * @param calls - Tool requests produced by the model.
+   * @param signal - Optional cancellation signal shared by every tool.
+   */
   public async executeAll(
     calls: readonly LLMToolCall[],
     signal?: AbortSignal,
@@ -100,6 +119,7 @@ export class ToolRegistry {
     return { role: "tool", content };
   }
 
+  /** Converts any tool result into text accepted by the AI SDK message format. */
   private serialize(value: unknown): string {
     if (typeof value === "string") return value;
     const serialized = JSON.stringify(value);

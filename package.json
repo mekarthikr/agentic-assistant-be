@@ -1,15 +1,14 @@
 {
   "name": "agentic-assistant-be",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc && tsc-alias && tsc -p tsconfig.vercel.json && npm run rag:build",
+    "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
+    "build": "npm run clean && tsc && tsc-alias",
     "start": "node dist/server.js",
-    "dev:vercel": "vercel dev",
-    "rag:build": "node scripts/build-rag.mjs",
     "test": "npm run build && node --test --experimental-test-isolation=none test/enterprise-rag.test.mjs",
-    "lint": "eslint src api scripts",
+    "lint": "eslint src",
     "lint:fix": "eslint src --fix",
     "format": "prettier . --check",
     "format:fix": "prettier . --write",
@@ -29,8 +28,6 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "inversify": "^8.2.2",
-    "reflect-metadata": "^0.2.2",
     "ws": "^8.21.1"
   },
   "devDependencies": {

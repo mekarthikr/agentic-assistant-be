@@ -6,27 +6,27 @@ import {
   type Conversation,
   type Message,
   type MessageRole,
-} from "../types/index.js";
+} from "@app/types";
 
+/** Stores conversation history in memory and returns mutation-safe snapshots. */
 export class ConversationService {
   private readonly conversations = new Map<string, Conversation>();
 
+  /**
+   * Creates a conversation unless it already exists.
+   *
+   * @param id - Optional conversation ID; a UUID is generated when omitted.
+   * @returns An isolated snapshot of the conversation.
+   */
   public createConversation(id: string = randomUUID()): Conversation {
-    const conversationId = this.validateConversationId(id);
-    const existingConversation = this.conversations.get(conversationId);
-    if (existingConversation) return this.toSnapshot(existingConversation);
-
-    const now = new Date();
-    const conversation: Conversation = {
-      id: conversationId,
-      messages: [],
-      createdAt: now,
-      updatedAt: now,
-    };
-    this.conversations.set(conversationId, conversation);
-    return this.toSnapshot(conversation);
+    return this.toSnapshot(this.getOrCreateStoredConversation(id));
   }
 
+  /**
+   * Gets an existing conversation.
+   *
+   * @throws {ConversationNotFoundError} When the ID has not been created.
+   */
   public getConversation(id: string): Conversation {
     const conversationId = this.validateConversationId(id);
     const conversation = this.conversations.get(conversationId);
@@ -34,48 +34,28 @@ export class ConversationService {
     return this.toSnapshot(conversation);
   }
 
+  /** Returns an existing conversation or creates it when first referenced. */
   public getOrCreateConversation(id: string): Conversation {
-    const conversationId = this.validateConversationId(id);
-    return this.conversations.has(conversationId)
-      ? this.getConversation(conversationId)
-      : this.createConversation(conversationId);
+    return this.toSnapshot(this.getOrCreateStoredConversation(id));
   }
 
+  /** Appends a user message and returns the updated conversation snapshot. */
   public addUserMessage(id: string, content: string): Conversation {
     return this.addMessage(id, "user", content);
   }
 
+  /** Appends an assistant message and returns the updated conversation snapshot. */
   public addAssistantMessage(id: string, content: string): Conversation {
     return this.addMessage(id, "assistant", content);
   }
 
-  public deleteConversation(id: string): boolean {
-    return this.conversations.delete(this.validateConversationId(id));
-  }
-
-  public clearConversation(id: string): Conversation {
-    const conversation = this.getConversation(id);
-    const clearedConversation: Conversation = {
-      ...conversation,
-      messages: [],
-      updatedAt: new Date(),
-    };
-    this.conversations.set(conversation.id, clearedConversation);
-    return this.toSnapshot(clearedConversation);
-  }
-
-  public listConversations(): Conversation[] {
-    return [...this.conversations.values()].map((conversation) =>
-      this.toSnapshot(conversation),
-    );
-  }
-
+  /** Creates and stores an immutable message entry for the requested role. */
   private addMessage(
     id: string,
     role: MessageRole,
     content: string,
   ): Conversation {
-    const conversation = this.getOrCreateConversation(id);
+    const conversation = this.getOrCreateStoredConversation(id);
     const message: Message = { role, content, createdAt: new Date() };
     const updatedConversation: Conversation = {
       ...conversation,
@@ -86,12 +66,31 @@ export class ConversationService {
     return this.toSnapshot(updatedConversation);
   }
 
+  /** Returns the internal record for an ID, creating it when necessary. */
+  private getOrCreateStoredConversation(id: string): Conversation {
+    const conversationId = this.validateConversationId(id);
+    const existingConversation = this.conversations.get(conversationId);
+    if (existingConversation) return existingConversation;
+
+    const now = new Date();
+    const conversation: Conversation = {
+      id: conversationId,
+      messages: [],
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.conversations.set(conversationId, conversation);
+    return conversation;
+  }
+
+  /** Trims and validates a caller-supplied conversation identifier. */
   private validateConversationId(id: string): string {
     const conversationId = id.trim();
     if (!conversationId) throw new InvalidConversationError();
     return conversationId;
   }
 
+  /** Copies dates and messages so callers cannot mutate stored history. */
   private toSnapshot(conversation: Conversation): Conversation {
     return {
       ...conversation,

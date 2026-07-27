@@ -13,12 +13,6 @@ npm run dev
 The HTTP health check is available at `GET /health`. WebSocket chat uses
 `ws://localhost:5000/ws` by default.
 
-For a local Vercel-compatible runtime, install the Vercel CLI and run:
-
-```bash
-npm run dev:vercel
-```
-
 ## Enterprise tools
 
 The Markdown file at `src/docs/enterprise-api-documentation.md` is the source of
@@ -85,23 +79,6 @@ can be cancelled with:
 { "type": "chat.cancel", "requestId": "request-123" }
 ```
 
-The production server uses Groq, the RAG-selected generated tools, and the
-documented enterprise API provider. A deterministic mock provider remains
-available for isolated development and testing.
-
-## Insurance-agent behavior
-
-Every model turn receives an insurance-only system prompt. The model performs
-the semantic decision: it answers general insurance questions directly, refuses
-unrelated requests, or selects a relevant API tool when the answer requires
-current or customer-specific data. The orchestration layer remains in control
-of execution: it validates and runs the selected tool, returns the API result to
-the model, and lets the model format that result into a concise answer.
-
-The prompt also requires the agent to ask for missing required parameters,
-preserve API values exactly, avoid inventing records, and report tool failures
-honestly.
-
 ## Production safeguards
 
 The server includes graceful shutdown, WebSocket heartbeats, authentication,
@@ -124,39 +101,19 @@ tool calls; `AIOrchestrator` executes them through the injected `ToolRegistry`,
 appends AI SDK assistant/tool-result messages, and asks the model to continue.
 The loop is bounded to eight tool rounds by default (`ChatOptions.maxToolRounds`).
 
-The generated RAG index is stored with the source so Vercel can bundle it into
-the Function. Editing the source document and running the build regenerates it.
+The base insurance behavior and safety instructions live in
+`src/prompts/insurance-assistant.prompt.ts`. The orchestrator applies this
+prompt to every model request and appends retrieved enterprise documentation
+only when it matches the conversation.
 
-## Vercel deployment
-
-The same Express and native WebSocket server is exported through
-`api/index.ts`. Standalone development listens on `PORT`; Vercel consumes the
-exported server without opening a second listener.
-
-Configure these environment variables in the Vercel project:
-
-- `GROQ_API_KEY`
-- `GROQ_MODEL`
-- `ENTERPRISE_API_BASE_URL`
-- `SOCKET_AUTH_TOKEN`
-
-Then deploy from the repository root:
-
-```bash
-vercel
-```
-
-The build regenerates `src/rag/enterprise-api-index.json`, while `vercel.json`
-ensures that both the source documentation and stored index are included in
-the Function bundle. WebSocket connections are limited by the Function's
-maximum duration, so clients should reconnect with backoff after a disconnect.
+The generated RAG index is runtime data and is excluded from Git. Delete it to
+force a rebuild, although editing the source document also rebuilds it
+automatically.
 
 ## Scripts
 
 - `npm run dev` starts the TypeScript server in watch mode.
-- `npm run dev:vercel` runs through the Vercel development runtime.
-- `npm run build` creates `dist` and regenerates the stored RAG index.
-- `npm run rag:build` regenerates the stored documentation index after a build.
+- `npm run build` creates the `dist` build.
 - `npm start` runs the production build.
 - `npm test` builds and verifies documentation parsing and retrieval.
 - `npm run lint` checks the source.
