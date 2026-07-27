@@ -88,6 +88,47 @@ test("applies the insurance system prompt to every model request", async () => {
   await orchestrator.chat("prompt-test", "Hello");
 
   assert.equal(receivedRequest.system, INSURANCE_ASSISTANT_SYSTEM_PROMPT);
+  assert.match(
+    receivedRequest.system,
+    /back-office copilot for a professional insurance agent/,
+  );
+  assert.match(receivedRequest.system, /Never use placeholders/);
+});
+
+test("retries instead of exposing pseudo-tool markup to the agent", async () => {
+  const requests = [];
+  const provider = {
+    async generate(request) {
+      requests.push(request);
+      const text =
+        requests.length === 1
+          ? '<to=GET /contracts>get_contracts{"clientName":"YOUR NAME HERE"}</to>'
+          : "Which client name or contract number should I look up?";
+      return {
+        text,
+        toolCalls: [],
+        assistantMessage: { role: "assistant", content: text },
+      };
+    },
+  };
+  const orchestrator = new AIOrchestrator(
+    new ConversationService(),
+    provider,
+    new ToolRegistry(),
+  );
+
+  const response = await orchestrator.chat(
+    "tool-markup-test",
+    "Show contracts under my name",
+  );
+
+  assert.equal(requests.length, 2);
+  assert.match(requests[1].system, /exposed internal tool-call syntax/);
+  assert.equal(
+    response,
+    "Which client name or contract number should I look up?",
+  );
+  assert.doesNotMatch(response, /get_contracts|YOUR NAME HERE|<to=/);
 });
 
 test("serves the live flow dashboard and streams sanitized history", async () => {

@@ -50,7 +50,7 @@ export const createEnterpriseTools = (
     .filter(({ method }) => method === "GET")
     .map((endpoint) => ({
       name: endpoint.id,
-      description: `${endpoint.description} Documented endpoint: ${endpoint.method} ${endpoint.path}.`,
+      description: `${endpoint.description} Use this only as a native structured tool call with real values supplied by the insurance agent. Never expose the tool name, endpoint, JSON arguments, sample data, or placeholders in user-facing text. Documented endpoint: ${endpoint.method} ${endpoint.path}.`,
       inputSchema: jsonSchema({
         type: "object",
         properties: Object.fromEntries(

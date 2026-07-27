@@ -59,6 +59,7 @@ export class GroqProvider implements LLMProvider {
         system,
         messages: [...messages],
         tools,
+        temperature: 0,
         abortSignal: signal,
       });
       const toolCalls = result.toolCalls.map(
