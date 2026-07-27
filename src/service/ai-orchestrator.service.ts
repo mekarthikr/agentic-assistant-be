@@ -4,8 +4,8 @@ import {
   type LLMProvider,
   type Message,
   ProviderError,
-} from "@app/types";
-import { ConversationService } from "./conversation.service";
+} from "../types/index.js";
+import { ConversationService } from "./conversation.service.js";
 
 export class AIOrchestrator {
   public constructor(

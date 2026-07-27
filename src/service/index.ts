@@ -1,4 +1,4 @@
-export { HealthService } from "./health.service";
-export { mockChatHandler } from "./mockchat.service";
-export { AIOrchestrator } from "./ai-orchestrator.service";
-export { ConversationService } from "./conversation.service";
+export { HealthService } from "./health.service.js";
+export { mockChatHandler } from "./mockchat.service.js";
+export { AIOrchestrator } from "./ai-orchestrator.service.js";
+export { ConversationService } from "./conversation.service.js";

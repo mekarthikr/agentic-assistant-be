@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 
-import type { AppEnvironment } from "@app/types";
+import type { AppEnvironment } from "../types/index.js";
 
 dotenv.config();
 

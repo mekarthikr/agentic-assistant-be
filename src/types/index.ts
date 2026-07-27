@@ -1,5 +1,5 @@
-export type * from "./chat.types";
-export type * from "./classRef.types";
-export type * from "./Environment.types";
-export type * from "./health.types";
-export * from "./ai.types";
+export type * from "./chat.types.js";
+export type * from "./classRef.types.js";
+export type * from "./Environment.types.js";
+export type * from "./health.types.js";
+export * from "./ai.types.js";

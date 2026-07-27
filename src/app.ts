@@ -1,8 +1,8 @@
 import express from "express";
 import cors from "cors";
 
-import { env } from "@app/config";
-import { chatRoutes, healthRoutes } from "@app/route";
+import { env } from "./config/index.js";
+import { chatRoutes, healthRoutes } from "./route/index.js";
 
 /** Configured Express application shared by the HTTP server and tests. */
 const app = express();

@@ -4,10 +4,14 @@ import {
   env,
   groqConfiguration,
   serviceContainer,
-} from "@app/config";
-import { GroqProvider } from "@app/providers";
-import { AIOrchestrator, ConversationService } from "@app/service";
-import type { ChatHistoryMessage, Message, MessageRole } from "@app/types";
+} from "../config/index.js";
+import { GroqProvider } from "../providers/index.js";
+import { AIOrchestrator, ConversationService } from "../service/index.js";
+import type {
+  ChatHistoryMessage,
+  Message,
+  MessageRole,
+} from "../types/index.js";
 
 const router = Router();
 const roles = new Set<MessageRole>(["system", "user", "assistant"]);

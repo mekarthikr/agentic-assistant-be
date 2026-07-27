@@ -1,4 +1,4 @@
-import type { MessageRole } from "./ai.types";
+import type { MessageRole } from "./ai.types.js";
 
 export interface ChatHistoryMessage {
   role: MessageRole;

@@ -1,4 +1,4 @@
-import type { ChatHandler } from "@app/types";
+import type { ChatHandler } from "../types/index.js";
 
 /**
  * Returns a deterministic development response for a user message.

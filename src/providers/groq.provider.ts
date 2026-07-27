@@ -1,8 +1,8 @@
 import { createGroq } from "@ai-sdk/groq";
 import { generateText, streamText, type ModelMessage } from "ai";
 
-import type { GroqConfiguration } from "@app/config/groq";
-import type { LLMProvider, LLMRequest, Message } from "@app/types";
+import type { GroqConfiguration } from "../config/groq.js";
+import type { LLMProvider, LLMRequest, Message } from "../types/index.js";
 
 const toModelMessages = (messages: readonly Message[]): ModelMessage[] =>
   messages.map(({ role, content }) => ({ role, content }));
