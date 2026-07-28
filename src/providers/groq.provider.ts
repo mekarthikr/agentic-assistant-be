@@ -5,7 +5,12 @@ import {
 import { generateText, streamText, type AssistantModelMessage } from "ai";
 
 import type { GroqConfiguration } from "@app/config/groq";
-import type { LLMProvider, LLMRequest, LLMResponse } from "@app/types";
+import {
+  TokenLimitError,
+  type LLMProvider,
+  type LLMRequest,
+  type LLMResponse,
+} from "@app/types";
 
 export class GroqProviderError extends Error {
   public constructor(operation: "generate" | "stream", cause: unknown) {
@@ -48,6 +53,9 @@ export class GroqProvider implements LLMProvider {
         },
         abortSignal: signal,
       });
+      if (result.finishReason === "length") {
+        throw new TokenLimitError("output");
+      }
       const toolCalls = result.toolCalls.map(
         ({ toolCallId, toolName, input }) => ({
           toolCallId,
@@ -102,6 +110,10 @@ export class GroqProvider implements LLMProvider {
       for await (const textDelta of result.textStream) {
         signal?.throwIfAborted();
         yield textDelta;
+      }
+
+      if ((await result.finishReason) === "length") {
+        throw new TokenLimitError("output");
       }
     } catch (error) {
       this.throwProviderError("stream", error, signal);

@@ -5,7 +5,14 @@ import { WebSocket, WebSocketServer } from "ws";
 
 import { env } from "@app/config";
 import { AIOrchestrator } from "@app/service";
-import type { ClientMessage, LiveSocket, WebSocketRawData } from "@app/types";
+import {
+  getRetryAfterMs,
+  isRateLimitError,
+  isTokenLimitError,
+  type ClientMessage,
+  type LiveSocket,
+  type WebSocketRawData,
+} from "@app/types";
 
 const AUTH_TIMEOUT_MS = 5_000;
 const HEARTBEAT_INTERVAL_MS = 30_000;
@@ -28,7 +35,7 @@ const parseMessage = (data: WebSocketRawData): ClientMessage | null => {
   }
 };
 
-const isRateLimited = (socket: LiveSocket): boolean => {
+const getLocalRetryAfterMs = (socket: LiveSocket): number | undefined => {
   const now = Date.now();
 
   if (now - socket.requestWindowStartedAt >= env.RATE_LIMIT_WINDOW_MS) {
@@ -37,8 +44,17 @@ const isRateLimited = (socket: LiveSocket): boolean => {
   }
 
   socket.requestCount += 1;
-  return socket.requestCount > env.RATE_LIMIT_MAX;
+  if (socket.requestCount <= env.RATE_LIMIT_MAX) return undefined;
+  return Math.max(
+    1,
+    socket.requestWindowStartedAt + env.RATE_LIMIT_WINDOW_MS - now,
+  );
 };
+
+const formatRetryMessage = (retryAfterMs?: number): string =>
+  retryAfterMs === undefined
+    ? "Too many requests. Please wait before trying again."
+    : `Too many requests. Try again in ${Math.ceil(retryAfterMs / 1_000)} seconds.`;
 
 /**
  * Owns the WebSocket chat transport attached to an existing HTTP server.
@@ -198,12 +214,16 @@ export class ChatSocketServer {
       return;
     }
 
-    if (isRateLimited(socket)) {
+    const localRetryAfterMs = getLocalRetryAfterMs(socket);
+    if (localRetryAfterMs !== undefined) {
       sendJson(socket, {
         type: "chat.error",
         requestId,
         code: "RATE_LIMITED",
-        message: "Too many messages. Please wait before trying again.",
+        message: formatRetryMessage(localRetryAfterMs),
+        retryable: true,
+        retryAfterMs: localRetryAfterMs,
+        retryAfterSeconds: Math.ceil(localRetryAfterMs / 1_000),
       });
       return;
     }
@@ -237,15 +257,48 @@ export class ChatSocketServer {
     } catch (error) {
       if (abortController.signal.aborted) return;
 
-      console.error("Chat handler failed", {
+      const tokenLimitExceeded = isTokenLimitError(error);
+      const rateLimited = !tokenLimitExceeded && isRateLimitError(error);
+      const retryAfterMs = rateLimited ? getRetryAfterMs(error) : undefined;
+      const errorCode = tokenLimitExceeded
+        ? "TOKEN_LIMIT_EXCEEDED"
+        : rateLimited
+          ? "RATE_LIMITED"
+        : "CHAT_FAILED";
+      const errorMessage = tokenLimitExceeded
+        ? "This conversation exceeded the AI token limit. Ask for a shorter answer or start a new conversation."
+        : rateLimited
+          ? formatRetryMessage(retryAfterMs)
+          : "Unable to process the chat message.";
+
+      const logContext = {
         requestId,
-        error: error instanceof Error ? error.message : error,
-      });
+        conversationId,
+        code: errorCode,
+        retryAfterMs,
+        error: error instanceof Error ? error.message : String(error),
+      };
+      if (tokenLimitExceeded) {
+        console.warn("Chat token limit exceeded", logContext);
+      } else if (rateLimited) {
+        console.warn("Chat rate limited", logContext);
+      } else {
+        console.error("Chat handler failed", logContext);
+      }
+
       sendJson(socket, {
         type: "chat.error",
         requestId,
-        code: "CHAT_FAILED",
-        message: "Unable to process the chat message.",
+        conversationId,
+        code: errorCode,
+        message: errorMessage,
+        retryable: rateLimited,
+        ...(retryAfterMs === undefined
+          ? {}
+          : {
+              retryAfterMs,
+              retryAfterSeconds: Math.ceil(retryAfterMs / 1_000),
+            }),
       });
     } finally {
       this.removeActiveRequest(socket, requestId, abortController);

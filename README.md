@@ -100,6 +100,25 @@ can be cancelled with:
 { "type": "chat.cancel", "requestId": "request-123" }
 ```
 
+When the model reaches its output limit or the conversation exceeds its context
+window, the server sends a UI-safe error:
+
+```json
+{
+  "type": "chat.error",
+  "requestId": "request-123",
+  "conversationId": "conversation-123",
+  "code": "TOKEN_LIMIT_EXCEEDED",
+  "message": "This conversation exceeded the AI token limit. Ask for a shorter answer or start a new conversation.",
+  "retryable": false
+}
+```
+
+Rate-limit errors use `code: "RATE_LIMITED"` and `retryable: true`. When the
+server or provider supplies a wait duration, the payload includes
+`retryAfterMs`, `retryAfterSeconds`, and a human-readable message such as
+`"Too many requests. Try again in 12 seconds."`.
+
 The included backend mock returns `Hello! How can I help you today?` for a
 greeting and provides deterministic placeholders for contract, approval, and
 product questions. Replace `mockChatHandler` in `src/socket/chat-socket.ts`
