@@ -30,6 +30,7 @@ class VercelBuildOutputPlugin {
             handler: "index.mjs",
             launcherType: "Nodejs",
             shouldAddHelpers: true,
+            maxDuration: 300,
           },
           null,
           2,

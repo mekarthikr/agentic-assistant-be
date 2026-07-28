@@ -27,6 +27,7 @@
   "type": "module",
   "dependencies": {
     "@ai-sdk/groq": "^4.0.13",
+    "@vercel/functions": "^3.7.6",
     "ai": "^7.0.37",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",

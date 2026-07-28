@@ -6,7 +6,7 @@ import {
   ToolRegistry,
 } from "@app/service";
 import { createServer } from "http";
-import { ChatSocketServer } from "@app/socket";
+import { NodeChatSocketServer } from "@app/socket";
 import { createEnterpriseTools } from "@app/tools/enterprise-tools";
 import app from "./app";
 
@@ -19,7 +19,7 @@ const orchestrator = new AIOrchestrator(
   provider,
   toolRegistry,
 );
-const socketServer = new ChatSocketServer(httpServer, orchestrator);
+const socketServer = new NodeChatSocketServer(httpServer, orchestrator);
 
 httpServer.requestTimeout = 30_000;
 httpServer.headersTimeout = 35_000;

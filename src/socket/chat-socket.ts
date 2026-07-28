@@ -48,7 +48,7 @@ const isRateLimited = (socket: LiveSocket): boolean => {
  * heartbeat checks.
  */
 export class ChatSocketServer {
-  private readonly socketServer: WebSocketServer;
+  private readonly connections = new Set<LiveSocket>();
   private readonly activeRequests = new WeakMap<
     LiveSocket,
     Map<string, AbortController>
@@ -56,49 +56,19 @@ export class ChatSocketServer {
   private readonly heartbeat: NodeJS.Timeout;
 
   /**
-   * Creates and attaches the WebSocket server.
+   * Creates a WebSocket connection handler.
    *
-   * @param httpServer - HTTP server that receives WebSocket upgrade requests.
    * @param orchestrator - Service used to coordinate conversation and AI work.
    */
-  public constructor(
-    private readonly httpServer: HttpServer,
-    private readonly orchestrator: AIOrchestrator,
-  ) {
-    this.socketServer = new WebSocketServer({
-      noServer: true,
-      maxPayload: env.WS_MAX_PAYLOAD_BYTES,
-    });
-
-    this.httpServer.on("upgrade", this.handleUpgrade);
-    this.socketServer.on("connection", this.handleConnection);
-
+  public constructor(private readonly orchestrator: AIOrchestrator) {
     this.heartbeat = setInterval(this.checkConnections, HEARTBEAT_INTERVAL_MS);
     this.heartbeat.unref();
   }
 
-  /** Upgrades a matching HTTP request to WebSocket transport. */
-  private readonly handleUpgrade = (
-    request: IncomingMessage,
-    socket: Duplex,
-    head: Buffer,
-  ): void => {
-    const requestUrl = new URL(request.url ?? "/", "http://localhost");
-
-    if (requestUrl.pathname !== env.WS_PATH) {
-      socket.write("HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n");
-      socket.destroy();
-      return;
-    }
-
-    this.socketServer.handleUpgrade(request, socket, head, (webSocket) => {
-      this.socketServer.emit("connection", webSocket, request);
-    });
-  };
-
   /** Initializes state and event handlers for a connected client. */
-  private readonly handleConnection = (webSocket: WebSocket): void => {
+  public readonly accept = (webSocket: WebSocket): void => {
     const socket = webSocket as LiveSocket;
+    this.connections.add(socket);
     socket.isAlive = true;
     socket.isAuthenticated = !env.SOCKET_AUTH_TOKEN;
     socket.requestCount = 0;
@@ -129,6 +99,7 @@ export class ChatSocketServer {
 
     socket.once("close", () => {
       clearTimeout(authTimer);
+      this.connections.delete(socket);
       this.abortActiveRequests(socket, "The client disconnected.");
     });
 
@@ -308,8 +279,7 @@ export class ChatSocketServer {
 
   /** Pings healthy clients and terminates connections that missed a heartbeat. */
   private readonly checkConnections = (): void => {
-    for (const webSocket of this.socketServer.clients) {
-      const socket = webSocket as LiveSocket;
+    for (const socket of this.connections) {
       if (!socket.isAlive) {
         socket.terminate();
         continue;
@@ -321,18 +291,60 @@ export class ChatSocketServer {
   };
 
   /**
-   * Stops heartbeats, detaches upgrade handling, and closes client connections.
+   * Stops heartbeats and closes client connections.
    *
    * @param callback - Invoked when the underlying WebSocket server has closed.
    */
   public close(callback?: (error?: Error) => void): void {
     clearInterval(this.heartbeat);
-    this.httpServer.off("upgrade", this.handleUpgrade);
 
-    for (const socket of this.socketServer.clients) {
+    for (const socket of this.connections) {
       socket.close(1001, "Server shutting down");
     }
 
+    callback?.();
+  }
+}
+
+/** Owns the native Node.js WebSocket upgrade listener used outside Vercel. */
+export class NodeChatSocketServer extends ChatSocketServer {
+  private readonly socketServer: WebSocketServer;
+
+  public constructor(
+    private readonly httpServer: HttpServer,
+    orchestrator: AIOrchestrator,
+  ) {
+    super(orchestrator);
+    this.socketServer = new WebSocketServer({
+      noServer: true,
+      maxPayload: env.WS_MAX_PAYLOAD_BYTES,
+    });
+    this.httpServer.on("upgrade", this.handleUpgrade);
+    this.socketServer.on("connection", this.accept);
+  }
+
+  /** Upgrades a matching HTTP request to WebSocket transport. */
+  private readonly handleUpgrade = (
+    request: IncomingMessage,
+    socket: Duplex,
+    head: Buffer,
+  ): void => {
+    const requestUrl = new URL(request.url ?? "/", "http://localhost");
+
+    if (requestUrl.pathname !== env.WS_PATH) {
+      socket.write("HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n");
+      socket.destroy();
+      return;
+    }
+
+    this.socketServer.handleUpgrade(request, socket, head, (webSocket) => {
+      this.socketServer.emit("connection", webSocket, request);
+    });
+  };
+
+  public override close(callback?: (error?: Error) => void): void {
+    this.httpServer.off("upgrade", this.handleUpgrade);
+    super.close();
     this.socketServer.close(callback);
   }
 }

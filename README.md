@@ -26,10 +26,11 @@ root at the repository root, and configure:
 Vercel runs `npm run build` and serves the generated Build Output API artifact
 from `.vercel/output`. Verify the deployment with `GET /health`.
 
-The local server continues to provide WebSocket chat at `/ws`. Vercel Functions
-do not provide a persistent WebSocket server, so deploy the WebSocket transport
-to a long-running Node.js host or replace it with a Vercel-compatible realtime
-service before using chat in production.
+The local server provides WebSocket chat at `/ws` through Node's native upgrade
+event. On Vercel, the same endpoint uses the Vercel Functions WebSocket upgrade
+bridge. Enable Fluid Compute for the project and use Vercel CLI 54.14.2 or
+later. Connections are bounded by the Function's maximum duration, so clients
+must reconnect with backoff when a connection closes.
 
 ## Enterprise tools
 
