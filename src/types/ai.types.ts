@@ -1,4 +1,9 @@
-import type { AssistantModelMessage, ModelMessage, ToolSet } from "ai";
+import type {
+  AssistantModelMessage,
+  ModelMessage,
+  ToolChoice,
+  ToolSet,
+} from "ai";
 
 export type MessageRole = "system" | "user" | "assistant";
 
@@ -22,6 +27,8 @@ export interface LLMRequest {
   readonly messages: readonly ModelMessage[];
   /** Declarative schemas only. Execution remains outside the provider. */
   readonly tools?: ToolSet;
+  /** Controls whether the provider may, must, or must not call a tool. */
+  readonly toolChoice?: ToolChoice<ToolSet>;
   readonly signal?: AbortSignal;
 }
 
@@ -94,6 +101,8 @@ const TOKEN_LIMIT_PATTERN =
   /context_length_exceeded|maximum context length|max(?:imum)? (?:output )?tokens?|token limit|too many tokens/i;
 const RATE_LIMIT_PATTERN =
   /rate[_ -]?limit|too many requests|requests per (?:minute|day)|tokens per minute/i;
+const OUTPUT_PARSE_PATTERN =
+  /output_parse_failed|parsing failed.*generated output|generated output.*could not be parsed/i;
 
 /** Detects token-limit failures through provider and retry error wrappers. */
 export const isTokenLimitError = (error: unknown): boolean => {
@@ -167,6 +176,47 @@ export const isRateLimitError = (error: unknown): boolean => {
     ]) {
       const value = record[key];
       if (typeof value === "string" && RATE_LIMIT_PATTERN.test(value)) {
+        return true;
+      }
+      if (value !== undefined) pending.push(value);
+    }
+  }
+
+  return false;
+};
+
+/** Detects malformed structured/tool output reported by the provider. */
+export const isOutputParseError = (error: unknown): boolean => {
+  const pending: unknown[] = [error];
+  const visited = new Set<object>();
+
+  while (pending.length > 0) {
+    const current = pending.pop();
+    if (current === null || typeof current !== "object") {
+      if (
+        typeof current === "string" &&
+        OUTPUT_PARSE_PATTERN.test(current)
+      ) {
+        return true;
+      }
+      continue;
+    }
+    if (visited.has(current)) continue;
+    visited.add(current);
+
+    const record = current as Record<string, unknown>;
+    for (const key of [
+      "message",
+      "code",
+      "responseBody",
+      "cause",
+      "lastError",
+      "errors",
+      "data",
+      "error",
+    ]) {
+      const value = record[key];
+      if (typeof value === "string" && OUTPUT_PARSE_PATTERN.test(value)) {
         return true;
       }
       if (value !== undefined) pending.push(value);

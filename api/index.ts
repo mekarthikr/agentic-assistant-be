@@ -11,6 +11,7 @@ import {
 } from "@app/service";
 import { ChatSocketServer } from "@app/socket";
 import { createEnterpriseTools } from "@app/tools/enterprise-tools";
+import { logError } from "@app/utils/error-logger";
 
 const conversationService = serviceContainer.get(ConversationService);
 const provider = new GroqProvider(groqConfiguration);
@@ -54,7 +55,10 @@ export default async function handler(
       maxPayload: env.WS_MAX_PAYLOAD_BYTES,
     });
   } catch (error) {
-    console.error("Vercel WebSocket upgrade failed:", error);
+    logError("Vercel WebSocket upgrade failed", error, {
+      method: request.method,
+      path: requestUrl.pathname,
+    });
 
     if (!response.headersSent && !response.writableEnded) {
       response.statusCode = 500;

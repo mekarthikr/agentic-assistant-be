@@ -8,6 +8,7 @@ import {
 import { createServer } from "http";
 import { NodeChatSocketServer } from "@app/socket";
 import { createEnterpriseTools } from "@app/tools/enterprise-tools";
+import { logError } from "@app/utils/error-logger";
 import app from "./app";
 
 const httpServer = createServer(app);
@@ -30,7 +31,7 @@ httpServer.listen(env.PORT, () => {
 });
 
 httpServer.on("error", (error) => {
-  console.error("HTTP server failed:", error);
+  logError("HTTP server failed", error, { port: env.PORT });
   process.exitCode = 1;
 });
 
@@ -60,7 +61,11 @@ const shutdown = (signal: NodeJS.Signals): void => {
       clearTimeout(forceShutdownTimer);
 
       if (socketError || httpError) {
-        console.error("Error while closing server:", socketError ?? httpError);
+        logError(
+          "Error while closing server",
+          socketError ?? httpError,
+          { signal },
+        );
         process.exitCode = 1;
       }
 

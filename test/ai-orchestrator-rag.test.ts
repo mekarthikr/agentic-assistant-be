@@ -12,11 +12,13 @@ class CapturingProvider implements LLMProvider {
   public instructions: string | undefined;
   public messages: readonly ModelMessage[] = [];
   public toolNames: readonly string[] = [];
+  public toolChoice: LLMRequest["toolChoice"];
 
   public async generate(request: LLMRequest): Promise<LLMResponse> {
     this.instructions = request.instructions;
     this.messages = request.messages;
     this.toolNames = Object.keys(request.tools ?? {});
+    this.toolChoice = request.toolChoice;
     return {
       text: "Contract lookup ready.",
       toolCalls: [],
@@ -110,10 +112,22 @@ test("exposes only tools relevant to the current request", async () => {
 
   await orchestrator.chat("contract", "Find contract 1561091");
   assert.deepEqual(provider.toolNames, ["getContract"]);
+  assert.deepEqual(provider.toolChoice, {
+    type: "tool",
+    toolName: "getContract",
+  });
 
   await orchestrator.chat("application", "Show approved applications");
   assert.deepEqual(provider.toolNames, ["searchApplications"]);
 
+  await orchestrator.chat("contract-typo", "Get me all contrats");
+  assert.deepEqual(provider.toolNames, ["searchContracts"]);
+  assert.deepEqual(provider.toolChoice, {
+    type: "tool",
+    toolName: "searchContracts",
+  });
+
   await orchestrator.chat("greeting", "Hello");
   assert.deepEqual(provider.toolNames, []);
+  assert.equal(provider.toolChoice, "auto");
 });

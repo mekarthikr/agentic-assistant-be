@@ -1,6 +1,7 @@
 import type { FlexibleSchema, ToolModelMessage, ToolSet } from "ai";
 
 import type { LLMToolCall } from "@app/types";
+import { logError } from "@app/utils/error-logger";
 
 const MAX_TOOL_RESULT_CHARACTERS = 6_000;
 
@@ -84,6 +85,11 @@ export class ToolRegistry {
           };
         } catch (error) {
           signal?.throwIfAborted();
+          logError("Enterprise tool execution failed", error, {
+            toolName: call.toolName,
+            toolCallId: call.toolCallId,
+            input: call.input,
+          });
           return {
             type: "tool-result" as const,
             toolCallId: call.toolCallId,

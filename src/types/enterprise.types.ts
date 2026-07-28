@@ -37,8 +37,9 @@ export class EnterpriseApiError extends Error {
   public constructor(
     message: string,
     public readonly statusCode: number,
+    cause?: unknown,
   ) {
-    super(message);
+    super(message, cause === undefined ? undefined : { cause });
     this.name = "EnterpriseApiError";
   }
 }

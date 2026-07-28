@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   getRetryAfterMs,
+  isOutputParseError,
   isRateLimitError,
   isTokenLimitError,
   ProviderError,
@@ -56,4 +57,19 @@ test("extracts an HTTP-date Retry-After value", () => {
 
   assert.equal(getRetryAfterMs(error, now), 30_000);
   assert.equal(isRateLimitError(new Error("Network unavailable.")), false);
+});
+
+test("detects Groq output parsing failures through provider wrappers", () => {
+  const error = new ProviderError("Provider failed", {
+    statusCode: 400,
+    responseBody: JSON.stringify({
+      error: {
+        code: "output_parse_failed",
+        message: "The generated output could not be parsed.",
+      },
+    }),
+  });
+
+  assert.equal(isOutputParseError(error), true);
+  assert.equal(isOutputParseError(new Error("Network unavailable.")), false);
 });

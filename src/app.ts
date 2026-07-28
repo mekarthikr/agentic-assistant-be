@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 
 import { healthRoutes } from "@app/route";
+import { logError } from "@app/utils/error-logger";
 
 /** Configured Express application shared by the HTTP server and tests. */
 const app = express();
@@ -32,7 +33,10 @@ app.use(
       return;
     }
 
-    console.error("Unhandled request error:", error);
+    logError("Unhandled HTTP request error", error, {
+      method: _req.method,
+      path: _req.path,
+    });
     res.status(500).json({ success: false, message: "Internal server error." });
   },
 );

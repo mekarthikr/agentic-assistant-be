@@ -7,12 +7,14 @@ import { env } from "@app/config";
 import { AIOrchestrator } from "@app/service";
 import {
   getRetryAfterMs,
+  isOutputParseError,
   isRateLimitError,
   isTokenLimitError,
   type ClientMessage,
   type LiveSocket,
   type WebSocketRawData,
 } from "@app/types";
+import { logError } from "@app/utils/error-logger";
 
 const AUTH_TIMEOUT_MS = 5_000;
 const HEARTBEAT_INTERVAL_MS = 30_000;
@@ -30,7 +32,10 @@ const parseMessage = (data: WebSocketRawData): ClientMessage | null => {
         ? Buffer.from(data)
         : Buffer.from(data);
     return JSON.parse(buffer.toString("utf8")) as ClientMessage;
-  } catch {
+  } catch (error) {
+    logError("Invalid WebSocket message JSON", error, {
+      rawDataBytes: Buffer.isBuffer(data) ? data.byteLength : undefined,
+    });
     return null;
   }
 };
@@ -120,7 +125,7 @@ export class ChatSocketServer {
     });
 
     socket.on("error", (error) => {
-      console.error("WebSocket connection error:", error.message);
+      logError("WebSocket connection error", error);
     });
   };
 
@@ -255,36 +260,42 @@ export class ChatSocketServer {
         });
       }
     } catch (error) {
-      console.log(error)
       if (abortController.signal.aborted) return;
 
       const tokenLimitExceeded = isTokenLimitError(error);
       const rateLimited = !tokenLimitExceeded && isRateLimitError(error);
+      const outputParseFailed =
+        !tokenLimitExceeded && !rateLimited && isOutputParseError(error);
       const retryAfterMs = rateLimited ? getRetryAfterMs(error) : undefined;
       const errorCode = tokenLimitExceeded
         ? "TOKEN_LIMIT_EXCEEDED"
         : rateLimited
           ? "RATE_LIMITED"
-        : "CHAT_FAILED";
+          : outputParseFailed
+            ? "MODEL_OUTPUT_INVALID"
+            : "CHAT_FAILED";
       const errorMessage = tokenLimitExceeded
         ? "This conversation exceeded the AI token limit. Ask for a shorter answer or start a new conversation."
         : rateLimited
           ? formatRetryMessage(retryAfterMs)
-          : "Unable to process the chat message.";
+          : outputParseFailed
+            ? "The AI could not format its tool request. Please try again or rephrase your request."
+            : "Unable to process the chat message.";
 
       const logContext = {
         requestId,
         conversationId,
         code: errorCode,
         retryAfterMs,
-        error: error instanceof Error ? error.message : String(error),
       };
       if (tokenLimitExceeded) {
-        console.warn("Chat token limit exceeded", logContext);
+        logError("Chat token limit exceeded", error, logContext, "warn");
       } else if (rateLimited) {
-        console.warn("Chat rate limited", logContext);
+        logError("Chat rate limited", error, logContext, "warn");
+      } else if (outputParseFailed) {
+        logError("Chat model output parsing failed", error, logContext, "warn");
       } else {
-        console.error("Chat handler failed", logContext);
+        logError("Chat handler failed", error, logContext);
       }
 
       sendJson(socket, {
@@ -293,7 +304,7 @@ export class ChatSocketServer {
         conversationId,
         code: errorCode,
         message: errorMessage,
-        retryable: rateLimited,
+        retryable: rateLimited || outputParseFailed,
         ...(retryAfterMs === undefined
           ? {}
           : {

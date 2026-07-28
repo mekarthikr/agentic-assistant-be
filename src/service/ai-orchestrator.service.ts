@@ -10,12 +10,14 @@ import {
 } from "@app/knowledge";
 import { ConversationService } from "./conversation.service";
 import { ToolRegistry } from "./tool-registry.service";
+import { logError } from "@app/utils/error-logger";
 
 const DEFAULT_MAX_TOOL_ROUNDS = 3;
 const HISTORY_MESSAGE_LIMIT = 6;
 const RETRIEVAL_MESSAGE_LIMIT = 2;
 const RECORD_IDENTIFIER_PATTERN = /\b\d{5,}\b/;
-const CONTRACT_PATTERN = /\b(?:annuit(?:y|ies)|contracts?|polic(?:y|ies))\b/i;
+const CONTRACT_PATTERN =
+  /\b(?:annuit(?:y|ies)|contracts?|contrats?|polic(?:y|ies))\b/i;
 const APPLICATION_PATTERN = /\b(?:applications?|approvals?|cases?)\b/i;
 const AMBIGUOUS_RECORD_PATTERN = /\b(?:clients?|customers?|records?)\b/i;
 
@@ -56,6 +58,10 @@ export class AIOrchestrator {
       );
     } catch (error) {
       this.throwIfAborted(options.signal);
+      logError("AI orchestration failed", error, {
+        conversationId,
+        historyMessageCount: conversation.messages.length,
+      });
       throw new ProviderError(
         "The AI provider could not generate a response.",
         error,
@@ -89,10 +95,17 @@ export class AIOrchestrator {
     let history = [...messages];
 
     for (let round = 0; round <= maxToolRounds; round += 1) {
+      const toolChoice =
+        round > 0 || toolNames.length === 0
+          ? "auto"
+          : toolNames.length === 1
+            ? ({ type: "tool", toolName: toolNames[0] } as const)
+            : "required";
       const response = await this.provider.generate({
         instructions,
         messages: history,
         tools: this.toolRegistry.toToolSet(toolNames),
+        toolChoice,
         signal: options.signal,
       });
 
