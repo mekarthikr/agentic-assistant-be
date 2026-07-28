@@ -42,7 +42,7 @@ export class GroqProvider implements LLMProvider {
         instructions,
         messages: [...messages],
         tools,
-        maxOutputTokens: 384,
+        maxOutputTokens: 2048,
         maxRetries: 1,
         temperature: 0,
         providerOptions: {
@@ -95,7 +95,7 @@ export class GroqProvider implements LLMProvider {
         instructions,
         messages: [...messages],
         tools,
-        maxOutputTokens: 384,
+        maxOutputTokens: 2048,
         maxRetries: 1,
         temperature: 0,
         providerOptions: {
