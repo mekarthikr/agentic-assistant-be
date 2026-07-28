@@ -33,6 +33,7 @@ export class MockProvider implements LLMProvider {
       toolCalls: [],
       assistantMessage: { role: "assistant", content: text },
       usage: { inputTokens: 5, outputTokens: 7, totalTokens: 12 },
+      remainingTokens: null,
     };
   }
 

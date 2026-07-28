@@ -50,7 +50,8 @@ export interface LLMTokenUsage {
 }
 
 export interface ModelTokenUsage extends ModelInfo, LLMTokenUsage {
-  readonly remainingTokens: number;
+  /** Exact per-minute token allowance remaining, reported by the provider. */
+  readonly remainingTokens: number | null;
 }
 
 export interface LLMResponse {
@@ -60,6 +61,8 @@ export interface LLMResponse {
   readonly assistantMessage: AssistantModelMessage;
   /** Exact usage reported by the provider for this model call. */
   readonly usage: LLMTokenUsage;
+  /** Exact per-minute token allowance remaining from provider HTTP headers. */
+  readonly remainingTokens: number | null;
 }
 
 export interface LLMProvider {

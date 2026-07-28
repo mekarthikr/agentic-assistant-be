@@ -93,10 +93,7 @@ export class AIOrchestrator {
         ...response.usage,
         model,
         contextWindow,
-        remainingTokens: Math.max(
-          0,
-          contextWindow - response.usage.totalTokens,
-        ),
+        remainingTokens: response.remainingTokens,
       },
     };
   }

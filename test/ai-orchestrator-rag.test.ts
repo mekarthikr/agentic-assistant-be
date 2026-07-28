@@ -31,6 +31,7 @@ class CapturingProvider implements LLMProvider {
         content: "Contract lookup ready.",
       },
       usage: { inputTokens: 120, outputTokens: 30, totalTokens: 150 },
+      remainingTokens: 5_850,
     };
   }
 
@@ -67,7 +68,7 @@ test("loads the generated enterprise API RAG index", () => {
   assert.ok(rag.retrieveContext("applications", 10).length <= 3_500);
 });
 
-test("returns exact model usage and remaining context after a streamed turn", async () => {
+test("returns exact model usage and provider rate-limit balance", async () => {
   const orchestrator = new AIOrchestrator(
     new ConversationService(),
     new CapturingProvider(),
@@ -88,7 +89,7 @@ test("returns exact model usage and remaining context after a streamed turn", as
       inputTokens: 120,
       outputTokens: 30,
       totalTokens: 150,
-      remainingTokens: 850,
+      remainingTokens: 5_850,
     },
   });
 });

@@ -11,6 +11,30 @@ import {
 } from "@app/types";
 import { logError } from "@app/utils/error-logger";
 
+const REMAINING_TOKENS_HEADER = "x-ratelimit-remaining-tokens";
+
+const requireTokenCount = (
+  value: number | undefined,
+  field: string,
+): number => {
+  if (value === undefined || !Number.isSafeInteger(value) || value < 0) {
+    throw new Error(`Groq response usage did not include a valid ${field}.`);
+  }
+  return value;
+};
+
+const getRemainingTokens = (
+  headers: Record<string, string> | undefined,
+): number | null => {
+  const value = Object.entries(headers ?? {}).find(
+    ([name]) => name.toLowerCase() === REMAINING_TOKENS_HEADER,
+  )?.[1];
+  if (value === undefined || !/^\d+$/.test(value)) return null;
+
+  const remainingTokens = Number(value);
+  return Number.isSafeInteger(remainingTokens) ? remainingTokens : null;
+};
+
 export class GroqProviderError extends Error {
   public constructor(operation: "generate" | "stream", cause: unknown) {
     super(`Groq could not ${operation} a response.`, { cause });
@@ -107,17 +131,25 @@ identifier from the conversation when the schema requires one.`
             ]
           : result.text,
       };
-      const inputTokens = result.usage.inputTokens ?? 0;
-      const outputTokens = result.usage.outputTokens ?? 0;
       return {
         text: result.text,
         toolCalls,
         assistantMessage,
         usage: {
-          inputTokens,
-          outputTokens,
-          totalTokens: result.usage.totalTokens ?? inputTokens + outputTokens,
+          inputTokens: requireTokenCount(
+            result.usage.inputTokens,
+            "input token count",
+          ),
+          outputTokens: requireTokenCount(
+            result.usage.outputTokens,
+            "output token count",
+          ),
+          totalTokens: requireTokenCount(
+            result.usage.totalTokens,
+            "total token count",
+          ),
         },
+        remainingTokens: getRemainingTokens(result.response.headers),
       };
     } catch (error) {
       this.throwProviderError("generate", error, signal);
