@@ -1,5 +1,4 @@
-import { createApplicationServer } from "../src/application-server";
+import app from "@app/app";
 
-const { httpServer } = await createApplicationServer();
-
-export default httpServer;
+// Vercel invokes the Express application as a serverless function.
+export default app;

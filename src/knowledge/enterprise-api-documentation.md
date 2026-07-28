@@ -1,4 +1,4 @@
-# Mock API Documentation
+# Enterprise API Documentation
 
 Base URL: `https://mock-api-server-zeta.vercel.app/api/v1`
 

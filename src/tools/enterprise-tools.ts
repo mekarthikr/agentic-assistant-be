@@ -2,71 +2,126 @@ import { jsonSchema } from "ai";
 
 import { EnterpriseApiProvider } from "@app/providers";
 import type { ApplicationTool } from "@app/service";
-import type { EnterpriseEndpoint } from "@app/types";
 
+const contractFilters = [
+  "contractNumber",
+  "clientName",
+  "productName",
+  "contractStatus",
+  "taxType",
+  "taxQualification",
+  "distributionCompany",
+] as const;
+
+const applicationFilters = [
+  "clientName",
+  "product",
+  "taxType",
+  "status",
+  "contractNumber",
+  "productId",
+  "agentNumber",
+  "contactId",
+  "applicationName",
+  "startDate",
+] as const;
+
+type FilterName =
+  (typeof contractFilters)[number] | (typeof applicationFilters)[number];
 type ToolInput = Record<string, unknown>;
 
-/**
- * Validates unknown model input against the parameters parsed for an endpoint.
- *
- * @param input - Untrusted input produced by the model.
- * @param endpoint - Endpoint whose documented parameters are allowed.
- * @returns Trimmed string values for recognized parameters only.
- */
-const toStringInput = (
-  input: unknown,
-  endpoint: EnterpriseEndpoint,
-): Record<string, string> => {
-  if (typeof input !== "object" || input === null || Array.isArray(input)) {
-    throw new Error("Tool input must be an object.");
-  }
+const isRecord = (value: unknown): value is ToolInput =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
 
-  const record = input as ToolInput;
+const requiredString = (input: unknown, field: string): string => {
+  if (
+    !isRecord(input) ||
+    typeof input[field] !== "string" ||
+    !input[field].trim()
+  ) {
+    throw new Error(`${field} is required.`);
+  }
+  return input[field].trim();
+};
+
+const filtersFrom = (
+  input: unknown,
+  names: readonly FilterName[],
+): Record<string, string | undefined> => {
+  if (!isRecord(input)) throw new Error("Tool input must be an object.");
+
   return Object.fromEntries(
-    endpoint.parameters.flatMap((parameter) => {
-      const value = record[parameter.name];
-      if (parameter.required && (typeof value !== "string" || !value.trim())) {
-        throw new Error(`${parameter.name} is required.`);
-      }
-      return typeof value === "string" && value.trim()
-        ? [[parameter.name, value.trim()]]
-        : [];
-    }),
+    names.map((name) => [
+      name,
+      typeof input[name] === "string" ? input[name].trim() : undefined,
+    ]),
   );
 };
 
-/**
- * Generates executable read-only tools from parsed API operations.
- *
- * @param endpoints - Operations discovered in the enterprise documentation.
- * @param enterpriseApi - Provider responsible for the actual HTTP request.
- * @returns One application tool for each documented `GET` operation.
- */
+const filterSchema = (names: readonly string[]) => ({
+  type: "object" as const,
+  properties: Object.fromEntries(
+    names.map((name) => [
+      name,
+      { type: "string" as const, description: `Optional ${name} filter.` },
+    ]),
+  ),
+  additionalProperties: false as const,
+});
+
+/** Creates the enterprise capabilities that Groq can request during a chat turn. */
 export const createEnterpriseTools = (
-  endpoints: readonly EnterpriseEndpoint[],
   enterpriseApi = new EnterpriseApiProvider(),
-): ApplicationTool[] =>
-  endpoints
-    .filter(({ method }) => method === "GET")
-    .map((endpoint) => ({
-      name: endpoint.id,
-      description: `${endpoint.description} Documented endpoint: ${endpoint.method} ${endpoint.path}.`,
-      inputSchema: jsonSchema({
-        type: "object",
-        properties: Object.fromEntries(
-          endpoint.parameters.map((parameter) => [
-            parameter.name,
-            {
-              type: "string",
-              description: parameter.description,
-            },
-          ]),
-        ),
-        required: endpoint.parameters
-          .filter(({ required }) => required)
-          .map(({ name }) => name),
-        additionalProperties: false,
-      }),
-      execute: (input, { signal }) =>
-        enterpriseApi.call(endpoint, toStringInput(input, endpoint), signal),
-    }));
+): ApplicationTool[] => [
+  {
+    name: "searchContracts",
+    description:
+      "Search insurance contracts using one or more known filters. Use this for contract lists or when a client name, product, status, or tax details are provided.",
+    inputSchema: jsonSchema(filterSchema(contractFilters)),
+    execute: (input, { signal }) =>
+      enterpriseApi.getContracts(filtersFrom(input, contractFilters), signal),
+  },
+  {
+    name: "getContract",
+    description:
+      "Get one insurance contract when its contract number is known.",
+    inputSchema: jsonSchema({
+      type: "object",
+      properties: { contractNumber: { type: "string" } },
+      required: ["contractNumber"],
+      additionalProperties: false,
+    }),
+    execute: (input, { signal }) =>
+      enterpriseApi.getContract(
+        requiredString(input, "contractNumber"),
+        signal,
+      ),
+  },
+  {
+    name: "searchApplications",
+    description:
+      "Search insurance applications using one or more known filters, including application status, client name, product, agent number, or contract number.",
+    inputSchema: jsonSchema(filterSchema(applicationFilters)),
+    execute: (input, { signal }) =>
+      enterpriseApi.getApplications(
+        filtersFrom(input, applicationFilters),
+        signal,
+      ),
+  },
+  {
+    name: "getApplication",
+    description:
+      "Get one insurance application or approval status when its contract number is known.",
+    inputSchema: jsonSchema({
+      type: "object",
+      properties: { contractNumber: { type: "string" } },
+      required: ["contractNumber"],
+      additionalProperties: false,
+    }),
+    execute: (input, { signal }) =>
+      enterpriseApi.getApplication(
+        requiredString(input, "contractNumber"),
+        signal,
+      ),
+  },
+];

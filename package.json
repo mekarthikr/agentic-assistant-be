@@ -7,14 +7,13 @@
   },
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "clean": "node -e \"const fs=require('node:fs'); for (const path of ['dist', '.vercel/output']) fs.rmSync(path, { recursive: true, force: true })\"",
-    "build": "npm run clean && tsc && tsc-alias && webpack --config webpack.config.cjs",
+    "build": "tsc && tsc-alias && node scripts/copy-knowledge.mjs && webpack --config webpack.config.cjs",
     "start": "node dist/server.js",
-    "test": "npm run build && node --test --experimental-test-isolation=none test/enterprise-rag.test.mjs",
     "lint": "eslint src api",
     "lint:fix": "eslint src --fix",
     "format": "prettier . --check",
     "format:fix": "prettier . --write",
+    "test": "tsx --test test/*.test.ts",
     "prepare": "husky"
   },
   "repository": {
@@ -31,13 +30,15 @@
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "inversify": "^8.2.2",
+    "reflect-metadata": "^0.2.2",
     "ws": "^8.21.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
-    "@types/node": "^26.1.1",
+    "@types/node": "^26.1.2",
     "@types/ws": "^8.18.1",
     "eslint": "^10.7.0",
     "eslint-config-prettier": "^10.1.8",

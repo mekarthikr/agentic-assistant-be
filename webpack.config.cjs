@@ -4,21 +4,11 @@ const webpack = require("webpack");
 
 const outputRoot = path.resolve(__dirname, ".vercel/output");
 const functionDirectory = path.join(outputRoot, "functions/index.func");
-const documentationSource = path.resolve(
-  __dirname,
-  "src/docs/enterprise-api-documentation.md",
-);
-const documentationOutput = path.join(
-  functionDirectory,
-  "src/docs/enterprise-api-documentation.md",
-);
 
 class VercelBuildOutputPlugin {
   apply(compiler) {
     compiler.hooks.afterEmit.tap("VercelBuildOutputPlugin", () => {
-      fs.mkdirSync(functionDirectory, { recursive: true });
-      fs.mkdirSync(path.dirname(documentationOutput), { recursive: true });
-      fs.copyFileSync(documentationSource, documentationOutput);
+      fs.mkdirSync(outputRoot, { recursive: true });
 
       fs.writeFileSync(
         path.join(outputRoot, "config.json"),
@@ -59,6 +49,7 @@ module.exports = {
     outputModule: true,
   },
   module: {
+    // Express resolves view engines dynamically; this backend does not use views.
     exprContextCritical: false,
     rules: [
       {

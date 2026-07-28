@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+.npm-cache/
 
 # Build output
 dist/
@@ -27,9 +28,6 @@ Thumbs.db
 
 # Coverage
 coverage/
-
-# Generated RAG indexes
-src/rag/*.json
 
 # TypeScript
 *.tsbuildinfo

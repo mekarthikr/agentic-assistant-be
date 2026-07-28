@@ -15,40 +15,41 @@ The HTTP health check is available at `GET /health`. WebSocket chat uses
 
 ## Deploy to Vercel
 
-The repository includes a Vercel Function entry point and routing
-configuration. Import the repository in Vercel, keep the project root at the
-repository root, and configure these environment variables:
+The production build uses webpack to bundle the Vercel Function and resolve
+the `@app` TypeScript alias. Import this repository in Vercel, keep the project
+root at the repository root, and configure:
 
 - `GROQ_API_KEY` (required)
 - `GROQ_MODEL` (optional)
 - `ENTERPRISE_API_BASE_URL` (optional)
-- `SOCKET_AUTH_TOKEN` (recommended for public deployments)
 
-Do not set `PORT`. Vercel supplies the HTTP server. The generated RAG index is
-automatically written to the function's temporary directory, while its source
-Markdown is bundled with the function.
+Vercel runs `npm run build` and serves the generated Build Output API artifact
+from `.vercel/output`. Verify the deployment with `GET /health`.
 
-After deployment, verify `GET /health`. WebSocket clients connect to
-`wss://<deployment-domain>/ws` and must reconnect if a function instance is
-recycled.
+The local server continues to provide WebSocket chat at `/ws`. Vercel Functions
+do not provide a persistent WebSocket server, so deploy the WebSocket transport
+to a long-running Node.js host or replace it with a Vercel-compatible realtime
+service before using chat in production.
 
 ## Enterprise tools
 
-The Markdown file at `src/docs/enterprise-api-documentation.md` is the source of
-truth for enterprise API tools. At startup the backend:
+The assistant can use the documented Contracts and Applications APIs through
+four Groq tools: `searchContracts`, `getContract`, `searchApplications`, and
+`getApplication`. Tool schemas and implementations are in
+`src/tools/enterprise-tools.ts`.
 
-1. Parses each documented endpoint, parameter, method, and path.
-2. Builds a deterministic sparse-vector RAG index.
-3. Stores the index at `src/rag/enterprise-api-index.json`.
-4. Reuses the stored index until the source document hash changes.
-5. Retrieves the most relevant endpoint documentation for each conversation.
-6. Generates and exposes only the matching read-only tools to Groq.
+## Insurance knowledge and scope
 
-There are no contract- or application-specific tool schemas in the code.
-Adding or changing a documented `GET` endpoint updates the generated tools
-after the server restarts. The generic executor validates model input against
-the parameters parsed from the documentation and confines requests to
-`ENTERPRISE_API_BASE_URL`.
+The enterprise API reference is stored at
+`src/knowledge/enterprise-api-documentation.md`. At chat time, the backend
+ranks its sections against the recent conversation and adds the most relevant
+sections to the model's system context. The production build copies the
+Markdown reference into `dist/knowledge`.
+
+The permanent system prompt in `src/knowledge/insurance-agent.prompt.ts`
+defines the assistant as a copilot for insurance agents. It permits insurance
+and closely related agent workflows, allows brief greetings, and directs the
+assistant to decline unrelated requests.
 
 ### HTTPS certificate setup
 
@@ -70,8 +71,6 @@ validation in application code.
 - `CORS_ORIGIN`: comma-separated allowed browser origins. Required in
   production.
 - `WS_PATH`: WebSocket upgrade path; defaults to `/ws`.
-- `ENTERPRISE_API_DOC_PATH`: source Markdown API documentation.
-- `ENTERPRISE_RAG_INDEX_PATH`: generated persistent retrieval index.
 - `SOCKET_AUTH_TOKEN`: required in production. When configured, the first
   client frame must be `{"type":"auth","token":"..."}`.
 
@@ -98,6 +97,11 @@ can be cancelled with:
 { "type": "chat.cancel", "requestId": "request-123" }
 ```
 
+The included backend mock returns `Hello! How can I help you today?` for a
+greeting and provides deterministic placeholders for contract, approval, and
+product questions. Replace `mockChatHandler` in `src/socket/chat-socket.ts`
+with the production AI agent handler when it is ready.
+
 ## Production safeguards
 
 The server includes graceful shutdown, WebSocket heartbeats, authentication,
@@ -120,19 +124,38 @@ tool calls; `AIOrchestrator` executes them through the injected `ToolRegistry`,
 appends AI SDK assistant/tool-result messages, and asks the model to continue.
 The loop is bounded to eight tool rounds by default (`ChatOptions.maxToolRounds`).
 
-The base insurance behavior and safety instructions live in
-`src/prompts/insurance-assistant.prompt.ts`. The orchestrator applies this
-prompt to every model request and appends retrieved enterprise documentation
-only when it matches the conversation.
+Register concrete tools in the composition root (`src/server.ts`) and inject
+their dependencies normally. For example:
 
-The generated RAG index is runtime data and is excluded from Git. Delete it to
-force a rebuild, although editing the source document also rebuilds it
-automatically.
+```ts
+import { jsonSchema } from "ai";
+import { ToolRegistry, type ApplicationTool } from "@app/service";
+
+const accountLookup: ApplicationTool = {
+  name: "lookupAccount",
+  description: "Looks up an account by its identifier.",
+  inputSchema: jsonSchema({
+    type: "object",
+    properties: { accountId: { type: "string" } },
+    required: ["accountId"],
+    additionalProperties: false,
+  }),
+  async execute(input, { signal }) {
+    signal?.throwIfAborted();
+    return accountService.lookup((input as { accountId: string }).accountId);
+  },
+};
+
+const toolRegistry = new ToolRegistry([accountLookup]);
+```
+
+Keep authorization, input validation, and side-effect policy inside each
+application tool. Tool failures are returned to the model as tool-result
+errors so it can recover or explain the failure.
 
 ## Scripts
 
 - `npm run dev` starts the TypeScript server in watch mode.
 - `npm run build` creates the `dist` build.
 - `npm start` runs the production build.
-- `npm test` builds and verifies documentation parsing and retrieval.
 - `npm run lint` checks the source.

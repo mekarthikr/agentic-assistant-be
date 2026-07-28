@@ -1,69 +1,60 @@
 import { env } from "@app/config";
-import type {
-  ApiResponse,
-  EnterpriseEndpoint,
-  EnterpriseEndpointParameter,
-} from "@app/types";
+import type { ApiResponse, Application, Contract } from "@app/types";
 import { EnterpriseApiError as EnterpriseError } from "@app/types";
+
+type QueryParameters = Record<string, string | undefined>;
 
 /** HTTP client for the documented enterprise Contracts and Applications APIs. */
 export class EnterpriseApiProvider {
-  /**
-   * Calls one validated, read-only endpoint discovered from the API documentation.
-   *
-   * @param endpoint - Parsed endpoint definition that controls the request.
-   * @param input - Validated path and query parameter values.
-   * @param signal - Optional cancellation signal forwarded to `fetch`.
-   * @returns The parsed enterprise API response.
-   * @throws {EnterpriseError} When the endpoint or remote response is invalid.
-   */
-  public async call(
-    endpoint: EnterpriseEndpoint,
-    input: Record<string, string>,
+  public getContracts(
+    filters: QueryParameters,
     signal?: AbortSignal,
-  ): Promise<ApiResponse<unknown>> {
-    if (endpoint.method !== "GET") {
-      throw new EnterpriseError(
-        `The documented ${endpoint.method} operation is not enabled.`,
-        405,
-      );
-    }
-    if (
-      !endpoint.path.startsWith("/") ||
-      endpoint.path.includes("://") ||
-      endpoint.path.includes("..")
-    ) {
-      throw new EnterpriseError(
-        "The documented endpoint path is invalid.",
-        400,
-      );
-    }
+  ): Promise<ApiResponse<Contract[]>> {
+    return this.request<Contract[]>("contracts", filters, signal);
+  }
 
-    let endpointPath = endpoint.path;
-    for (const parameter of endpoint.parameters) {
-      if (parameter.location !== "path") continue;
-      const value = input[parameter.name];
-      if (!value && parameter.required) {
-        throw new EnterpriseError(`${parameter.name} is required.`, 400);
-      }
-      endpointPath = this.replacePathParameter(endpointPath, parameter, value);
-    }
-
-    const url = new URL(
-      endpointPath.replace(/^\//, ""),
-      `${env.ENTERPRISE_API_BASE_URL}/`,
+  public getContract(
+    contractNumber: string,
+    signal?: AbortSignal,
+  ): Promise<ApiResponse<Contract>> {
+    return this.request<Contract>(
+      `contracts/${encodeURIComponent(contractNumber)}`,
+      {},
+      signal,
     );
-    for (const parameter of endpoint.parameters) {
-      const value = input[parameter.name]?.trim();
-      if (parameter.location === "query" && value) {
-        url.searchParams.set(parameter.name, value);
-      }
+  }
+
+  public getApplications(
+    filters: QueryParameters,
+    signal?: AbortSignal,
+  ): Promise<ApiResponse<Application[]>> {
+    return this.request<Application[]>("applications", filters, signal);
+  }
+
+  public getApplication(
+    contractNumber: string,
+    signal?: AbortSignal,
+  ): Promise<ApiResponse<Application>> {
+    return this.request<Application>(
+      `applications/${encodeURIComponent(contractNumber)}`,
+      {},
+      signal,
+    );
+  }
+
+  private async request<T>(
+    path: string,
+    parameters: QueryParameters = {},
+    signal?: AbortSignal,
+  ): Promise<ApiResponse<T>> {
+    const url = new URL(path, `${env.ENTERPRISE_API_BASE_URL}/`);
+    for (const [name, value] of Object.entries(parameters)) {
+      if (value?.trim()) url.searchParams.set(name, value.trim());
     }
 
     let response: Response;
     try {
       response = await fetch(url, {
-        method: endpoint.method,
         headers: { Accept: "application/json" },
         signal,
       });
@@ -77,7 +68,7 @@ export class EnterpriseApiProvider {
 
     const payload = (await response
       .json()
-      .catch(() => null)) as ApiResponse<unknown> | null;
+      .catch(() => null)) as ApiResponse<T> | null;
     if (!response.ok || !payload) {
       throw new EnterpriseError(
         payload?.message || "The enterprise API returned an invalid response.",
@@ -86,24 +77,5 @@ export class EnterpriseApiProvider {
     }
 
     return payload;
-  }
-
-  /**
-   * Inserts a URL-encoded value into either supported path-parameter syntax.
-   *
-   * @param path - Documented endpoint path.
-   * @param parameter - Path parameter metadata.
-   * @param value - Raw value supplied by the tool call.
-   * @returns The path with the named placeholder replaced.
-   */
-  private replacePathParameter(
-    path: string,
-    parameter: EnterpriseEndpointParameter,
-    value: string | undefined,
-  ): string {
-    const encodedValue = encodeURIComponent(value?.trim() || "");
-    return path
-      .replace(`:${parameter.name}`, encodedValue)
-      .replace(`{${parameter.name}}`, encodedValue);
   }
 }

@@ -4,8 +4,6 @@ export interface AppEnvironment {
   GROQ_API_KEY: string;
   GROQ_MODEL: string;
   ENTERPRISE_API_BASE_URL: string;
-  ENTERPRISE_API_DOC_PATH: string;
-  ENTERPRISE_RAG_INDEX_PATH: string;
   SOCKET_AUTH_TOKEN?: string;
   WS_PATH: string;
   WS_MAX_PAYLOAD_BYTES: number;

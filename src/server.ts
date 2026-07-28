@@ -1,7 +1,29 @@
-import { createApplicationServer } from "@app/application-server";
-import { env } from "@app/config";
+import { env, groqConfiguration, serviceContainer } from "@app/config";
+import { GroqProvider } from "@app/providers";
+import {
+  AIOrchestrator,
+  ConversationService,
+  ToolRegistry,
+} from "@app/service";
+import { createServer } from "http";
+import { ChatSocketServer } from "@app/socket";
+import { createEnterpriseTools } from "@app/tools/enterprise-tools";
+import app from "./app";
 
-const { httpServer, socketServer } = await createApplicationServer();
+const httpServer = createServer(app);
+const conversationService = serviceContainer.get(ConversationService);
+const provider = new GroqProvider(groqConfiguration);
+const toolRegistry = new ToolRegistry(createEnterpriseTools());
+const orchestrator = new AIOrchestrator(
+  conversationService,
+  provider,
+  toolRegistry,
+);
+const socketServer = new ChatSocketServer(httpServer, orchestrator);
+
+httpServer.requestTimeout = 30_000;
+httpServer.headersTimeout = 35_000;
+httpServer.keepAliveTimeout = 5_000;
 
 httpServer.listen(env.PORT, () => {
   console.log(`Server started on port ${env.PORT}`);

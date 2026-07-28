@@ -1,17 +1,9 @@
 import dotenv from "dotenv";
-import { tmpdir } from "node:os";
-import path from "node:path";
 
 import type { AppEnvironment } from "@app/types";
 
 dotenv.config();
 
-/**
- * Reads a required environment variable and rejects empty values at startup.
- *
- * @param name - Environment variable name.
- * @returns The trimmed configured value.
- */
 const requireEnvironmentVariable = (name: string): string => {
   const value = process.env[name]?.trim();
   if (!value) {
@@ -21,9 +13,6 @@ const requireEnvironmentVariable = (name: string): string => {
 };
 
 const socketAuthToken = process.env.SOCKET_AUTH_TOKEN;
-const defaultRagIndexPath = process.env.VERCEL
-  ? path.join(tmpdir(), "enterprise-api-index.json")
-  : "src/rag/enterprise-api-index.json";
 
 /** Validated runtime configuration consumed by the HTTP and WebSocket servers. */
 export const env: AppEnvironment = {
@@ -33,16 +22,6 @@ export const env: AppEnvironment = {
   ENTERPRISE_API_BASE_URL:
     process.env.ENTERPRISE_API_BASE_URL?.trim() ||
     "https://mock-api-server-zeta.vercel.app/api/v1",
-  ENTERPRISE_API_DOC_PATH: path.resolve(
-    process.cwd(),
-    process.env.ENTERPRISE_API_DOC_PATH?.trim() ||
-      "src/docs/enterprise-api-documentation.md",
-  ),
-  ENTERPRISE_RAG_INDEX_PATH: path.resolve(
-    process.cwd(),
-    process.env.ENTERPRISE_RAG_INDEX_PATH?.trim() ||
-      defaultRagIndexPath,
-  ),
   SOCKET_AUTH_TOKEN: socketAuthToken,
   WS_PATH: process.env.WS_PATH || "/ws",
   WS_MAX_PAYLOAD_BYTES: 64 * 1024,

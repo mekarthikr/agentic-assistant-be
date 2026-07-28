@@ -1,3 +1,5 @@
+export { HealthService } from "./health.service";
+export { mockChatHandler } from "./mockchat.service";
 export { AIOrchestrator } from "./ai-orchestrator.service";
 export {
   ToolRegistry,
@@ -5,8 +7,3 @@ export {
   type ToolExecutionContext,
 } from "./tool-registry.service";
 export { ConversationService } from "./conversation.service";
-export {
-  EnterpriseRagService,
-  parseEnterpriseApiDocumentation,
-  type EnterpriseRetrieval,
-} from "./enterprise-rag.service";
