@@ -86,6 +86,14 @@ export class ChatSocketServer {
     this.heartbeat.unref();
   }
 
+  private sendReady(socket: WebSocket): void {
+    sendJson(socket, {
+      type: "connection.ready",
+      connectionId: randomUUID(),
+      ...this.orchestrator.getModelInfo(),
+    });
+  }
+
   /** Initializes state and event handlers for a connected client. */
   public readonly accept = (webSocket: WebSocket): void => {
     const socket = webSocket as LiveSocket;
@@ -104,10 +112,7 @@ export class ChatSocketServer {
     authTimer.unref();
 
     if (socket.isAuthenticated) {
-      sendJson(socket, {
-        type: "connection.ready",
-        connectionId: randomUUID(),
-      });
+      this.sendReady(socket);
     }
 
     socket.on("pong", () => {
@@ -166,10 +171,7 @@ export class ChatSocketServer {
 
       socket.isAuthenticated = true;
       clearTimeout(authTimer);
-      sendJson(socket, {
-        type: "connection.ready",
-        connectionId: randomUUID(),
-      });
+      this.sendReady(socket);
       return;
     }
 
@@ -242,12 +244,19 @@ export class ChatSocketServer {
         signal: abortController.signal,
       });
 
-      for await (const delta of result) {
+      let tokenUsage;
+      while (true) {
+        const next = await result.next();
+        if (next.done) {
+          tokenUsage = next.value;
+          break;
+        }
+
         sendJson(socket, {
           type: "chat.delta",
           requestId,
           conversationId,
-          delta,
+          delta: next.value,
         });
       }
 
@@ -257,6 +266,7 @@ export class ChatSocketServer {
           requestId,
           conversationId,
           createdAt: new Date().toISOString(),
+          tokenUsage,
         });
       }
     } catch (error) {

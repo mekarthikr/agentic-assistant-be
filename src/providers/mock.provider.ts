@@ -20,6 +20,11 @@ const delay = (milliseconds: number, signal?: AbortSignal): Promise<void> =>
   });
 
 export class MockProvider implements LLMProvider {
+  public readonly modelInfo = {
+    model: "mock",
+    contextWindow: 4_096,
+  };
+
   public async generate({ signal }: LLMRequest): Promise<LLMResponse> {
     signal?.throwIfAborted();
     const text = "This is a mock AI response.";
@@ -27,6 +32,7 @@ export class MockProvider implements LLMProvider {
       text,
       toolCalls: [],
       assistantMessage: { role: "assistant", content: text },
+      usage: { inputTokens: 5, outputTokens: 7, totalTokens: 12 },
     };
   }
 

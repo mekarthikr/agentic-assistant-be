@@ -9,6 +9,10 @@ import { ToolRegistry } from "../src/service/tool-registry.service";
 import type { LLMProvider, LLMRequest, LLMResponse } from "../src/types";
 
 class CapturingProvider implements LLMProvider {
+  public readonly modelInfo = {
+    model: "test-model",
+    contextWindow: 1_000,
+  };
   public instructions: string | undefined;
   public messages: readonly ModelMessage[] = [];
   public toolNames: readonly string[] = [];
@@ -26,6 +30,7 @@ class CapturingProvider implements LLMProvider {
         role: "assistant",
         content: "Contract lookup ready.",
       },
+      usage: { inputTokens: 120, outputTokens: 30, totalTokens: 150 },
     };
   }
 
@@ -60,6 +65,32 @@ test("loads the generated enterprise API RAG index", () => {
   assert.equal(result?.heading, "Get All Applications");
   assert.match(result?.content ?? "", /GET \/applications/);
   assert.ok(rag.retrieveContext("applications", 10).length <= 3_500);
+});
+
+test("returns exact model usage and remaining context after a streamed turn", async () => {
+  const orchestrator = new AIOrchestrator(
+    new ConversationService(),
+    new CapturingProvider(),
+    new ToolRegistry(),
+    new ApiDocumentationRag(),
+  );
+  const stream = orchestrator.streamChat("usage", "Hello");
+
+  assert.deepEqual(await stream.next(), {
+    done: false,
+    value: "Contract lookup ready.",
+  });
+  assert.deepEqual(await stream.next(), {
+    done: true,
+    value: {
+      model: "test-model",
+      contextWindow: 1_000,
+      inputTokens: 120,
+      outputTokens: 30,
+      totalTokens: 150,
+      remainingTokens: 850,
+    },
+  });
 });
 
 test("adds insurance scope and retrieved API context as instructions", async () => {

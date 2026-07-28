@@ -21,12 +21,17 @@ export class GroqProviderError extends Error {
 /** Groq adapter implemented against the provider-agnostic LLMProvider port. */
 export class GroqProvider implements LLMProvider {
   private readonly client: ReturnType<typeof createGroq>;
+  public readonly modelInfo;
 
   public constructor(
     private readonly configuration: GroqConfiguration,
     client?: ReturnType<typeof createGroq>,
   ) {
     this.client = client ?? createGroq({ apiKey: configuration.apiKey });
+    this.modelInfo = {
+      model: configuration.model,
+      contextWindow: configuration.contextWindow,
+    };
   }
 
   public async generate({
@@ -102,7 +107,18 @@ identifier from the conversation when the schema requires one.`
             ]
           : result.text,
       };
-      return { text: result.text, toolCalls, assistantMessage };
+      const inputTokens = result.usage.inputTokens ?? 0;
+      const outputTokens = result.usage.outputTokens ?? 0;
+      return {
+        text: result.text,
+        toolCalls,
+        assistantMessage,
+        usage: {
+          inputTokens,
+          outputTokens,
+          totalTokens: result.usage.totalTokens ?? inputTokens + outputTokens,
+        },
+      };
     } catch (error) {
       this.throwProviderError("generate", error, signal);
     }

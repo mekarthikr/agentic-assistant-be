@@ -3,6 +3,7 @@ export interface AppEnvironment {
   PORT: number;
   GROQ_API_KEY: string;
   GROQ_MODEL: string;
+  GROQ_MODEL_CONTEXT_WINDOW: number;
   ENTERPRISE_API_BASE_URL: string;
   SOCKET_AUTH_TOKEN?: string;
   WS_PATH: string;

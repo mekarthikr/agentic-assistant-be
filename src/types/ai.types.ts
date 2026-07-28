@@ -38,14 +38,32 @@ export interface LLMToolCall {
   readonly input: unknown;
 }
 
+export interface ModelInfo {
+  readonly model: string;
+  readonly contextWindow: number;
+}
+
+export interface LLMTokenUsage {
+  readonly inputTokens: number;
+  readonly outputTokens: number;
+  readonly totalTokens: number;
+}
+
+export interface ModelTokenUsage extends ModelInfo, LLMTokenUsage {
+  readonly remainingTokens: number;
+}
+
 export interface LLMResponse {
   readonly text: string;
   readonly toolCalls: readonly LLMToolCall[];
   /** Must be appended before corresponding tool-result messages. */
   readonly assistantMessage: AssistantModelMessage;
+  /** Exact usage reported by the provider for this model call. */
+  readonly usage: LLMTokenUsage;
 }
 
 export interface LLMProvider {
+  readonly modelInfo: ModelInfo;
   generate(request: LLMRequest): Promise<LLMResponse>;
   stream(request: LLMRequest): AsyncIterable<string>;
 }

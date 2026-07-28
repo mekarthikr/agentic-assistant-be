@@ -2,6 +2,9 @@ import {
   type ChatOptions,
   EmptyPromptError,
   type LLMProvider,
+  type LLMResponse,
+  type ModelInfo,
+  type ModelTokenUsage,
   ProviderError,
 } from "@app/types";
 import {
@@ -29,18 +32,31 @@ export class AIOrchestrator {
     private readonly apiDocumentation = new ApiDocumentationRag(),
   ) {}
 
+  public getModelInfo(): ModelInfo {
+    return this.provider.modelInfo;
+  }
+
   public async chat(
     conversationId: string,
     userMessage: string,
     options: ChatOptions = {},
   ): Promise<string> {
+    return (await this.chatWithUsage(conversationId, userMessage, options))
+      .text;
+  }
+
+  private async chatWithUsage(
+    conversationId: string,
+    userMessage: string,
+    options: ChatOptions,
+  ): Promise<{ text: string; usage: ModelTokenUsage }> {
     const prompt = this.validatePrompt(userMessage);
     const conversation = this.conversationService.addUserMessage(
       conversationId,
       prompt,
     );
 
-    let response: string;
+    let response: LLMResponse;
     try {
       const retrievalQuery = conversation.messages
         .slice(-RETRIEVAL_MESSAGE_LIMIT)
@@ -68,21 +84,39 @@ export class AIOrchestrator {
       );
     }
 
-    this.validateResponse(response);
-    this.conversationService.addAssistantMessage(conversationId, response);
-    return response;
+    this.validateResponse(response.text);
+    this.conversationService.addAssistantMessage(conversationId, response.text);
+    const { model, contextWindow } = this.provider.modelInfo;
+    return {
+      text: response.text,
+      usage: {
+        ...response.usage,
+        model,
+        contextWindow,
+        remainingTokens: Math.max(
+          0,
+          contextWindow - response.usage.totalTokens,
+        ),
+      },
+    };
   }
 
   public async *streamChat(
     conversationId: string,
     userMessage: string,
     options: ChatOptions = {},
-  ): AsyncGenerator<string> {
+  ): AsyncGenerator<string, ModelTokenUsage> {
     const prompt = this.validatePrompt(userMessage);
     // Tool calls require a complete model turn before their result can be
     // supplied. Reuse the tool-aware path so streaming conversations preserve
     // the same semantics; transports still receive the final response chunk.
-    yield await this.chat(conversationId, prompt, options);
+    const response = await this.chatWithUsage(
+      conversationId,
+      prompt,
+      options,
+    );
+    yield response.text;
+    return response.usage;
   }
 
   private async generateWithTools(
@@ -90,7 +124,7 @@ export class AIOrchestrator {
     messages: Parameters<LLMProvider["generate"]>[0]["messages"],
     toolNames: readonly string[],
     options: ChatOptions,
-  ): Promise<string> {
+  ): Promise<LLMResponse> {
     const maxToolRounds = options.maxToolRounds ?? DEFAULT_MAX_TOOL_ROUNDS;
     let history = [...messages];
 
@@ -109,7 +143,7 @@ export class AIOrchestrator {
         signal: options.signal,
       });
 
-      if (response.toolCalls.length === 0) return response.text;
+      if (response.toolCalls.length === 0) return response;
       if (round === maxToolRounds) {
         throw new ProviderError(
           "The AI provider exceeded the tool-call limit.",
