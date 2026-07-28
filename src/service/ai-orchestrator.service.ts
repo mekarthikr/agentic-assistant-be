@@ -54,6 +54,7 @@ export class AIOrchestrator {
         options,
       );
     } catch (error) {
+      console.log('error',error)
       this.throwIfAborted(options.signal);
       throw new ProviderError(
         "The AI provider could not generate a response.",
