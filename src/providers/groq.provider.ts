@@ -1,4 +1,7 @@
-import { createGroq } from "@ai-sdk/groq";
+import {
+  createGroq,
+  type GroqLanguageModelChatOptions,
+} from "@ai-sdk/groq";
 import { generateText, streamText, type AssistantModelMessage } from "ai";
 
 import type { GroqConfiguration } from "@app/config/groq";
@@ -34,6 +37,15 @@ export class GroqProvider implements LLMProvider {
         instructions,
         messages: [...messages],
         tools,
+        maxOutputTokens: 384,
+        maxRetries: 1,
+        temperature: 0,
+        providerOptions: {
+          groq: {
+            parallelToolCalls: false,
+            reasoningEffort: 'medium',
+          } satisfies GroqLanguageModelChatOptions,
+        },
         abortSignal: signal,
       });
       const toolCalls = result.toolCalls.map(
@@ -75,6 +87,15 @@ export class GroqProvider implements LLMProvider {
         instructions,
         messages: [...messages],
         tools,
+        maxOutputTokens: 384,
+        maxRetries: 1,
+        temperature: 0,
+        providerOptions: {
+          groq: {
+            parallelToolCalls: false,
+            reasoningEffort: 'medium',
+          } satisfies GroqLanguageModelChatOptions,
+        },
         abortSignal: signal,
       });
 

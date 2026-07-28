@@ -30,14 +30,24 @@
     },
     {
       "heading": "Contracts API",
-      "content": "## Contracts API\n\n### Get All Contracts\n\n**Endpoint:** `GET /contracts`\n\n**Description:** Returns a list of all contracts. Supports filtering by query parameters.\n\n**Filterable Fields:**\n\n- `contractNumber` — Filter by contract number\n- `clientName` — Filter by client name (partial match, case-insensitive)\n- `productName` — Filter by product name (partial match, case-insensitive)\n- `contractStatus` — Filter by status: `Active`, `Inactive`, `Surrendered`\n- `taxType` — Filter by tax type: `Qualified`, `Non-Qualified`\n- `taxQualification` — Filter by qualification: `IRA`, `ROTH IRA`, `NON-QUAL`\n- `distributionCompany` — Filter by distribution company\n\n**Example Requests:**\n\n```\nGET /contracts\nGET /contracts?contractStatus=Active\nGET /contracts?taxType=Qualified\nGET /contracts?productName=ASSETSHIELD 5\nGET /contracts?contractStatus=Active&taxType=Qualified\n```\n\n**Response:**\n\n```json\n{\n  \"success\": true,\n  \"message\": \"Request successful\",\n  \"data\": [\n    {\n      \"contractNumber\": \"1561091\",\n      \"clientName\": \"NETTING AETEST\",\n      \"productName\": \"AMERICAN EQUITY ASSETSHIELD 5 FIXED INDEX ANNUITY\",\n      \"issuedDate\": \"2026-06-17T05:00:00+00:00\",\n      \"currentValue\": 0,\n      \"anniversaryDate\": \"2027-06-17T05:00:00+00:00\",\n      \"taxType\": \"Qualified\",\n      \"contractStatus\": \"Active\",\n      \"taxQualification\": \"IRA\",\n      \"distributionCompany\": \"AELife\"\n    }\n  ],\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\n}\n```\n\n---\n\n### Get Contract by Number\n\n**Endpoint:** `GET /contracts/:contractNumber`\n\n**Description:** Returns a single contract by its contract number.\n\n**Path Parameters:**\n\n- `contractNumber` (string, required) — The contract number\n\n**Example Request:**\n\n```\nGET /contracts/1561091\n```\n\n**Success Response:**\n\n```json\n{\n  \"success\": true,\n  \"message\": \"Request successful\",\n  \"data\": {\n    \"contractNumber\": \"1561091\",\n    \"clientName\": \"NETTING AETEST\",\n    \"productName\": \"AMERICAN EQUITY ASSETSHIELD 5 FIXED INDEX ANNUITY\",\n    \"issuedDate\": \"2026-06-17T05:00:00+00:00\",\n    \"currentValue\": 0,\n    \"anniversaryDate\": \"2027-06-17T05:00:00+00:00\",\n    \"taxType\": \"Qualified\",\n    \"contractStatus\": \"Active\",\n    \"taxQualification\": \"IRA\",\n    \"distributionCompany\": \"AELife\"\n  },\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\n}\n```\n\n**Not Found Response (404):**\n\n```json\n{\n  \"success\": false,\n  \"message\": \"Contract 9999999 not found\",\n  \"data\": null,\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\n}\n```\n\n---",
+      "content": "## Contracts API",
       "headingTokens": [
         "contract",
         "api"
       ],
       "contentTokens": [
         "contract",
-        "api",
+        "api"
+      ]
+    },
+    {
+      "heading": "Get All Contracts",
+      "content": "### Get All Contracts\n\n**Endpoint:** `GET /contracts`\n\n**Description:** Returns a list of all contracts. Supports filtering by query parameters.\n\n**Filterable Fields:**\n\n- `contractNumber` — Filter by contract number\n- `clientName` — Filter by client name (partial match, case-insensitive)\n- `productName` — Filter by product name (partial match, case-insensitive)\n- `contractStatus` — Filter by status: `Active`, `Inactive`, `Surrendered`\n- `taxType` — Filter by tax type: `Qualified`, `Non-Qualified`\n- `taxQualification` — Filter by qualification: `IRA`, `ROTH IRA`, `NON-QUAL`\n- `distributionCompany` — Filter by distribution company\n\n**Example Requests:**\n\n```\nGET /contracts\nGET /contracts?contractStatus=Active\nGET /contracts?taxType=Qualified\nGET /contracts?productName=ASSETSHIELD 5\nGET /contracts?contractStatus=Active&taxType=Qualified\n```\n\n**Response:**\n\n```json\n{\n  \"success\": true,\n  \"message\": \"Request successful\",\n  \"data\": [\n    {\n      \"contractNumber\": \"1561091\",\n      \"clientName\": \"NETTING AETEST\",\n      \"productName\": \"AMERICAN EQUITY ASSETSHIELD 5 FIXED INDEX ANNUITY\",\n      \"issuedDate\": \"2026-06-17T05:00:00+00:00\",\n      \"currentValue\": 0,\n      \"anniversaryDate\": \"2027-06-17T05:00:00+00:00\",\n      \"taxType\": \"Qualified\",\n      \"contractStatus\": \"Active\",\n      \"taxQualification\": \"IRA\",\n      \"distributionCompany\": \"AELife\"\n    }\n  ],\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\n}\n```\n\n---",
+      "headingTokens": [
+        "all",
+        "contract"
+      ],
+      "contentTokens": [
         "all",
         "contract",
         "endpoint",
@@ -177,7 +187,18 @@
         "27t12",
         "00",
         "00",
-        "000z",
+        "000z"
+      ]
+    },
+    {
+      "heading": "Get Contract by Number",
+      "content": "### Get Contract by Number\n\n**Endpoint:** `GET /contracts/:contractNumber`\n\n**Description:** Returns a single contract by its contract number.\n\n**Path Parameters:**\n\n- `contractNumber` (string, required) — The contract number\n\n**Example Request:**\n\n```\nGET /contracts/1561091\n```\n\n**Success Response:**\n\n```json\n{\n  \"success\": true,\n  \"message\": \"Request successful\",\n  \"data\": {\n    \"contractNumber\": \"1561091\",\n    \"clientName\": \"NETTING AETEST\",\n    \"productName\": \"AMERICAN EQUITY ASSETSHIELD 5 FIXED INDEX ANNUITY\",\n    \"issuedDate\": \"2026-06-17T05:00:00+00:00\",\n    \"currentValue\": 0,\n    \"anniversaryDate\": \"2027-06-17T05:00:00+00:00\",\n    \"taxType\": \"Qualified\",\n    \"contractStatus\": \"Active\",\n    \"taxQualification\": \"IRA\",\n    \"distributionCompany\": \"AELife\"\n  },\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\n}\n```\n\n**Not Found Response (404):**\n\n```json\n{\n  \"success\": false,\n  \"message\": \"Contract 9999999 not found\",\n  \"data\": null,\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\n}\n```\n\n---",
+      "headingTokens": [
+        "contract",
+        "by",
+        "number"
+      ],
+      "contentTokens": [
         "contract",
         "by",
         "number",
@@ -283,14 +304,24 @@
     },
     {
       "heading": "Applications API",
-      "content": "## Applications API\n\n### Get All Applications\n\n**Endpoint:** `GET /applications`\n\n**Description:** Returns a list of all applications. Supports filtering by query parameters.\n\n**Filterable Fields:**\n\n- `clientName` — Filter by client name (partial match, case-insensitive)\n- `product` — Filter by product name (partial match, case-insensitive)\n- `taxType` — Filter by tax type: `Qualified`, `Non-Qualified`\n- `status` — Filter by status: `In Progress`, `Submitted`, `Approved`, `Rejected`\n- `contractNumber` — Filter by contract number\n- `productId` — Filter by product ID\n- `agentNumber` — Filter by agent number\n- `contactId` — Filter by contact ID\n- `applicationName` — Filter by application name (partial match, case-insensitive)\n- `startDate` — Filter by start date (partial match, e.g., `2026-07-15`)\n\n**Example Requests:**\n\n```\nGET /applications\nGET /applications?status=In Progress\nGET /applications?product=ESTATESHIELD\nGET /applications?agentNumber=2026\nGET /applications?applicationName=JOHNSON\nGET /applications?startDate=2026-07\nGET /applications?status=Approved&taxType=Qualified\n```\n\n**Response:**\n\n```json\n{\n  \"success\": true,\n  \"message\": \"Request successful\",\n  \"data\": [\n    {\n      \"clientName\": \"sdf sdf\",\n      \"product\": \"AMERICAN EQUITY ESTATESHIELD 10 FIXED INDEX ANNUITY\",\n      \"anticipatedPremium\": 99999,\n      \"startDate\": \"2026-07-15T13:27:11.782+00:00\",\n      \"taxType\": \"Non-Qualified\",\n      \"status\": \"In Progress\",\n      \"contractNumber\": \"1561438\",\n      \"productId\": \"I-ESTATE24\",\n      \"agentNumber\": \"2026\",\n      \"applicationLink\": \"https://american-equity-uatx.unqork.io/app/application#/display/application?id=6a5789ec1ce36757d331b5b8\",\n      \"contactId\": \"482354\",\n      \"applicationName\": \"sdf sdf Application\"\n    }\n  ],\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\n}\n```\n\n---\n\n### Get Application by Contract Number\n\n**Endpoint:** `GET /applications/:contractNumber`\n\n**Description:** Returns a single application by its contract number.\n\n**Path Parameters:**\n\n- `contractNumber` (string, required) — The contract number\n\n**Example Request:**\n\n```\nGET /applications/1561438\n```\n\n**Success Response:**\n\n```json\n{\n  \"success\": true,\n  \"message\": \"Request successful\",\n  \"data\": {\n    \"clientName\": \"sdf sdf\",\n    \"product\": \"AMERICAN EQUITY ESTATESHIELD 10 FIXED INDEX ANNUITY\",\n    \"anticipatedPremium\": 99999,\n    \"startDate\": \"2026-07-15T13:27:11.782+00:00\",\n    \"taxType\": \"Non-Qualified\",\n    \"status\": \"In Progress\",\n    \"contractNumber\": \"1561438\",\n    \"productId\": \"I-ESTATE24\",\n    \"agentNumber\": \"2026\",\n    \"applicationLink\": \"https://american-equity-uatx.unqork.io/app/application#/display/application?id=6a5789ec1ce36757d331b5b8\",\n    \"contactId\": \"482354\",\n    \"applicationName\": \"sdf sdf Application\"\n  },\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\n}\n```\n\n**Not Found Response (404):**\n\n```json\n{\n  \"success\": false,\n  \"message\": \"Application with contract number 9999999 not found\",\n  \"data\": null,\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\n}\n```\n\n---",
+      "content": "## Applications API",
       "headingTokens": [
         "application",
         "api"
       ],
       "contentTokens": [
         "application",
-        "api",
+        "api"
+      ]
+    },
+    {
+      "heading": "Get All Applications",
+      "content": "### Get All Applications\n\n**Endpoint:** `GET /applications`\n\n**Description:** Returns a list of all applications. Supports filtering by query parameters.\n\n**Filterable Fields:**\n\n- `clientName` — Filter by client name (partial match, case-insensitive)\n- `product` — Filter by product name (partial match, case-insensitive)\n- `taxType` — Filter by tax type: `Qualified`, `Non-Qualified`\n- `status` — Filter by status: `In Progress`, `Submitted`, `Approved`, `Rejected`\n- `contractNumber` — Filter by contract number\n- `productId` — Filter by product ID\n- `agentNumber` — Filter by agent number\n- `contactId` — Filter by contact ID\n- `applicationName` — Filter by application name (partial match, case-insensitive)\n- `startDate` — Filter by start date (partial match, e.g., `2026-07-15`)\n\n**Example Requests:**\n\n```\nGET /applications\nGET /applications?status=In Progress\nGET /applications?product=ESTATESHIELD\nGET /applications?agentNumber=2026\nGET /applications?applicationName=JOHNSON\nGET /applications?startDate=2026-07\nGET /applications?status=Approved&taxType=Qualified\n```\n\n**Response:**\n\n```json\n{\n  \"success\": true,\n  \"message\": \"Request successful\",\n  \"data\": [\n    {\n      \"clientName\": \"sdf sdf\",\n      \"product\": \"AMERICAN EQUITY ESTATESHIELD 10 FIXED INDEX ANNUITY\",\n      \"anticipatedPremium\": 99999,\n      \"startDate\": \"2026-07-15T13:27:11.782+00:00\",\n      \"taxType\": \"Non-Qualified\",\n      \"status\": \"In Progress\",\n      \"contractNumber\": \"1561438\",\n      \"productId\": \"I-ESTATE24\",\n      \"agentNumber\": \"2026\",\n      \"applicationLink\": \"https://american-equity-uatx.unqork.io/app/application#/display/application?id=6a5789ec1ce36757d331b5b8\",\n      \"contactId\": \"482354\",\n      \"applicationName\": \"sdf sdf Application\"\n    }\n  ],\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\n}\n```\n\n---",
+      "headingTokens": [
+        "all",
+        "application"
+      ],
+      "contentTokens": [
         "all",
         "application",
         "endpoint",
@@ -472,7 +503,19 @@
         "27t12",
         "00",
         "00",
-        "000z",
+        "000z"
+      ]
+    },
+    {
+      "heading": "Get Application by Contract Number",
+      "content": "### Get Application by Contract Number\n\n**Endpoint:** `GET /applications/:contractNumber`\n\n**Description:** Returns a single application by its contract number.\n\n**Path Parameters:**\n\n- `contractNumber` (string, required) — The contract number\n\n**Example Request:**\n\n```\nGET /applications/1561438\n```\n\n**Success Response:**\n\n```json\n{\n  \"success\": true,\n  \"message\": \"Request successful\",\n  \"data\": {\n    \"clientName\": \"sdf sdf\",\n    \"product\": \"AMERICAN EQUITY ESTATESHIELD 10 FIXED INDEX ANNUITY\",\n    \"anticipatedPremium\": 99999,\n    \"startDate\": \"2026-07-15T13:27:11.782+00:00\",\n    \"taxType\": \"Non-Qualified\",\n    \"status\": \"In Progress\",\n    \"contractNumber\": \"1561438\",\n    \"productId\": \"I-ESTATE24\",\n    \"agentNumber\": \"2026\",\n    \"applicationLink\": \"https://american-equity-uatx.unqork.io/app/application#/display/application?id=6a5789ec1ce36757d331b5b8\",\n    \"contactId\": \"482354\",\n    \"applicationName\": \"sdf sdf Application\"\n  },\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\n}\n```\n\n**Not Found Response (404):**\n\n```json\n{\n  \"success\": false,\n  \"message\": \"Application with contract number 9999999 not found\",\n  \"data\": null,\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\n}\n```\n\n---",
+      "headingTokens": [
+        "application",
+        "by",
+        "contract",
+        "number"
+      ],
+      "contentTokens": [
         "application",
         "by",
         "contract",

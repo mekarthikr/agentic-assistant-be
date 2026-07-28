@@ -2,6 +2,8 @@ import type { FlexibleSchema, ToolModelMessage, ToolSet } from "ai";
 
 import type { LLMToolCall } from "@app/types";
 
+const MAX_TOOL_RESULT_CHARACTERS = 6_000;
+
 export interface ToolExecutionContext {
   readonly toolCallId: string;
   readonly signal?: AbortSignal;
@@ -33,13 +35,17 @@ export class ToolRegistry {
     }
   }
 
-  /** Returns only the AI SDK schema metadata; no executable code crosses this boundary. */
-  public toToolSet(): ToolSet {
+  /** Returns selected AI SDK schema metadata; no executable code crosses this boundary. */
+  public toToolSet(names?: readonly string[]): ToolSet {
+    const selectedNames = names === undefined ? undefined : new Set(names);
+
     return Object.fromEntries(
-      [...this.tools.values()].map(({ name, description, inputSchema }) => [
-        name,
-        { description, inputSchema },
-      ]),
+      [...this.tools.values()]
+        .filter(({ name }) => selectedNames?.has(name) ?? true)
+        .map(({ name, description, inputSchema }) => [
+          name,
+          { description, inputSchema },
+        ]),
     ) as ToolSet;
   }
 
@@ -98,8 +104,12 @@ export class ToolRegistry {
   }
 
   private serialize(value: unknown): string {
-    if (typeof value === "string") return value;
-    const serialized = JSON.stringify(value);
-    return serialized === undefined ? "null" : serialized;
+    const serialized =
+      typeof value === "string" ? value : JSON.stringify(value);
+    if (serialized === undefined) return "null";
+    if (serialized.length <= MAX_TOOL_RESULT_CHARACTERS) return serialized;
+
+    return `${serialized.slice(0, MAX_TOOL_RESULT_CHARACTERS)}
+...[tool result truncated to reduce token usage]`;
   }
 }

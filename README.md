@@ -20,7 +20,7 @@ the `@app` TypeScript alias. Import this repository in Vercel, keep the project
 root at the repository root, and configure:
 
 - `GROQ_API_KEY` (required)
-- `GROQ_MODEL` (optional)
+- `GROQ_MODEL` (optional; defaults to `openai/gpt-oss-20b`)
 - `ENTERPRISE_API_BASE_URL` (optional)
 
 Vercel runs `npm run build` and serves the generated Build Output API artifact

@@ -18,7 +18,7 @@ const socketAuthToken = process.env.SOCKET_AUTH_TOKEN;
 export const env: AppEnvironment = {
   PORT: Number(process.env.PORT || "5000"),
   GROQ_API_KEY: requireEnvironmentVariable("GROQ_API_KEY"),
-  GROQ_MODEL: process.env.GROQ_MODEL?.trim() || "llama-3.1-8b-instant",
+  GROQ_MODEL: process.env.GROQ_MODEL?.trim() || "openai/gpt-oss-20b",
   ENTERPRISE_API_BASE_URL:
     process.env.ENTERPRISE_API_BASE_URL?.trim() ||
     "https://mock-api-server-zeta.vercel.app/api/v1",

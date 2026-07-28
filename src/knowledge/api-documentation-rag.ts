@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-const DEFAULT_RESULT_LIMIT = 3;
+const DEFAULT_RESULT_LIMIT = 1;
+const MAX_CONTEXT_CHARACTERS = 3_500;
 const MINIMUM_RELEVANCE_SCORE = 1;
 const TOKEN_PATTERN = /[a-z0-9]+/g;
 const STOP_WORDS = new Set([
@@ -90,7 +91,7 @@ const sectionHeading = (content: string): string => {
 
 const splitDocumentation = (markdown: string): DocumentationSection[] =>
   markdown
-    .split(/(?=^##\s+)/m)
+    .split(/(?=^#{2,3}\s+)/m)
     .map((content) => content.trim())
     .filter(Boolean)
     .map((content) => {
@@ -177,6 +178,9 @@ export class ApiDocumentationRag {
     const sections = this.retrieve(query, limit);
     if (sections.length === 0) return "";
 
-    return sections.map(({ content }) => content).join("\n\n---\n\n");
+    return sections
+      .map(({ content }) => content)
+      .join("\n\n---\n\n")
+      .slice(0, MAX_CONTEXT_CHARACTERS);
   }
 }

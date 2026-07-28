@@ -11,7 +11,13 @@ import {
 import { ConversationService } from "./conversation.service";
 import { ToolRegistry } from "./tool-registry.service";
 
-const DEFAULT_MAX_TOOL_ROUNDS = 8;
+const DEFAULT_MAX_TOOL_ROUNDS = 3;
+const HISTORY_MESSAGE_LIMIT = 6;
+const RETRIEVAL_MESSAGE_LIMIT = 2;
+const RECORD_IDENTIFIER_PATTERN = /\b\d{5,}\b/;
+const CONTRACT_PATTERN = /\b(?:annuit(?:y|ies)|contracts?|polic(?:y|ies))\b/i;
+const APPLICATION_PATTERN = /\b(?:applications?|approvals?|cases?)\b/i;
+const AMBIGUOUS_RECORD_PATTERN = /\b(?:clients?|customers?|records?)\b/i;
 
 export class AIOrchestrator {
   public constructor(
@@ -35,21 +41,20 @@ export class AIOrchestrator {
     let response: string;
     try {
       const retrievalQuery = conversation.messages
-        .slice(-4)
+        .slice(-RETRIEVAL_MESSAGE_LIMIT)
         .map(({ content }) => content)
         .join("\n");
       const retrievedContext =
         this.apiDocumentation.retrieveContext(retrievalQuery);
       response = await this.generateWithTools(
         this.buildSystemPrompt(retrievedContext),
-        conversation.messages.map(({ role, content }) => ({
-          role,
-          content,
-        })),
+        conversation.messages
+          .slice(-HISTORY_MESSAGE_LIMIT)
+          .map(({ role, content }) => ({ role, content })),
+        this.selectToolNames(retrievalQuery),
         options,
       );
     } catch (error) {
-      console.log('error',error)
       this.throwIfAborted(options.signal);
       throw new ProviderError(
         "The AI provider could not generate a response.",
@@ -77,6 +82,7 @@ export class AIOrchestrator {
   private async generateWithTools(
     instructions: string,
     messages: Parameters<LLMProvider["generate"]>[0]["messages"],
+    toolNames: readonly string[],
     options: ChatOptions,
   ): Promise<string> {
     const maxToolRounds = options.maxToolRounds ?? DEFAULT_MAX_TOOL_ROUNDS;
@@ -86,7 +92,7 @@ export class AIOrchestrator {
       const response = await this.provider.generate({
         instructions,
         messages: history,
-        tools: this.toolRegistry.toToolSet(),
+        tools: this.toolRegistry.toToolSet(toolNames),
         signal: options.signal,
       });
 
@@ -111,6 +117,27 @@ export class AIOrchestrator {
     const prompt = userMessage.trim();
     if (!prompt) throw new EmptyPromptError();
     return prompt;
+  }
+
+  private selectToolNames(query: string): readonly string[] {
+    const hasIdentifier = RECORD_IDENTIFIER_PATTERN.test(query);
+    const needsContracts = CONTRACT_PATTERN.test(query);
+    const needsApplications = APPLICATION_PATTERN.test(query);
+    const needsAmbiguousRecord = AMBIGUOUS_RECORD_PATTERN.test(query);
+
+    if (hasIdentifier) {
+      if (needsContracts && !needsApplications) return ["getContract"];
+      if (needsApplications && !needsContracts) return ["getApplication"];
+      return ["getContract", "getApplication"];
+    }
+
+    if (needsContracts && !needsApplications) return ["searchContracts"];
+    if (needsApplications && !needsContracts) return ["searchApplications"];
+    if (needsContracts || needsApplications || needsAmbiguousRecord) {
+      return ["searchContracts", "searchApplications"];
+    }
+
+    return [];
   }
 
   private validateResponse(response: string): void {

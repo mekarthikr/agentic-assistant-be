@@ -55,7 +55,7 @@ const sectionHeading = (content) =>
 
 const markdown = await readFile(documentationUrl, "utf8");
 const sections = markdown
-  .split(/(?=^##\s+)/m)
+  .split(/(?=^#{2,3}\s+)/m)
   .map((content) => content.trim())
   .filter(Boolean)
   .map((content) => {
