@@ -4,7 +4,6 @@ import type { Duplex } from "node:stream";
 import { WebSocket, WebSocketServer } from "ws";
 
 import { env } from "@app/config";
-import { flowTracer } from "@app/observability";
 import { AIOrchestrator } from "@app/service";
 import type { ClientMessage, LiveSocket, WebSocketRawData } from "@app/types";
 
@@ -59,7 +58,6 @@ export class ChatSocketServer {
     Map<string, AbortController>
   >();
   private readonly heartbeat: NodeJS.Timeout;
-  private readonly upgradeTraces = new WeakMap<IncomingMessage, string>();
 
   /**
    * Creates and attaches the WebSocket server.
@@ -90,78 +88,29 @@ export class ChatSocketServer {
     head: Buffer,
   ): void => {
     const requestUrl = new URL(request.url ?? "/", "http://localhost");
-    const traceId = randomUUID();
-    this.upgradeTraces.set(request, traceId);
-    flowTracer.record({
-      stage: "websocket",
-      action: "websocket.upgrade.received",
-      summary: `WebSocket upgrade requested for ${requestUrl.pathname}.`,
-      context: { traceId, transport: "websocket" },
-      details: { path: requestUrl.pathname },
-    });
 
     if (requestUrl.pathname !== env.WS_PATH) {
-      flowTracer.record({
-        stage: "websocket",
-        level: "decision",
-        action: "websocket.upgrade.rejected",
-        summary:
-          "The upgrade path did not match the configured WebSocket path.",
-        context: { traceId, transport: "websocket" },
-        details: {
-          requestedPath: requestUrl.pathname,
-          expectedPath: env.WS_PATH,
-        },
-      });
       socket.write("HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n");
       socket.destroy();
       return;
     }
 
     this.socketServer.handleUpgrade(request, socket, head, (webSocket) => {
-      flowTracer.record({
-        stage: "websocket",
-        level: "success",
-        action: "websocket.upgrade.accepted",
-        summary: "The HTTP connection was upgraded to WebSocket.",
-        context: { traceId, transport: "websocket" },
-      });
       this.socketServer.emit("connection", webSocket, request);
     });
   };
 
   /** Initializes state and event handlers for a connected client. */
-  private readonly handleConnection = (
-    webSocket: WebSocket,
-    request: IncomingMessage,
-  ): void => {
+  private readonly handleConnection = (webSocket: WebSocket): void => {
     const socket = webSocket as LiveSocket;
-    socket.flowTraceId = this.upgradeTraces.get(request) ?? randomUUID();
     socket.isAlive = true;
     socket.isAuthenticated = !env.SOCKET_AUTH_TOKEN;
     socket.requestCount = 0;
     socket.requestWindowStartedAt = Date.now();
     this.activeRequests.set(socket, new Map());
-    flowTracer.record({
-      stage: "websocket",
-      level: "decision",
-      action: "websocket.connection.initialized",
-      summary: socket.isAuthenticated
-        ? "WebSocket connection is ready without token authentication."
-        : "WebSocket connection is waiting for authentication.",
-      context: { traceId: socket.flowTraceId, transport: "websocket" },
-      details: { authenticationRequired: Boolean(env.SOCKET_AUTH_TOKEN) },
-    });
 
     const authTimer = setTimeout(() => {
       if (!socket.isAuthenticated) {
-        flowTracer.record({
-          stage: "websocket",
-          level: "error",
-          action: "websocket.auth.timeout",
-          summary: "WebSocket authentication timed out.",
-          context: { traceId: socket.flowTraceId, transport: "websocket" },
-        });
         socket.close(1008, "Authentication timed out");
       }
     }, AUTH_TIMEOUT_MS);
@@ -185,23 +134,9 @@ export class ChatSocketServer {
     socket.once("close", () => {
       clearTimeout(authTimer);
       this.abortActiveRequests(socket, "The client disconnected.");
-      flowTracer.record({
-        stage: "websocket",
-        action: "websocket.connection.closed",
-        summary: "The WebSocket client disconnected.",
-        context: { traceId: socket.flowTraceId, transport: "websocket" },
-      });
     });
 
     socket.on("error", (error) => {
-      flowTracer.record({
-        stage: "websocket",
-        level: "error",
-        action: "websocket.connection.error",
-        summary: "The WebSocket connection emitted an error.",
-        context: { traceId: socket.flowTraceId, transport: "websocket" },
-        details: { error },
-      });
       console.error("WebSocket connection error:", error.message);
     });
   };
@@ -221,26 +156,12 @@ export class ChatSocketServer {
     authTimer: NodeJS.Timeout,
   ): Promise<void> {
     if (isBinary) {
-      flowTracer.record({
-        stage: "websocket",
-        level: "decision",
-        action: "websocket.message.rejected",
-        summary: "A binary WebSocket message was rejected.",
-        context: { traceId: socket.flowTraceId, transport: "websocket" },
-      });
       socket.close(1003, "Binary messages are not supported");
       return;
     }
 
     const payload = parseMessage(data);
     if (!payload || typeof payload.type !== "string") {
-      flowTracer.record({
-        stage: "websocket",
-        level: "error",
-        action: "websocket.message.invalid",
-        summary: "A WebSocket message failed JSON or shape validation.",
-        context: { traceId: socket.flowTraceId, transport: "websocket" },
-      });
       sendJson(socket, {
         type: "chat.error",
         code: "INVALID_MESSAGE",
@@ -248,36 +169,15 @@ export class ChatSocketServer {
       });
       return;
     }
-    flowTracer.record({
-      stage: "websocket",
-      action: "websocket.message.received",
-      summary: `Received WebSocket message "${payload.type}".`,
-      context: { traceId: socket.flowTraceId, transport: "websocket" },
-      details: { messageType: payload.type },
-    });
 
     if (!socket.isAuthenticated) {
       if (payload.type !== "auth" || payload.token !== env.SOCKET_AUTH_TOKEN) {
-        flowTracer.record({
-          stage: "websocket",
-          level: "decision",
-          action: "websocket.auth.rejected",
-          summary: "WebSocket authentication failed.",
-          context: { traceId: socket.flowTraceId, transport: "websocket" },
-        });
         socket.close(1008, "Unauthorized");
         return;
       }
 
       socket.isAuthenticated = true;
       clearTimeout(authTimer);
-      flowTracer.record({
-        stage: "websocket",
-        level: "success",
-        action: "websocket.auth.accepted",
-        summary: "WebSocket authentication succeeded.",
-        context: { traceId: socket.flowTraceId, transport: "websocket" },
-      });
       sendJson(socket, {
         type: "connection.ready",
         connectionId: randomUUID(),
@@ -286,12 +186,6 @@ export class ChatSocketServer {
     }
 
     if (payload.type === "ping") {
-      flowTracer.record({
-        stage: "websocket",
-        action: "websocket.ping.responded",
-        summary: "Application ping was answered with pong.",
-        context: { traceId: socket.flowTraceId, transport: "websocket" },
-      });
       sendJson(socket, { type: "pong", timestamp: payload.timestamp });
       return;
     }
@@ -301,20 +195,6 @@ export class ChatSocketServer {
       const controller = activeRequests?.get(payload.requestId);
       controller?.abort(new Error("The client cancelled the chat request."));
       activeRequests?.delete(payload.requestId);
-      flowTracer.record({
-        stage: "conversation",
-        level: "decision",
-        action: "chat.cancel.requested",
-        summary: controller
-          ? "The active chat request was cancelled."
-          : "No active request matched the cancellation.",
-        context: {
-          traceId: socket.flowTraceId,
-          transport: "websocket",
-          requestId: payload.requestId,
-        },
-        details: { activeRequestFound: Boolean(controller) },
-      });
       return;
     }
 
@@ -332,18 +212,6 @@ export class ChatSocketServer {
     const message = payload.message?.trim();
 
     if (!requestId || !conversationId || !message) {
-      flowTracer.record({
-        stage: "websocket",
-        level: "decision",
-        action: "chat.message.rejected",
-        summary: "A chat request failed required-field validation.",
-        context: { traceId: socket.flowTraceId, transport: "websocket" },
-        details: {
-          hasRequestId: Boolean(requestId),
-          hasConversationId: Boolean(conversationId),
-          hasMessage: Boolean(message),
-        },
-      });
       sendJson(socket, {
         type: "chat.error",
         requestId,
@@ -354,22 +222,6 @@ export class ChatSocketServer {
     }
 
     if (message.length > env.CHAT_MAX_MESSAGE_LENGTH) {
-      flowTracer.record({
-        stage: "websocket",
-        level: "decision",
-        action: "chat.message.too_long",
-        summary: "A chat request exceeded the configured message limit.",
-        context: {
-          traceId: socket.flowTraceId,
-          transport: "websocket",
-          requestId,
-          conversationId,
-        },
-        details: {
-          messageLength: message.length,
-          limit: env.CHAT_MAX_MESSAGE_LENGTH,
-        },
-      });
       sendJson(socket, {
         type: "chat.error",
         requestId,
@@ -380,22 +232,6 @@ export class ChatSocketServer {
     }
 
     if (isRateLimited(socket)) {
-      flowTracer.record({
-        stage: "websocket",
-        level: "decision",
-        action: "chat.message.rate_limited",
-        summary: "A chat request was rejected by the connection rate limit.",
-        context: {
-          traceId: socket.flowTraceId,
-          transport: "websocket",
-          requestId,
-          conversationId,
-        },
-        details: {
-          requestCount: socket.requestCount,
-          limit: env.RATE_LIMIT_MAX,
-        },
-      });
       sendJson(socket, {
         type: "chat.error",
         requestId,
@@ -409,79 +245,44 @@ export class ChatSocketServer {
     this.activeRequests.get(socket)?.set(requestId, abortController);
     sendJson(socket, { type: "chat.started", requestId, conversationId });
 
-    await flowTracer.withContext(
-      {
-        traceId: socket.flowTraceId,
-        transport: "websocket",
+    try {
+      const result = this.orchestrator.streamChat(conversationId, message, {
+        signal: abortController.signal,
+      });
+
+      for await (const delta of result) {
+        sendJson(socket, {
+          type: "chat.delta",
+          requestId,
+          conversationId,
+          delta,
+        });
+      }
+
+      if (!abortController.signal.aborted) {
+        sendJson(socket, {
+          type: "chat.complete",
+          requestId,
+          conversationId,
+          createdAt: new Date().toISOString(),
+        });
+      }
+    } catch (error) {
+      if (abortController.signal.aborted) return;
+
+      console.error("Chat handler failed", {
         requestId,
-        conversationId,
-      },
-      async () => {
-        try {
-          flowTracer.record({
-            stage: "conversation",
-            action: "chat.request.accepted",
-            summary: "The chat request entered AI orchestration.",
-            details: { message, messageLength: message.length },
-          });
-          const result = this.orchestrator.streamChat(conversationId, message, {
-            signal: abortController.signal,
-          });
-
-          for await (const delta of result) {
-            sendJson(socket, {
-              type: "chat.delta",
-              requestId,
-              conversationId,
-              delta,
-            });
-            flowTracer.record({
-              stage: "response",
-              action: "chat.delta.sent",
-              summary: "An assistant response chunk was sent to the client.",
-              details: { chunkLength: delta.length },
-            });
-          }
-
-          if (!abortController.signal.aborted) {
-            sendJson(socket, {
-              type: "chat.complete",
-              requestId,
-              conversationId,
-              createdAt: new Date().toISOString(),
-            });
-            flowTracer.record({
-              stage: "response",
-              level: "success",
-              action: "chat.response.completed",
-              summary: "The completed response was sent to the client.",
-            });
-          }
-        } catch (error) {
-          if (abortController.signal.aborted) return;
-
-          flowTracer.record({
-            stage: "response",
-            level: "error",
-            action: "chat.response.failed",
-            summary: "The chat handler failed.",
-            details: { error },
-          });
-          console.error("Chat handler failed", {
-            requestId,
-            error: error instanceof Error ? error.message : error,
-          });
-          sendJson(socket, {
-            type: "chat.error",
-            requestId,
-            code: "CHAT_FAILED",
-            message: "Unable to process the chat message.",
-          });
-        } finally {
-          this.removeActiveRequest(socket, requestId, abortController);
-        }
-      },
-    );
+        error: error instanceof Error ? error.message : error,
+      });
+      sendJson(socket, {
+        type: "chat.error",
+        requestId,
+        code: "CHAT_FAILED",
+        message: "Unable to process the chat message.",
+      });
+    } finally {
+      this.removeActiveRequest(socket, requestId, abortController);
+    }
   }
 
   /** Aborts every in-flight request associated with a disconnected client. */

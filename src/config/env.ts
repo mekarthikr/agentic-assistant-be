@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import { tmpdir } from "node:os";
 import path from "node:path";
 
 import type { AppEnvironment } from "@app/types";
@@ -20,6 +21,9 @@ const requireEnvironmentVariable = (name: string): string => {
 };
 
 const socketAuthToken = process.env.SOCKET_AUTH_TOKEN;
+const defaultRagIndexPath = process.env.VERCEL
+  ? path.join(tmpdir(), "enterprise-api-index.json")
+  : "src/rag/enterprise-api-index.json";
 
 /** Validated runtime configuration consumed by the HTTP and WebSocket servers. */
 export const env: AppEnvironment = {
@@ -28,7 +32,7 @@ export const env: AppEnvironment = {
   GROQ_MODEL: process.env.GROQ_MODEL?.trim() || "llama-3.1-8b-instant",
   ENTERPRISE_API_BASE_URL:
     process.env.ENTERPRISE_API_BASE_URL?.trim() ||
-    "https://mock-api-server-zeta.vercel.app",
+    "https://mock-api-server-zeta.vercel.app/api/v1",
   ENTERPRISE_API_DOC_PATH: path.resolve(
     process.cwd(),
     process.env.ENTERPRISE_API_DOC_PATH?.trim() ||
@@ -37,7 +41,7 @@ export const env: AppEnvironment = {
   ENTERPRISE_RAG_INDEX_PATH: path.resolve(
     process.cwd(),
     process.env.ENTERPRISE_RAG_INDEX_PATH?.trim() ||
-      "src/rag/enterprise-api-index.json",
+      defaultRagIndexPath,
   ),
   SOCKET_AUTH_TOKEN: socketAuthToken,
   WS_PATH: process.env.WS_PATH || "/ws",

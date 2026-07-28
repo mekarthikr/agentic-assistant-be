@@ -1,22 +1,18 @@
 import express from "express";
 import cors from "cors";
 
-import { flowTracer } from "@app/observability";
-import { healthRoutes, viewFlowRoutes } from "@app/route";
+import { healthRoutes } from "@app/route";
 
 /** Configured Express application shared by the HTTP server and tests. */
 const app = express();
 
 app.disable("x-powered-by");
 
-app.use(flowTracer.httpMiddleware);
-
 app.use(cors());
 
 app.use(express.json());
 
 app.use("/health", healthRoutes);
-app.use("/view-flow", viewFlowRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({ success: false, message: "Route not found." });

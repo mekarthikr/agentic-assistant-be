@@ -29,7 +29,7 @@ Thumbs.db
 coverage/
 
 # Generated RAG indexes
-# src/rag/*.json
+src/rag/*.json
 
 # TypeScript
 *.tsbuildinfo

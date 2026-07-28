@@ -6,9 +6,8 @@ import type {
   EnterpriseEndpoint,
   EnterpriseEndpointParameter,
 } from "@app/types";
-import { flowTracer } from "@app/observability";
 
-const INDEX_VERSION = 3;
+const INDEX_VERSION = 2;
 const DEFAULT_RESULT_LIMIT = 3;
 const STOP_WORDS = new Set([
   "a",
@@ -114,7 +113,6 @@ const cosineSimilarity = (left: SparseVector, right: SparseVector): number =>
 /** Converts an HTTP method and path into a stable model-safe tool identifier. */
 const toToolId = (method: string, endpointPath: string): string => {
   const pathParts = endpointPath
-    .replace(/^\/api\/v1(?=\/|$)/i, "")
     .split("/")
     .filter(Boolean)
     .map((part) => {
@@ -146,103 +144,16 @@ const parseParameter = (
 
   return {
     name: match[1],
-    type: "string",
     location,
     required: location === "path" || /\brequired\b/i.test(line),
     description: match[2].trim(),
   };
 };
 
-/** Parses parameter rows from one endpoint's Markdown table. */
-const parseParameterTable = (
-  section: string,
-  location: "path" | "query",
-): EnterpriseEndpointParameter[] =>
-  section.split(/\r?\n/).flatMap((line) => {
-    if (!line.trim().startsWith("|")) return [];
-    const cells = line
-      .trim()
-      .replace(/^\||\|$/g, "")
-      .split("|")
-      .map((cell) => cell.trim().replace(/`/g, ""));
-    if (
-      cells.length < 4 ||
-      /^parameter$/i.test(cells[0]) ||
-      /^-+$/.test(cells[0])
-    ) {
-      return [];
-    }
-
-    return [
-      {
-        name: cells[0],
-        type: "string",
-        location,
-        required: location === "path" || /^yes$/i.test(cells[2]),
-        description: cells[3],
-      },
-    ];
-  });
-
-/** Parses the endpoint-oriented RAG documentation format. */
-const parseEndpointSections = (markdown: string): EnterpriseEndpoint[] => {
-  const endpoints: EnterpriseEndpoint[] = [];
-  const endpointPattern =
-    /^## Endpoint:\s*(.+)\r?\n([\s\S]*?)(?=^## Endpoint:|(?![\s\S]))/gm;
-
-  for (const match of markdown.matchAll(endpointPattern)) {
-    const title = match[1].trim();
-    const documentation = match[2].trim();
-    const requestSection =
-      /^### Request\s*\r?\n([\s\S]*?)(?=^###\s|(?![\s\S]))/im.exec(
-        documentation,
-      )?.[1] ?? "";
-    const endpointMatch = /```http\s*\r?\n\s*([A-Z]+)\s+([^\s`]+)/i.exec(
-      requestSection,
-    );
-    if (!endpointMatch) continue;
-
-    const description =
-      /^### Intent\s*\r?\n([\s\S]*?)(?=^###\s|(?![\s\S]))/im
-        .exec(documentation)?.[1]
-        .trim()
-        .replace(/\s+/g, " ") ?? title;
-    const parameters: EnterpriseEndpointParameter[] = [];
-    const parameterSectionPattern =
-      /^###\s+(Supported query parameters|Path parameters?)\s*\r?\n([\s\S]*?)(?=^###\s|(?![\s\S]))/gim;
-
-    for (const parameterMatch of documentation.matchAll(
-      parameterSectionPattern,
-    )) {
-      const location = /^supported query/i.test(parameterMatch[1])
-        ? "query"
-        : "path";
-      parameters.push(...parseParameterTable(parameterMatch[2], location));
-    }
-
-    const method = endpointMatch[1].toUpperCase();
-    const endpointPath = endpointMatch[2].split(/[?#]/, 1)[0].trim();
-    endpoints.push({
-      id: toToolId(method, endpointPath),
-      title,
-      method,
-      path: endpointPath,
-      description,
-      parameters,
-      documentation: `${title}\n${documentation}`,
-    });
-  }
-
-  return endpoints;
-};
-
 /** Parses documented operations without knowing any enterprise resource names. */
 export const parseEnterpriseApiDocumentation = (
   markdown: string,
 ): EnterpriseEndpoint[] => {
-  const endpointSections = parseEndpointSections(markdown);
-  if (endpointSections.length) return endpointSections;
-
   const sections = markdown.split(/^###\s+/m).slice(1);
 
   return sections.flatMap((section) => {
@@ -308,12 +219,6 @@ export class EnterpriseRagService {
     documentationPath: string,
     indexPath: string,
   ): Promise<EnterpriseRagService> {
-    const finishLoad = flowTracer.start({
-      stage: "system",
-      action: "rag.index.loading",
-      summary: "Loading enterprise retrieval documentation and index.",
-      details: { documentationPath, indexPath },
-    });
     const markdown = await readFile(documentationPath, "utf8");
     const sourceHash = createHash("sha256").update(markdown).digest("hex");
     const cachedIndex = await this.readCachedIndex(indexPath);
@@ -322,24 +227,12 @@ export class EnterpriseRagService {
       cachedIndex?.version === INDEX_VERSION &&
       cachedIndex.sourceHash === sourceHash
     ) {
-      finishLoad({
-        level: "success",
-        action: "rag.index.cache_hit",
-        summary: "The cached RAG index matched the documentation hash.",
-        details: { endpointCount: cachedIndex.entries.length },
-      });
       return new EnterpriseRagService(cachedIndex);
     }
 
     const index = this.buildIndex(markdown, sourceHash);
     await mkdir(path.dirname(indexPath), { recursive: true });
     await writeFile(indexPath, `${JSON.stringify(index, null, 2)}\n`, "utf8");
-    finishLoad({
-      level: "success",
-      action: "rag.index.rebuilt",
-      summary: "The RAG index was rebuilt from enterprise documentation.",
-      details: { endpointCount: index.entries.length },
-    });
     return new EnterpriseRagService(index);
   }
 
@@ -363,28 +256,11 @@ export class EnterpriseRagService {
     const queryTerms = new Set(tokenize(query));
     const queryContainsIdentifier =
       /\b\d{3,}\b/.test(query) || /\b(?:id|number)\b/i.test(query);
-    const queryTargetsApplications =
-      /\b(?:application|approval|approved|submitted|rejected|in progress|anticipated premium|agent|contact)\b/i.test(
-        query,
-      );
-    const queryTargetsContracts =
-      !queryTargetsApplications &&
-      /\b(?:contract|policy|current value|anniversary|issued|surrendered|distribution)\b/i.test(
-        query,
-      );
     const matches = this.index.entries
       .map((entry) => ({
         endpoint: entry.endpoint,
         score:
           cosineSimilarity(queryVector, entry.vector) +
-          (queryTargetsApplications &&
-          /\/applications(?:\/|$)/i.test(entry.endpoint.path)
-            ? 0.3
-            : 0) +
-          (queryTargetsContracts &&
-          /\/contracts(?:\/|$)/i.test(entry.endpoint.path)
-            ? 0.2
-            : 0) +
           (queryContainsIdentifier &&
           entry.endpoint.parameters.some(
             (parameter) =>
@@ -397,28 +273,6 @@ export class EnterpriseRagService {
       .sort((left, right) => right.score - left.score)
       .filter(({ score }) => score > 0)
       .slice(0, Math.max(1, limit));
-
-    flowTracer.record({
-      stage: "retrieval",
-      level: "decision",
-      action: "rag.scored",
-      summary: matches.length
-        ? `${matches.length} documented operation(s) passed the relevance threshold.`
-        : "No documented operation passed the relevance threshold.",
-      details: {
-        query,
-        queryContainsIdentifier,
-        queryTargetsApplications,
-        queryTargetsContracts,
-        resultLimit: limit,
-        matches: matches.map(({ endpoint, score }) => ({
-          toolName: endpoint.id,
-          method: endpoint.method,
-          path: endpoint.path,
-          score: Math.round(score * 10_000) / 10_000,
-        })),
-      },
-    });
 
     if (!matches.length) return undefined;
 

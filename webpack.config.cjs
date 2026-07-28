@@ -52,7 +52,7 @@ class VercelBuildOutputPlugin {
 module.exports = {
   mode: "production",
   target: "node22",
-  entry: path.resolve(__dirname, "vercel/entry.ts"),
+  entry: path.resolve(__dirname, "api/index.ts"),
   devtool: "source-map",
   externalsPresets: { node: true },
   experiments: {
@@ -70,6 +70,7 @@ module.exports = {
             compilerOptions: {
               rootDir: __dirname,
             },
+            transpileOnly: true,
           },
         },
       },

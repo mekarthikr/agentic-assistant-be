@@ -5,7 +5,6 @@ import {
   ProviderError,
 } from "@app/types";
 import { INSURANCE_ASSISTANT_SYSTEM_PROMPT } from "@app/prompts";
-import { flowTracer } from "@app/observability";
 import { ConversationService } from "./conversation.service";
 import {
   EnterpriseRagService,
@@ -14,10 +13,6 @@ import {
 import { ToolRegistry } from "./tool-registry.service";
 
 const DEFAULT_MAX_TOOL_ROUNDS = 8;
-const MAX_TOOL_FORMAT_RETRIES = 1;
-const TOOL_FORMAT_CORRECTION = `Your previous response exposed internal tool-call syntax as text. Try again. Either return a native structured tool call or a normal agent-facing answer. If a real lookup value is missing, ask one concise question for it. Never output endpoint markup, tool names, JSON arguments, or placeholders.`;
-const SAFE_LOOKUP_FALLBACK =
-  "I couldn’t complete that lookup safely. Please provide the client name or contract number you want me to use, or ask me to list all available records.";
 
 /** Coordinates conversation history, retrieval, model calls, and tool execution. */
 export class AIOrchestrator {
@@ -49,20 +44,7 @@ export class AIOrchestrator {
     userMessage: string,
     options: ChatOptions = {},
   ): Promise<string> {
-    const finishChat = flowTracer.start({
-      stage: "conversation",
-      action: "chat.started",
-      summary: "AI orchestration started for a user turn.",
-      context: { conversationId },
-      details: { promptLength: userMessage.length },
-    });
     const prompt = this.validatePrompt(userMessage);
-    flowTracer.record({
-      stage: "conversation",
-      action: "prompt.validated",
-      summary: "The user prompt passed validation.",
-      details: { prompt, promptLength: prompt.length },
-    });
     const conversation = this.conversationService.addUserMessage(
       conversationId,
       prompt,
@@ -74,19 +56,6 @@ export class AIOrchestrator {
         .map(({ content }) => content)
         .join("\n"),
     );
-    flowTracer.record({
-      stage: "retrieval",
-      level: "decision",
-      action: "retrieval.decision",
-      summary: retrieval
-        ? `RAG selected ${retrieval.toolNames.length} enterprise tool(s).`
-        : "RAG found no relevant enterprise operation.",
-      details: {
-        matched: Boolean(retrieval),
-        selectedTools: retrieval?.toolNames ?? [],
-        conversationMessageCount: conversation.messages.length,
-      },
-    });
 
     let response: string;
     try {
@@ -96,13 +65,6 @@ export class AIOrchestrator {
         retrieval,
       );
     } catch (error) {
-      finishChat({
-        stage: "response",
-        level: "error",
-        action: "chat.failed",
-        summary: "AI orchestration failed before producing a response.",
-        details: { error },
-      });
       this.throwIfAborted(options.signal);
       throw new ProviderError(
         "The AI provider could not generate a response.",
@@ -112,13 +74,6 @@ export class AIOrchestrator {
 
     this.validateResponse(response);
     this.conversationService.addAssistantMessage(conversationId, response);
-    finishChat({
-      stage: "response",
-      level: "success",
-      action: "chat.completed",
-      summary: "The final assistant response was validated and stored.",
-      details: { responseLength: response.length, response },
-    });
     return response;
   }
 
@@ -165,85 +120,17 @@ export class AIOrchestrator {
         : []),
     ].join("\n\n");
     const tools = this.toolRegistry.toToolSet(retrieval?.toolNames);
-    const toolNames = Object.keys(tools);
-    let formatRetries = 0;
-    flowTracer.record({
-      stage: "tool",
-      level: "decision",
-      action: "tools.exposed",
-      summary: `${toolNames.length} tool schema(s) were exposed to the model.`,
-      details: { toolNames, maxToolRounds },
-    });
 
     for (let round = 0; round <= maxToolRounds; round += 1) {
-      const finishRound = flowTracer.start({
-        stage: "model",
-        action: "model.round.started",
-        summary: `Model round ${round + 1} started.`,
-        details: {
-          round: round + 1,
-          messageCount: history.length,
-          toolCount: Object.keys(tools).length,
-        },
-      });
       const response = await this.provider.generate({
-        system:
-          formatRetries > 0 ? `${system}\n\n${TOOL_FORMAT_CORRECTION}` : system,
+        system,
         messages: history,
         tools,
         signal: options.signal,
       });
 
-      finishRound({
-        level: "decision",
-        action: "model.round.decided",
-        summary:
-          response.toolCalls.length === 0
-            ? "The model returned a final text response."
-            : `The model requested ${response.toolCalls.length} tool call(s).`,
-        details: {
-          round: round + 1,
-          textLength: response.text.length,
-          toolCalls: response.toolCalls.map(
-            ({ toolCallId, toolName, input }) => ({
-              toolCallId,
-              toolName,
-              input,
-            }),
-          ),
-        },
-      });
-
-      if (
-        response.toolCalls.length === 0 &&
-        this.looksLikeLeakedToolCall(response.text, toolNames)
-      ) {
-        flowTracer.record({
-          stage: "model",
-          level: "decision",
-          action: "model.tool_markup.blocked",
-          summary: "Blocked user-visible pseudo-tool syntax from the model.",
-          details: {
-            formatRetry: formatRetries,
-            response: response.text,
-          },
-        });
-        if (formatRetries >= MAX_TOOL_FORMAT_RETRIES) {
-          return SAFE_LOOKUP_FALLBACK;
-        }
-        formatRetries += 1;
-        continue;
-      }
-
       if (response.toolCalls.length === 0) return response.text;
       if (round === maxToolRounds) {
-        flowTracer.record({
-          stage: "model",
-          level: "error",
-          action: "model.tool_limit.exceeded",
-          summary: "The model exceeded the configured tool-call round limit.",
-          details: { maxToolRounds },
-        });
         throw new ProviderError(
           "The AI provider exceeded the tool-call limit.",
         );
@@ -271,25 +158,6 @@ export class AIOrchestrator {
     if (!response.trim()) {
       throw new ProviderError("The AI provider returned an empty response.");
     }
-  }
-
-  /** Detects provider text that imitates internal tool protocol. */
-  private looksLikeLeakedToolCall(
-    response: string,
-    toolNames: readonly string[],
-  ): boolean {
-    if (
-      /(?:<\/?to=|\/to>|<\|tool[_ -]?call|<\/?tool[_ -]?call|YOUR NAME HERE)/i.test(
-        response,
-      )
-    ) {
-      return true;
-    }
-
-    return toolNames.some(
-      (toolName) =>
-        response.includes(`${toolName}{`) || response.includes(`${toolName} {`),
-    );
   }
 
   /** Re-throws an active cancellation using its original abort reason. */

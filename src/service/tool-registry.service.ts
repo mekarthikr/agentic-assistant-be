@@ -1,7 +1,6 @@
 import type { FlexibleSchema, ToolModelMessage, ToolSet } from "ai";
 
 import type { LLMToolCall } from "@app/types";
-import { flowTracer } from "@app/observability";
 
 export interface ToolExecutionContext {
   readonly toolCallId: string;
@@ -76,16 +75,6 @@ export class ToolRegistry {
         const tool = this.tools.get(call.toolName);
 
         if (!tool) {
-          flowTracer.record({
-            stage: "tool",
-            level: "error",
-            action: "tool.unavailable",
-            summary: `The model requested unavailable tool "${call.toolName}".`,
-            details: {
-              toolCallId: call.toolCallId,
-              toolName: call.toolName,
-            },
-          });
           return {
             type: "tool-result" as const,
             toolCallId: call.toolCallId,
@@ -98,31 +87,11 @@ export class ToolRegistry {
         }
 
         try {
-          const finishTool = flowTracer.start({
-            stage: "tool",
-            action: "tool.execution.started",
-            summary: `Executing tool "${call.toolName}".`,
-            details: {
-              toolCallId: call.toolCallId,
-              toolName: call.toolName,
-              input: call.input,
-            },
-          });
           const value = await tool.execute(call.input, {
             toolCallId: call.toolCallId,
             signal,
           });
           signal?.throwIfAborted();
-          finishTool({
-            level: "success",
-            action: "tool.execution.completed",
-            summary: `Tool "${call.toolName}" completed successfully.`,
-            details: {
-              toolCallId: call.toolCallId,
-              toolName: call.toolName,
-              output: value,
-            },
-          });
           return {
             type: "tool-result" as const,
             toolCallId: call.toolCallId,
@@ -131,17 +100,6 @@ export class ToolRegistry {
           };
         } catch (error) {
           signal?.throwIfAborted();
-          flowTracer.record({
-            stage: "tool",
-            level: "error",
-            action: "tool.execution.failed",
-            summary: `Tool "${call.toolName}" failed.`,
-            details: {
-              toolCallId: call.toolCallId,
-              toolName: call.toolName,
-              error,
-            },
-          });
           return {
             type: "tool-result" as const,
             toolCallId: call.toolCallId,

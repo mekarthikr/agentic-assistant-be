@@ -3,7 +3,6 @@ import { generateText, type AssistantModelMessage } from "ai";
 
 import type { GroqConfiguration } from "@app/config/groq";
 import type { LLMProvider, LLMRequest, LLMResponse } from "@app/types";
-import { flowTracer } from "@app/observability";
 
 /** Wraps failures raised while requesting a response from Groq. */
 export class GroqProviderError extends Error {
@@ -42,24 +41,12 @@ export class GroqProvider implements LLMProvider {
     tools,
     signal,
   }: LLMRequest): Promise<LLMResponse> {
-    const finishGeneration = flowTracer.start({
-      stage: "model",
-      action: "groq.request.started",
-      summary: `Sending a generation request to ${this.configuration.model}.`,
-      details: {
-        model: this.configuration.model,
-        messageCount: messages.length,
-        toolNames: Object.keys(tools ?? {}),
-        systemPromptLength: system?.length ?? 0,
-      },
-    });
     try {
       const result = await generateText({
         model: this.client(this.configuration.model),
         system,
         messages: [...messages],
         tools,
-        temperature: 0,
         abortSignal: signal,
       });
       const toolCalls = result.toolCalls.map(
@@ -83,24 +70,8 @@ export class GroqProvider implements LLMProvider {
             ]
           : result.text,
       };
-      finishGeneration({
-        level: "success",
-        action: "groq.request.completed",
-        summary: "Groq returned a model response.",
-        details: {
-          model: this.configuration.model,
-          textLength: result.text.length,
-          toolCallCount: toolCalls.length,
-        },
-      });
       return { text: result.text, toolCalls, assistantMessage };
     } catch (error) {
-      finishGeneration({
-        level: "error",
-        action: "groq.request.failed",
-        summary: "Groq failed to return a model response.",
-        details: { model: this.configuration.model, error },
-      });
       this.throwProviderError(error, signal);
     }
   }

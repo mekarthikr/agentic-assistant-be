@@ -17,24 +17,11 @@ const toStringInput = (
   input: unknown,
   endpoint: EnterpriseEndpoint,
 ): Record<string, string> => {
-  let normalizedInput = input;
-  if (typeof normalizedInput === "string") {
-    try {
-      normalizedInput = normalizedInput.trim()
-        ? JSON.parse(normalizedInput)
-        : {};
-    } catch {
-      throw new Error("Tool input must be valid JSON.");
-    }
-  }
-  if (normalizedInput === undefined || normalizedInput === null) {
-    normalizedInput = {};
-  }
-  if (typeof normalizedInput !== "object" || Array.isArray(normalizedInput)) {
+  if (typeof input !== "object" || input === null || Array.isArray(input)) {
     throw new Error("Tool input must be an object.");
   }
 
-  const record = normalizedInput as ToolInput;
+  const record = input as ToolInput;
   return Object.fromEntries(
     endpoint.parameters.flatMap((parameter) => {
       const value = record[parameter.name];
@@ -63,14 +50,14 @@ export const createEnterpriseTools = (
     .filter(({ method }) => method === "GET")
     .map((endpoint) => ({
       name: endpoint.id,
-      description: `${endpoint.description} Use this only as a native structured tool call with real values supplied by the insurance agent. Never expose the tool name, endpoint, JSON arguments, sample data, or placeholders in user-facing text. Documented endpoint: ${endpoint.method} ${endpoint.path}.`,
+      description: `${endpoint.description} Documented endpoint: ${endpoint.method} ${endpoint.path}.`,
       inputSchema: jsonSchema({
         type: "object",
         properties: Object.fromEntries(
           endpoint.parameters.map((parameter) => [
             parameter.name,
             {
-              type: parameter.type,
+              type: "string",
               description: parameter.description,
             },
           ]),

@@ -13,6 +13,25 @@ npm run dev
 The HTTP health check is available at `GET /health`. WebSocket chat uses
 `ws://localhost:5000/ws` by default.
 
+## Deploy to Vercel
+
+The repository includes a Vercel Function entry point and routing
+configuration. Import the repository in Vercel, keep the project root at the
+repository root, and configure these environment variables:
+
+- `GROQ_API_KEY` (required)
+- `GROQ_MODEL` (optional)
+- `ENTERPRISE_API_BASE_URL` (optional)
+- `SOCKET_AUTH_TOKEN` (recommended for public deployments)
+
+Do not set `PORT`. Vercel supplies the HTTP server. The generated RAG index is
+automatically written to the function's temporary directory, while its source
+Markdown is bundled with the function.
+
+After deployment, verify `GET /health`. WebSocket clients connect to
+`wss://<deployment-domain>/ws` and must reconnect if a function instance is
+recycled.
+
 ## Enterprise tools
 
 The Markdown file at `src/docs/enterprise-api-documentation.md` is the source of

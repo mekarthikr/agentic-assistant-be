@@ -1,56 +1,9 @@
-import { env, groqConfiguration } from "@app/config";
-import { GroqProvider } from "@app/providers";
-import {
-  AIOrchestrator,
-  ConversationService,
-  EnterpriseRagService,
-  ToolRegistry,
-} from "@app/service";
-import { createServer } from "http";
-import { ChatSocketServer } from "@app/socket";
-import { createEnterpriseTools } from "@app/tools/enterprise-tools";
-import { flowTracer } from "@app/observability";
-import app from "./app";
+import { createApplicationServer } from "@app/application-server";
+import { env } from "@app/config";
 
-const finishBootstrap = flowTracer.start({
-  stage: "system",
-  action: "backend.bootstrap.started",
-  summary: "Local backend dependency initialization started.",
-  context: { traceId: "backend-bootstrap", transport: "system" },
-});
-const httpServer = createServer(app);
-const conversationService = new ConversationService();
-const provider = new GroqProvider(groqConfiguration);
-const enterpriseRag = await EnterpriseRagService.load(
-  env.ENTERPRISE_API_DOC_PATH,
-  env.ENTERPRISE_RAG_INDEX_PATH,
-);
-const toolRegistry = new ToolRegistry(
-  createEnterpriseTools(enterpriseRag.getEndpoints()),
-);
-const orchestrator = new AIOrchestrator(
-  conversationService,
-  provider,
-  toolRegistry,
-  enterpriseRag,
-);
-const socketServer = new ChatSocketServer(httpServer, orchestrator);
-
-httpServer.requestTimeout = 30_000;
-httpServer.headersTimeout = 35_000;
-httpServer.keepAliveTimeout = 5_000;
+const { httpServer, socketServer } = await createApplicationServer();
 
 httpServer.listen(env.PORT, () => {
-  finishBootstrap({
-    level: "success",
-    action: "backend.bootstrap.completed",
-    summary: `Backend is listening on port ${env.PORT}.`,
-    details: {
-      port: env.PORT,
-      websocketPath: env.WS_PATH,
-      model: env.GROQ_MODEL,
-    },
-  });
   console.log(`Server started on port ${env.PORT}`);
 });
 
