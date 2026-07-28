@@ -9,9 +9,11 @@ import { ToolRegistry } from "../src/service/tool-registry.service";
 import type { LLMProvider, LLMRequest, LLMResponse } from "../src/types";
 
 class CapturingProvider implements LLMProvider {
+  public instructions: string | undefined;
   public messages: readonly ModelMessage[] = [];
 
   public async generate(request: LLMRequest): Promise<LLMResponse> {
+    this.instructions = request.instructions;
     this.messages = request.messages;
     return {
       text: "Contract lookup ready.",
@@ -36,7 +38,7 @@ test("loads the generated enterprise API RAG index", () => {
   assert.match(result?.content ?? "", /GET \/applications/);
 });
 
-test("adds insurance scope and retrieved API context as a system message", async () => {
+test("adds insurance scope and retrieved API context as instructions", async () => {
   const provider = new CapturingProvider();
   const rag = new ApiDocumentationRag(`## Contracts API
 
@@ -50,14 +52,10 @@ GET /contracts/:contractNumber returns one insurance contract.`);
 
   await orchestrator.chat("conversation-1", "Find contract 1561091");
 
-  const systemMessage = provider.messages[0];
-  assert.equal(systemMessage?.role, "system");
+  assert.equal(provider.messages[0]?.role, "user");
   assert.match(
-    typeof systemMessage?.content === "string" ? systemMessage.content : "",
+    provider.instructions ?? "",
     /professional copilot for insurance agents/,
   );
-  assert.match(
-    typeof systemMessage?.content === "string" ? systemMessage.content : "",
-    /GET \/contracts\/:contractNumber/,
-  );
+  assert.match(provider.instructions ?? "", /GET \/contracts\/:contractNumber/);
 });

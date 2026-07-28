@@ -41,16 +41,11 @@ export class AIOrchestrator {
       const retrievedContext =
         this.apiDocumentation.retrieveContext(retrievalQuery);
       response = await this.generateWithTools(
-        [
-          {
-            role: "system",
-            content: this.buildSystemPrompt(retrievedContext),
-          },
-          ...conversation.messages.map(({ role, content }) => ({
-            role,
-            content,
-          })),
-        ],
+        this.buildSystemPrompt(retrievedContext),
+        conversation.messages.map(({ role, content }) => ({
+          role,
+          content,
+        })),
         options,
       );
     } catch (error) {
@@ -80,6 +75,7 @@ export class AIOrchestrator {
   }
 
   private async generateWithTools(
+    instructions: string,
     messages: Parameters<LLMProvider["generate"]>[0]["messages"],
     options: ChatOptions,
   ): Promise<string> {
@@ -88,6 +84,7 @@ export class AIOrchestrator {
 
     for (let round = 0; round <= maxToolRounds; round += 1) {
       const response = await this.provider.generate({
+        instructions,
         messages: history,
         tools: this.toolRegistry.toToolSet(),
         signal: options.signal,

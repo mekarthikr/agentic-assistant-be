@@ -23,6 +23,7 @@ export class GroqProvider implements LLMProvider {
   }
 
   public async generate({
+    instructions,
     messages,
     tools,
     signal,
@@ -30,6 +31,7 @@ export class GroqProvider implements LLMProvider {
     try {
       const result = await generateText({
         model: this.client(this.configuration.model),
+        instructions,
         messages: [...messages],
         tools,
         abortSignal: signal,
@@ -62,6 +64,7 @@ export class GroqProvider implements LLMProvider {
   }
 
   public async *stream({
+    instructions,
     messages,
     tools,
     signal,
@@ -69,6 +72,7 @@ export class GroqProvider implements LLMProvider {
     try {
       const result = streamText({
         model: this.client(this.configuration.model),
+        instructions,
         messages: [...messages],
         tools,
         abortSignal: signal,

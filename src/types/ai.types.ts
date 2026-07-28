@@ -16,6 +16,8 @@ export interface Conversation {
 }
 
 export interface LLMRequest {
+  /** Trusted server-side behavior and retrieved reference context. */
+  readonly instructions?: string;
   /** AI SDK model messages, including the transient tool-turn messages. */
   readonly messages: readonly ModelMessage[];
   /** Declarative schemas only. Execution remains outside the provider. */
