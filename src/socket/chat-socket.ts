@@ -255,6 +255,7 @@ export class ChatSocketServer {
         });
       }
     } catch (error) {
+      console.log(error)
       if (abortController.signal.aborted) return;
 
       const tokenLimitExceeded = isTokenLimitError(error);
