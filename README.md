@@ -43,8 +43,10 @@ four Groq tools: `searchContracts`, `getContract`, `searchApplications`, and
 The enterprise API reference is stored at
 `src/knowledge/enterprise-api-documentation.md`. At chat time, the backend
 ranks its sections against the recent conversation and adds the most relevant
-sections to the model's system context. The production build copies the
-Markdown reference into `dist/knowledge`.
+sections to the model's system context. Run `npm run rag:generate` after
+changing the reference. The production build regenerates the deterministic
+RAG index automatically and copies both knowledge artifacts into
+`dist/knowledge`.
 
 The permanent system prompt in `src/knowledge/insurance-agent.prompt.ts`
 defines the assistant as a copilot for insurance agents. It permits insurance
@@ -156,6 +158,7 @@ errors so it can recover or explain the failure.
 ## Scripts
 
 - `npm run dev` starts the TypeScript server in watch mode.
+- `npm run rag:generate` rebuilds the enterprise API RAG index.
 - `npm run build` creates the `dist` build.
 - `npm start` runs the production build.
 - `npm run lint` checks the source.

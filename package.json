@@ -7,7 +7,8 @@
   },
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc && tsc-alias && node scripts/copy-knowledge.mjs && webpack --config webpack.config.cjs",
+    "rag:generate": "node scripts/generate-rag.mjs",
+    "build": "npm run rag:generate && tsc && tsc-alias && node scripts/copy-knowledge.mjs && webpack --config webpack.config.cjs",
     "start": "node dist/server.js",
     "lint": "eslint src api",
     "lint:fix": "eslint src --fix",

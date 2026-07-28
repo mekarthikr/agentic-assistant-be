@@ -28,6 +28,14 @@ class CapturingProvider implements LLMProvider {
   }
 }
 
+test("loads the generated enterprise API RAG index", () => {
+  const rag = new ApiDocumentationRag();
+  const [result] = rag.retrieve("approved insurance applications", 1);
+
+  assert.equal(result?.heading, "Applications API");
+  assert.match(result?.content ?? "", /GET \/applications/);
+});
+
 test("adds insurance scope and retrieved API context as a system message", async () => {
   const provider = new CapturingProvider();
   const rag = new ApiDocumentationRag(`## Contracts API

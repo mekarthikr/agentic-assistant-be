@@ -55,6 +55,13 @@ interface DocumentationSection {
   readonly contentTokens: readonly string[];
 }
 
+interface GeneratedDocumentationIndex {
+  readonly version: number;
+  readonly source: string;
+  readonly sourceHash: string;
+  readonly sections: readonly DocumentationSection[];
+}
+
 const normalizeToken = (token: string): string => {
   if (token.endsWith("ies") && token.length > 4)
     return `${token.slice(0, -3)}y`;
@@ -96,6 +103,21 @@ const splitDocumentation = (markdown: string): DocumentationSection[] =>
       };
     });
 
+const loadGeneratedIndex = (): readonly DocumentationSection[] => {
+  const index = JSON.parse(
+    readFileSync(
+      fileURLToPath(new URL("./enterprise-api-rag.json", import.meta.url)),
+      "utf8",
+    ),
+  ) as GeneratedDocumentationIndex;
+
+  if (index.version !== 1 || !Array.isArray(index.sections)) {
+    throw new Error("The generated enterprise API RAG index is invalid.");
+  }
+
+  return index.sections;
+};
+
 const countOccurrences = (
   tokens: readonly string[],
   queryToken: string,
@@ -123,15 +145,11 @@ const relevanceScore = (
 export class ApiDocumentationRag {
   private readonly sections: readonly DocumentationSection[];
 
-  public constructor(
-    markdown = readFileSync(
-      fileURLToPath(
-        new URL("./enterprise-api-documentation.md", import.meta.url),
-      ),
-      "utf8",
-    ),
-  ) {
-    this.sections = splitDocumentation(markdown);
+  public constructor(markdown?: string) {
+    this.sections =
+      markdown === undefined
+        ? loadGeneratedIndex()
+        : splitDocumentation(markdown);
   }
 
   public retrieve(
