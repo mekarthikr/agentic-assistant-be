@@ -1,7 +1,4 @@
-import {
-  createGroq,
-  type GroqLanguageModelChatOptions,
-} from "@ai-sdk/groq";
+import { createGroq, type GroqLanguageModelChatOptions } from "@ai-sdk/groq";
 import { generateText, streamText, type AssistantModelMessage } from "ai";
 
 import type { GroqConfiguration } from "@app/config/groq";
@@ -56,7 +53,6 @@ Return a valid structured tool call. Do not describe or simulate the tool call i
           providerOptions: {
             groq: {
               parallelToolCalls: false,
-              reasoningEffort: retryingParseFailure ? "low" : "medium",
             } satisfies GroqLanguageModelChatOptions,
           },
           abortSignal: signal,
@@ -128,7 +124,6 @@ Return a valid structured tool call. Do not describe or simulate the tool call i
         providerOptions: {
           groq: {
             parallelToolCalls: false,
-            reasoningEffort: 'medium',
           } satisfies GroqLanguageModelChatOptions,
         },
         abortSignal: signal,
