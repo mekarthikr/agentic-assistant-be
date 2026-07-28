@@ -43,7 +43,10 @@ export class GroqProvider implements LLMProvider {
           instructions: retryingParseFailure
             ? `${instructions ?? ""}
 
-Return a valid structured tool call. Do not describe or simulate the tool call in text.`
+Return a valid structured tool call. Do not describe or simulate the tool call in text.
+Use only arguments declared by the selected tool's schema. Never pass null for a
+required argument or add filter fields to a single-record lookup. Use an
+identifier from the conversation when the schema requires one.`
             : instructions,
           messages: [...messages],
           tools,

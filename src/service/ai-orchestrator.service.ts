@@ -53,7 +53,7 @@ export class AIOrchestrator {
         conversation.messages
           .slice(-HISTORY_MESSAGE_LIMIT)
           .map(({ role, content }) => ({ role, content })),
-        this.selectToolNames(retrievalQuery),
+        this.selectToolNames(prompt),
         options,
       );
     } catch (error) {

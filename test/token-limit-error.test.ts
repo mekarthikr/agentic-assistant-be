@@ -73,3 +73,18 @@ test("detects Groq output parsing failures through provider wrappers", () => {
   assert.equal(isOutputParseError(error), true);
   assert.equal(isOutputParseError(new Error("Network unavailable.")), false);
 });
+
+test("detects Groq tool-call schema validation failures", () => {
+  const error = {
+    statusCode: 400,
+    responseBody: JSON.stringify({
+      error: {
+        code: "tool_use_failed",
+        message:
+          "tool call validation failed: parameters for tool getApplication did not match schema",
+      },
+    }),
+  };
+
+  assert.equal(isOutputParseError(error), true);
+});

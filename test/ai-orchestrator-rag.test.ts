@@ -131,3 +131,30 @@ test("exposes only tools relevant to the current request", async () => {
   assert.deepEqual(provider.toolNames, []);
   assert.equal(provider.toolChoice, "auto");
 });
+
+test("selects tools from the current request instead of stale record history", async () => {
+  const provider = new CapturingProvider();
+  const conversations = new ConversationService();
+  const orchestrator = new AIOrchestrator(
+    conversations,
+    provider,
+    createRegistry(),
+    new ApiDocumentationRag("## Applications API\n\nApplication reference."),
+  );
+
+  conversations.addAssistantMessage(
+    "application-history",
+    "Contract 1561091 is active.",
+  );
+
+  await orchestrator.chat(
+    "application-history",
+    "Show me all pending applications",
+  );
+
+  assert.deepEqual(provider.toolNames, ["searchApplications"]);
+  assert.deepEqual(provider.toolChoice, {
+    type: "tool",
+    toolName: "searchApplications",
+  });
+});

@@ -102,7 +102,7 @@ const TOKEN_LIMIT_PATTERN =
 const RATE_LIMIT_PATTERN =
   /rate[_ -]?limit|too many requests|requests per (?:minute|day)|tokens per minute/i;
 const OUTPUT_PARSE_PATTERN =
-  /output_parse_failed|parsing failed.*generated output|generated output.*could not be parsed/i;
+  /output_parse_failed|tool_use_failed|tool call validation failed|parsing failed.*generated output|generated output.*could not be parsed/i;
 
 /** Detects token-limit failures through provider and retry error wrappers. */
 export const isTokenLimitError = (error: unknown): boolean => {
