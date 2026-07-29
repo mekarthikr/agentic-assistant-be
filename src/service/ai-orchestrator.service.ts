@@ -28,7 +28,7 @@ const RECORD_LOOKUP_INTENT_PATTERN =
 const CLIENT_CONTRACT_DETAIL_PATTERN =
   /\b(?:my|product|policy|account|current value|anniversary|premium|beneficiar(?:y|ies)|contract details?)\b/i;
 const CLIENT_APPLICATION_DETAIL_PATTERN =
-  /\b(?:application|approval|case|status|anticipated premium|start date)\b/i;
+  /\b(?:application|approval|case|status|anticipated premium|start date|agent number|application link|contract number|product id|contact id|application name|tax type)\b/i;
 const PRODUCT_DETAIL_PATTERN = /\bproduct(?:\s+name)?\b/i;
 const CLIENT_OWN_RECORD_PATTERN = /\bmy\b/i;
 const ALL_RECORDS_PATTERN = /\b(?:all|every)\b/i;
@@ -206,7 +206,7 @@ export class AIOrchestrator {
         CLIENT_CONTRACT_DETAIL_PATTERN.test(query) ||
         (needsAmbiguousRecord && RECORD_LOOKUP_INTENT_PATTERN.test(query))
       ) {
-        return ["searchContracts"];
+        return ["searchContracts", "searchApplications"];
       }
       return [];
     }
@@ -242,7 +242,7 @@ export class AIOrchestrator {
   ): string {
     const audienceInstructions =
       userType === "client"
-        ? "The current user is a client. Discuss only this client's contract and application information. Retrieve client records only when the client explicitly asks about their own records, such as 'my contracts', 'my product', or 'my application status'. Never retrieve or summarize all contracts, all applications, or information about other clients. If the client's own record lookup returns no results, state that no record is currently available; do not ask the client for extra identifiers."
+        ? "The current user is a client. Discuss only this client's contract and application information. Retrieve client records only when the client explicitly asks about their own records, such as 'my contracts', 'my product', or 'my application status'. The client's own application fields, including status, agent number, application link, product, premium, start date, contract number, product ID, contact ID, application name, and tax type, may be provided. For contract questions, provide the contract number from the client's application and any issued-contract details returned by the contract lookup. Never retrieve or summarize all contracts, all applications, or information about other clients. If the client's own record lookup returns no results, state that no record is currently available; do not ask the client for extra identifiers."
         : "The current user is an agent. You may assist with agent workflows, applications, and contracts.";
     const basePrompt = `${INSURANCE_AGENT_SYSTEM_PROMPT}\n\n${audienceInstructions}`;
 

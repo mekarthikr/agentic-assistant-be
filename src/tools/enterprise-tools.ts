@@ -112,11 +112,24 @@ export const createEnterpriseTools = (
     description:
       "Search insurance contracts using one or more known filters. Use this for contract lists or when a client name, product, status, or tax details are provided.",
     inputSchema: jsonSchema(filterSchema(contractFilters)),
-    execute: (input, context) =>
-      enterpriseApi.getContracts(
+    execute: async (input, context) => {
+      if (
+        context.userType === "client" &&
+        context.clientApplicationContractNumber
+      ) {
+        const response = await enterpriseApi.getContract(
+          context.clientApplicationContractNumber,
+          context.signal,
+        );
+        assertClientOwnsRecord(response.data, context);
+        return { ...response, data: [response.data] };
+      }
+
+      return enterpriseApi.getContracts(
         scopedContractFilters(input, context),
         context.signal,
-      ),
+      );
+    },
   },
   {
     name: "getContract",
