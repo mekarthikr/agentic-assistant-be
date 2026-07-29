@@ -27,7 +27,7 @@ const sendJson = (socket: WebSocket, payload: object): void => {
 // Temporary identity for the currently configured client user. Replace this
 // with a client name/ID read from a verified login session when authentication
 // is available.
-const CLIENT_NAME = "WILLIAMS ROBERT";
+const CLIENT_NAME = "SMITH ROBERT";
 
 const parseMessage = (data: WebSocketRawData): ClientMessage | null => {
   try {

@@ -27,6 +27,11 @@ const RECORD_LOOKUP_INTENT_PATTERN =
   /\b(?:find|search|show|list|look\s*up|retrieve|get)\b/i;
 const CLIENT_CONTRACT_DETAIL_PATTERN =
   /\b(?:my|product|policy|account|current value|anniversary|premium|beneficiar(?:y|ies)|contract details?)\b/i;
+const CLIENT_APPLICATION_DETAIL_PATTERN =
+  /\b(?:application|approval|case|status|anticipated premium|start date)\b/i;
+const PRODUCT_DETAIL_PATTERN = /\bproduct(?:\s+name)?\b/i;
+const CLIENT_OWN_RECORD_PATTERN = /\bmy\b/i;
+const ALL_RECORDS_PATTERN = /\b(?:all|every)\b/i;
 
 export class AIOrchestrator {
   public constructor(
@@ -181,7 +186,19 @@ export class AIOrchestrator {
     const needsAmbiguousRecord = AMBIGUOUS_RECORD_PATTERN.test(query);
 
     if (userType === "client") {
-      if (hasIdentifier) return ["getContract"];
+      if (ALL_RECORDS_PATTERN.test(query) && !CLIENT_OWN_RECORD_PATTERN.test(query)) {
+        return [];
+      }
+      if (hasIdentifier) return ["getContract", "getApplication"];
+      if (PRODUCT_DETAIL_PATTERN.test(query)) {
+        return ["searchContracts", "searchApplications"];
+      }
+      if (
+        needsApplications ||
+        CLIENT_APPLICATION_DETAIL_PATTERN.test(query)
+      ) {
+        return ["searchApplications"];
+      }
       if (
         needsContracts ||
         CLIENT_CONTRACT_DETAIL_PATTERN.test(query) ||
@@ -223,7 +240,7 @@ export class AIOrchestrator {
   ): string {
     const audienceInstructions =
       userType === "client"
-        ? "The current user is a client. Discuss only client-facing contract and policy information; do not present agent workflows, applications, or information about other clients."
+        ? "The current user is a client. Discuss only this client's contract and application information. Retrieve client records only when the client explicitly asks about their own records, such as 'my contracts', 'my product', or 'my application status'. Never retrieve or summarize all contracts, all applications, or information about other clients."
         : "The current user is an agent. You may assist with agent workflows, applications, and contracts.";
     const basePrompt = `${INSURANCE_AGENT_SYSTEM_PROMPT}\n\n${audienceInstructions}`;
 

@@ -79,17 +79,27 @@ const scopedContractFilters = (
     : {}),
 });
 
-const assertClientOwnsContract = (
-  contract: { clientName: string },
+const scopedApplicationFilters = (
+  input: unknown,
+  context: ToolExecutionContext,
+): Record<string, string | undefined> => ({
+  ...filtersFrom(input, applicationFilters),
+  ...(context.userType === "client" && context.clientName
+    ? { clientName: context.clientName }
+    : {}),
+});
+
+const assertClientOwnsRecord = (
+  record: { clientName: string },
   context: ToolExecutionContext,
 ): void => {
   if (
     context.userType === "client" &&
     context.clientName &&
-    contract.clientName.trim().toUpperCase() !==
+    record.clientName.trim().toUpperCase() !==
       context.clientName.trim().toUpperCase()
   ) {
-    throw new Error("This contract is not available for the current client.");
+    throw new Error("This record is not available for the current client.");
   }
 };
 
@@ -123,7 +133,7 @@ export const createEnterpriseTools = (
         requiredString(input, "contractNumber"),
         context.signal,
       );
-      assertClientOwnsContract(response.data, context);
+      assertClientOwnsRecord(response.data, context);
       return response;
     },
   },
@@ -132,10 +142,10 @@ export const createEnterpriseTools = (
     description:
       "Search insurance applications using one or more known filters, including application status, client name, product, agent number, or contract number.",
     inputSchema: jsonSchema(filterSchema(applicationFilters)),
-    execute: (input, { signal }) =>
+    execute: (input, context) =>
       enterpriseApi.getApplications(
-        filtersFrom(input, applicationFilters),
-        signal,
+        scopedApplicationFilters(input, context),
+        context.signal,
       ),
   },
   {
@@ -148,10 +158,13 @@ export const createEnterpriseTools = (
       required: ["contractNumber"],
       additionalProperties: false,
     }),
-    execute: (input, { signal }) =>
-      enterpriseApi.getApplication(
+    execute: async (input, context) => {
+      const response = await enterpriseApi.getApplication(
         requiredString(input, "contractNumber"),
-        signal,
-      ),
+        context.signal,
+      );
+      assertClientOwnsRecord(response.data, context);
+      return response;
+    },
   },
 ];
