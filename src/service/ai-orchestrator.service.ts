@@ -25,13 +25,13 @@ const APPLICATION_PATTERN = /\b(?:applications?|approvals?|cases?)\b/i;
 const AMBIGUOUS_RECORD_PATTERN = /\b(?:clients?|customers?|records?)\b/i;
 const RECORD_LOOKUP_INTENT_PATTERN =
   /\b(?:find|search|show|list|look\s*up|retrieve|get)\b/i;
+const LIST_RECORDS_PATTERN = /\b(?:show|list|display|retrieve)\b/i;
 const CLIENT_CONTRACT_DETAIL_PATTERN =
   /\b(?:my|product|policy|account|current value|anniversary|premium|beneficiar(?:y|ies)|contract details?)\b/i;
 const CLIENT_APPLICATION_DETAIL_PATTERN =
   /\b(?:application|approval|case|status|anticipated premium|start date|agent number|application link|contract number|product id|contact id|application name|tax type)\b/i;
 const PRODUCT_DETAIL_PATTERN = /\bproduct(?:\s+name)?\b/i;
-const CLIENT_OWN_RECORD_PATTERN = /\bmy\b/i;
-const ALL_RECORDS_PATTERN = /\b(?:all|every)\b/i;
+const CLIENT_LIST_REQUEST_PATTERN = /\b(?:list|all|every)\b/i;
 
 export class AIOrchestrator {
   public constructor(
@@ -188,7 +188,7 @@ export class AIOrchestrator {
     const needsAmbiguousRecord = AMBIGUOUS_RECORD_PATTERN.test(query);
 
     if (userType === "client") {
-      if (ALL_RECORDS_PATTERN.test(query) && !CLIENT_OWN_RECORD_PATTERN.test(query)) {
+      if (CLIENT_LIST_REQUEST_PATTERN.test(query)) {
         return [];
       }
       if (hasIdentifier) return ["getContract", "getApplication"];
@@ -218,11 +218,15 @@ export class AIOrchestrator {
     }
 
     if (needsContracts && !needsApplications) return ["searchContracts"];
-    if (needsApplications && !needsContracts) return ["searchApplications"];
     if (
-      needsContracts ||
-      needsApplications ||
-      (needsAmbiguousRecord && RECORD_LOOKUP_INTENT_PATTERN.test(query))
+      needsApplications &&
+      !needsContracts &&
+      LIST_RECORDS_PATTERN.test(query)
+    ) {
+      return ["searchApplications"];
+    }
+    if (
+      needsAmbiguousRecord && RECORD_LOOKUP_INTENT_PATTERN.test(query)
     ) {
       return ["searchContracts", "searchApplications"];
     }
@@ -243,7 +247,7 @@ export class AIOrchestrator {
     const audienceInstructions =
       userType === "client"
         ? "The current user is a client. Discuss only this client's contract and application information. Retrieve client records only when the client explicitly asks about their own records, such as 'my contracts', 'my product', or 'my application status'. The client's own application fields, including status, agent number, application link, product, premium, start date, contract number, product ID, contact ID, application name, and tax type, may be provided. For contract questions, provide the contract number from the client's application and any issued-contract details returned by the contract lookup. Never retrieve or summarize all contracts, all applications, or information about other clients. If the client's own record lookup returns no results, state that no record is currently available; do not ask the client for extra identifiers."
-        : "The current user is an agent. You may assist with agent workflows, applications, and contracts.";
+        : "The current user is an agent. You may assist with agent workflows, applications, and contracts. Before retrieving application or contract data, ask for a contract number, application number, client name, or another identifying filter when the request does not include one.";
     const basePrompt = `${INSURANCE_AGENT_SYSTEM_PROMPT}\n\n${audienceInstructions}`;
 
     if (!retrievedContext) return basePrompt;
