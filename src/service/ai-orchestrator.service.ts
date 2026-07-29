@@ -23,6 +23,8 @@ const CONTRACT_PATTERN =
   /\b(?:annuit(?:y|ies)|contracts?|contrats?)\b/i;
 const APPLICATION_PATTERN = /\b(?:applications?|approvals?|cases?)\b/i;
 const AMBIGUOUS_RECORD_PATTERN = /\b(?:clients?|customers?|records?)\b/i;
+const RECORD_LOOKUP_INTENT_PATTERN =
+  /\b(?:find|search|show|list|look\s*up|retrieve|get)\b/i;
 
 export class AIOrchestrator {
   public constructor(
@@ -177,7 +179,11 @@ export class AIOrchestrator {
 
     if (needsContracts && !needsApplications) return ["searchContracts"];
     if (needsApplications && !needsContracts) return ["searchApplications"];
-    if (needsContracts || needsApplications || needsAmbiguousRecord) {
+    if (
+      needsContracts ||
+      needsApplications ||
+      (needsAmbiguousRecord && RECORD_LOOKUP_INTENT_PATTERN.test(query))
+    ) {
       return ["searchContracts", "searchApplications"];
     }
 

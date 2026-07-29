@@ -211,6 +211,27 @@ test("does not call live-record tools for knowledge-base policy questions", asyn
   assert.match(provider.instructions ?? "", /Download Policy Document/);
 });
 
+test("does not call live-record tools for customer-support questions", async () => {
+  const provider = new CapturingProvider();
+  const orchestrator = new AIOrchestrator(
+    new ConversationService(),
+    provider,
+    createRegistry(),
+    new ApiDocumentationRag(
+      "## Support Channels\n\n- Phone\n- Email\n- Live Chat",
+    ),
+  );
+
+  await orchestrator.chat(
+    "customer-support",
+    "Which customer-support channels are available?",
+  );
+
+  assert.deepEqual(provider.toolNames, []);
+  assert.equal(provider.toolChoice, "auto");
+  assert.match(provider.instructions ?? "", /Live Chat/);
+});
+
 test("selects tools from the current request instead of stale record history", async () => {
   const provider = new CapturingProvider();
   const conversations = new ConversationService();

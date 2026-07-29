@@ -1,5 +1,4 @@
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import generatedIndex from "./enterprise-api-rag.json" with { type: "json" };
 
 const DEFAULT_RESULT_LIMIT = 1;
 const MAX_CONTEXT_CHARACTERS = 3_500;
@@ -105,12 +104,7 @@ const splitDocumentation = (markdown: string): DocumentationSection[] =>
     });
 
 const loadGeneratedIndex = (): readonly DocumentationSection[] => {
-  const index = JSON.parse(
-    readFileSync(
-      fileURLToPath(new URL("./enterprise-api-rag.json", import.meta.url)),
-      "utf8",
-    ),
-  ) as GeneratedDocumentationIndex;
+  const index = generatedIndex as GeneratedDocumentationIndex;
 
   if (
     index.version !== 2 ||
