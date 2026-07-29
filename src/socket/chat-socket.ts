@@ -24,6 +24,11 @@ const sendJson = (socket: WebSocket, payload: object): void => {
   }
 };
 
+// Temporary identity for the currently configured client user. Replace this
+// with a client name/ID read from a verified login session when authentication
+// is available.
+const CLIENT_NAME = "WILLIAMS ROBERT";
+
 const parseMessage = (data: WebSocketRawData): ClientMessage | null => {
   try {
     const buffer = Array.isArray(data)
@@ -200,13 +205,24 @@ export class ChatSocketServer {
     const requestId = payload.requestId?.trim();
     const conversationId = payload.conversationId?.trim();
     const message = payload.message?.trim();
+    const userType = payload.userType;
 
-    if (!requestId || !conversationId || !message) {
+    if (!requestId || !conversationId || !message || !userType) {
       sendJson(socket, {
         type: "chat.error",
         requestId,
         code: "VALIDATION_ERROR",
-        message: "requestId, conversationId, and message are required.",
+        message: "requestId, conversationId, message, and userType are required.",
+      });
+      return;
+    }
+
+    if (userType !== "agent" && userType !== "client") {
+      sendJson(socket, {
+        type: "chat.error",
+        requestId,
+        code: "VALIDATION_ERROR",
+        message: "userType must be agent or client.",
       });
       return;
     }
@@ -242,6 +258,8 @@ export class ChatSocketServer {
     try {
       const result = this.orchestrator.streamChat(conversationId, message, {
         signal: abortController.signal,
+        userType,
+        clientName: userType === "client" ? CLIENT_NAME : undefined,
       });
 
       let tokenUsage;

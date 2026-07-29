@@ -1,7 +1,7 @@
 import { jsonSchema } from "ai";
 
 import { EnterpriseApiProvider } from "@app/providers";
-import type { ApplicationTool } from "@app/service";
+import type { ApplicationTool, ToolExecutionContext } from "@app/service";
 
 const contractFilters = [
   "contractNumber",
@@ -69,6 +69,30 @@ const filterSchema = (names: readonly string[]) => ({
   additionalProperties: false as const,
 });
 
+const scopedContractFilters = (
+  input: unknown,
+  context: ToolExecutionContext,
+): Record<string, string | undefined> => ({
+  ...filtersFrom(input, contractFilters),
+  ...(context.userType === "client" && context.clientName
+    ? { clientName: context.clientName }
+    : {}),
+});
+
+const assertClientOwnsContract = (
+  contract: { clientName: string },
+  context: ToolExecutionContext,
+): void => {
+  if (
+    context.userType === "client" &&
+    context.clientName &&
+    contract.clientName.trim().toUpperCase() !==
+      context.clientName.trim().toUpperCase()
+  ) {
+    throw new Error("This contract is not available for the current client.");
+  }
+};
+
 /** Creates the enterprise capabilities that Groq can request during a chat turn. */
 export const createEnterpriseTools = (
   enterpriseApi = new EnterpriseApiProvider(),
@@ -78,8 +102,11 @@ export const createEnterpriseTools = (
     description:
       "Search insurance contracts using one or more known filters. Use this for contract lists or when a client name, product, status, or tax details are provided.",
     inputSchema: jsonSchema(filterSchema(contractFilters)),
-    execute: (input, { signal }) =>
-      enterpriseApi.getContracts(filtersFrom(input, contractFilters), signal),
+    execute: (input, context) =>
+      enterpriseApi.getContracts(
+        scopedContractFilters(input, context),
+        context.signal,
+      ),
   },
   {
     name: "getContract",
@@ -91,11 +118,14 @@ export const createEnterpriseTools = (
       required: ["contractNumber"],
       additionalProperties: false,
     }),
-    execute: (input, { signal }) =>
-      enterpriseApi.getContract(
+    execute: async (input, context) => {
+      const response = await enterpriseApi.getContract(
         requiredString(input, "contractNumber"),
-        signal,
-      ),
+        context.signal,
+      );
+      assertClientOwnsContract(response.data, context);
+      return response;
+    },
   },
   {
     name: "searchApplications",

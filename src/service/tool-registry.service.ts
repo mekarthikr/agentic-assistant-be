@@ -8,6 +8,8 @@ const MAX_TOOL_RESULT_CHARACTERS = 6_000;
 export interface ToolExecutionContext {
   readonly toolCallId: string;
   readonly signal?: AbortSignal;
+  readonly userType?: "agent" | "client";
+  readonly clientName?: string;
 }
 
 /**
@@ -52,11 +54,11 @@ export class ToolRegistry {
 
   public async executeAll(
     calls: readonly LLMToolCall[],
-    signal?: AbortSignal,
+    context: Omit<ToolExecutionContext, "toolCallId"> = {},
   ): Promise<ToolModelMessage> {
     const content = await Promise.all(
       calls.map(async (call) => {
-        signal?.throwIfAborted();
+        context.signal?.throwIfAborted();
         const tool = this.tools.get(call.toolName);
 
         if (!tool) {
@@ -74,9 +76,9 @@ export class ToolRegistry {
         try {
           const value = await tool.execute(call.input, {
             toolCallId: call.toolCallId,
-            signal,
+            ...context,
           });
-          signal?.throwIfAborted();
+          context.signal?.throwIfAborted();
           return {
             type: "tool-result" as const,
             toolCallId: call.toolCallId,
@@ -84,7 +86,7 @@ export class ToolRegistry {
             output: { type: "text" as const, value: this.serialize(value) },
           };
         } catch (error) {
-          signal?.throwIfAborted();
+          context.signal?.throwIfAborted();
           logError("Enterprise tool execution failed", error, {
             toolName: call.toolName,
             toolCallId: call.toolCallId,

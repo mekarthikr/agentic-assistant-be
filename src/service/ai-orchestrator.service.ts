@@ -67,11 +67,11 @@ export class AIOrchestrator {
       const retrievedContext =
         this.apiDocumentation.retrieveContext(retrievalQuery);
       response = await this.generateWithTools(
-        this.buildSystemPrompt(retrievedContext),
+        this.buildSystemPrompt(retrievedContext, options.userType),
         conversation.messages
           .slice(-HISTORY_MESSAGE_LIMIT)
           .map(({ role, content }) => ({ role, content })),
-        this.selectToolNames(prompt),
+        this.selectToolNames(prompt, options.userType),
         options,
       );
     } catch (error) {
@@ -152,7 +152,11 @@ export class AIOrchestrator {
       history = [
         ...history,
         response.assistantMessage,
-        await this.toolRegistry.executeAll(response.toolCalls, options.signal),
+        await this.toolRegistry.executeAll(response.toolCalls, {
+          signal: options.signal,
+          userType: options.userType,
+          clientName: options.clientName,
+        }),
       ];
     }
 
@@ -165,11 +169,25 @@ export class AIOrchestrator {
     return prompt;
   }
 
-  private selectToolNames(query: string): readonly string[] {
+  private selectToolNames(
+    query: string,
+    userType?: "agent" | "client",
+  ): readonly string[] {
     const hasIdentifier = RECORD_IDENTIFIER_PATTERN.test(query);
     const needsContracts = CONTRACT_PATTERN.test(query);
     const needsApplications = APPLICATION_PATTERN.test(query);
     const needsAmbiguousRecord = AMBIGUOUS_RECORD_PATTERN.test(query);
+
+    if (userType === "client") {
+      if (hasIdentifier) return ["getContract"];
+      if (
+        needsContracts ||
+        (needsAmbiguousRecord && RECORD_LOOKUP_INTENT_PATTERN.test(query))
+      ) {
+        return ["searchContracts"];
+      }
+      return [];
+    }
 
     if (hasIdentifier) {
       if (needsContracts && !needsApplications) return ["getContract"];
@@ -196,10 +214,19 @@ export class AIOrchestrator {
     }
   }
 
-  private buildSystemPrompt(retrievedContext: string): string {
-    if (!retrievedContext) return INSURANCE_AGENT_SYSTEM_PROMPT;
+  private buildSystemPrompt(
+    retrievedContext: string,
+    userType?: "agent" | "client",
+  ): string {
+    const audienceInstructions =
+      userType === "client"
+        ? "The current user is a client. Discuss only client-facing contract and policy information; do not present agent workflows, applications, or information about other clients."
+        : "The current user is an agent. You may assist with agent workflows, applications, and contracts.";
+    const basePrompt = `${INSURANCE_AGENT_SYSTEM_PROMPT}\n\n${audienceInstructions}`;
 
-    return `${INSURANCE_AGENT_SYSTEM_PROMPT}
+    if (!retrievedContext) return basePrompt;
+
+    return `${basePrompt}
 
 Use the following retrieved knowledge-base reference when it is relevant to the
 current request. It may describe product information or enterprise endpoints and

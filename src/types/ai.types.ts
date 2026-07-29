@@ -73,6 +73,9 @@ export interface LLMProvider {
 
 export interface ChatOptions {
   readonly signal?: AbortSignal;
+  readonly userType?: "agent" | "client";
+  /** Trusted identity used to scope client data access. */
+  readonly clientName?: string;
   /** Safety limit for consecutive model-to-tool rounds in one chat turn. */
   readonly maxToolRounds?: number;
 }

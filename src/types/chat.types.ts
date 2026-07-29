@@ -10,6 +10,7 @@ export interface ChatSendMessage {
   requestId: string;
   conversationId: string;
   message: string;
+  userType: "agent" | "client";
 }
 
 export interface ChatCancelMessage {
