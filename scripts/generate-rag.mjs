@@ -1,10 +1,11 @@
 import { createHash } from "node:crypto";
-import { readFile, writeFile } from "node:fs/promises";
+import { readdir, readFile, writeFile } from "node:fs/promises";
 
-const documentationUrl = new URL(
+const enterpriseDocumentationUrl = new URL(
   "../src/knowledge/enterprise-api-documentation.md",
   import.meta.url,
 );
+const documentsDirectoryUrl = new URL("../src/knowledge/documents/", import.meta.url);
 const indexUrl = new URL(
   "../src/knowledge/enterprise-api-rag.json",
   import.meta.url,
@@ -53,25 +54,55 @@ const sectionHeading = (content) =>
   content.match(/^#{1,3}\s+(.+)$/m)?.[1]?.trim() ||
   "Enterprise API overview";
 
-const markdown = await readFile(documentationUrl, "utf8");
-const sections = markdown
-  .split(/(?=^#{2,3}\s+)/m)
-  .map((content) => content.trim())
-  .filter(Boolean)
-  .map((content) => {
-    const heading = sectionHeading(content);
-    return {
-      heading,
-      content,
-      headingTokens: tokenize(heading),
-      contentTokens: tokenize(content),
-    };
-  });
+const documentUrls = [
+  enterpriseDocumentationUrl,
+  ...(await readdir(documentsDirectoryUrl))
+    .filter((filename) => filename.endsWith(".md"))
+    .sort()
+    .map((filename) => new URL(`../src/knowledge/documents/${filename}`, import.meta.url)),
+];
+const documents = await Promise.all(
+  documentUrls.map(async (url) => ({
+    filename: url.pathname.split("/").at(-1),
+    markdown: await readFile(url, "utf8"),
+    isEnterpriseReference: url.href === enterpriseDocumentationUrl.href,
+  })),
+);
+const sections = documents.flatMap(
+  ({ filename, markdown, isEnterpriseReference }) => {
+    const documentTitle = sectionHeading(markdown);
+    return markdown
+    .split(/(?=^#{2,3}\s+)/m)
+    .map((content) => content.trim())
+    .filter(Boolean)
+    .map((content) => {
+      const heading = sectionHeading(content);
+      return {
+        heading: isEnterpriseReference
+          ? heading
+          : heading === documentTitle
+            ? `${heading} (${filename})`
+            : `${documentTitle} — ${heading} (${filename})`,
+        content,
+        headingTokens: tokenize(
+          isEnterpriseReference
+            ? heading
+            : heading === documentTitle
+              ? `${heading} ${filename}`
+              : `${documentTitle} ${heading} ${filename}`,
+        ),
+        contentTokens: tokenize(content),
+      };
+    });
+  },
+);
 
 const index = {
-  version: 1,
-  source: "enterprise-api-documentation.md",
-  sourceHash: createHash("sha256").update(markdown).digest("hex"),
+  version: 2,
+  sources: documents.map(({ filename }) => filename),
+  sourceHash: createHash("sha256")
+    .update(documents.map(({ markdown }) => markdown).join("\n"))
+    .digest("hex"),
   sections,
 };
 

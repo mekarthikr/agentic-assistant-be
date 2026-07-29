@@ -1,11 +1,19 @@
 {
-  "version": 1,
-  "source": "enterprise-api-documentation.md",
-  "sourceHash": "9728a745e5274ac48399d66a85e9c68af56c8b3b641f737165cf78374722f587",
+  "version": 2,
+  "sources": [
+    "enterprise-api-documentation.md",
+    "beneficiary-guide.md",
+    "claims-guide.md",
+    "customer-support.md",
+    "policy-faq.md",
+    "premium-payments.md",
+    "product-guide.md"
+  ],
+  "sourceHash": "5c90c2bb84c4d5869376733de053af3a6f9d8302248d23cb008a8e5af600baad",
   "sections": [
     {
       "heading": "Enterprise API Documentation",
-      "content": "# Enterprise API Documentation\n\nBase URL: `https://mock-api-server-zeta.vercel.app/api/v1`\n\n---",
+      "content": "# Enterprise API Documentation\r\n\r\nBase URL: `https://mock-api-server-zeta.vercel.app/api/v1`\r\n\r\n---",
       "headingTokens": [
         "enterprise",
         "api",
@@ -42,7 +50,7 @@
     },
     {
       "heading": "Get All Contracts",
-      "content": "### Get All Contracts\n\n**Endpoint:** `GET /contracts`\n\n**Description:** Returns a list of all contracts. Supports filtering by query parameters.\n\n**Filterable Fields:**\n\n- `contractNumber` — Filter by contract number\n- `clientName` — Filter by client name (partial match, case-insensitive)\n- `productName` — Filter by product name (partial match, case-insensitive)\n- `contractStatus` — Filter by status: `Active`, `Inactive`, `Surrendered`\n- `taxType` — Filter by tax type: `Qualified`, `Non-Qualified`\n- `taxQualification` — Filter by qualification: `IRA`, `ROTH IRA`, `NON-QUAL`\n- `distributionCompany` — Filter by distribution company\n\n**Example Requests:**\n\n```\nGET /contracts\nGET /contracts?contractStatus=Active\nGET /contracts?taxType=Qualified\nGET /contracts?productName=ASSETSHIELD 5\nGET /contracts?contractStatus=Active&taxType=Qualified\n```\n\n**Response:**\n\n```json\n{\n  \"success\": true,\n  \"message\": \"Request successful\",\n  \"data\": [\n    {\n      \"contractNumber\": \"1561091\",\n      \"clientName\": \"NETTING AETEST\",\n      \"productName\": \"AMERICAN EQUITY ASSETSHIELD 5 FIXED INDEX ANNUITY\",\n      \"issuedDate\": \"2026-06-17T05:00:00+00:00\",\n      \"currentValue\": 0,\n      \"anniversaryDate\": \"2027-06-17T05:00:00+00:00\",\n      \"taxType\": \"Qualified\",\n      \"contractStatus\": \"Active\",\n      \"taxQualification\": \"IRA\",\n      \"distributionCompany\": \"AELife\"\n    }\n  ],\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\n}\n```\n\n---",
+      "content": "### Get All Contracts\r\n\r\n**Endpoint:** `GET /contracts`\r\n\r\n**Description:** Returns a list of all contracts. Supports filtering by query parameters.\r\n\r\n**Filterable Fields:**\r\n\r\n- `contractNumber` — Filter by contract number\r\n- `clientName` — Filter by client name (partial match, case-insensitive)\r\n- `productName` — Filter by product name (partial match, case-insensitive)\r\n- `contractStatus` — Filter by status: `Active`, `Inactive`, `Surrendered`\r\n- `taxType` — Filter by tax type: `Qualified`, `Non-Qualified`\r\n- `taxQualification` — Filter by qualification: `IRA`, `ROTH IRA`, `NON-QUAL`\r\n- `distributionCompany` — Filter by distribution company\r\n\r\n**Example Requests:**\r\n\r\n```\r\nGET /contracts\r\nGET /contracts?contractStatus=Active\r\nGET /contracts?taxType=Qualified\r\nGET /contracts?productName=ASSETSHIELD 5\r\nGET /contracts?contractStatus=Active&taxType=Qualified\r\n```\r\n\r\n**Response:**\r\n\r\n```json\r\n{\r\n  \"success\": true,\r\n  \"message\": \"Request successful\",\r\n  \"data\": [\r\n    {\r\n      \"contractNumber\": \"1561091\",\r\n      \"clientName\": \"NETTING AETEST\",\r\n      \"productName\": \"AMERICAN EQUITY ASSETSHIELD 5 FIXED INDEX ANNUITY\",\r\n      \"issuedDate\": \"2026-06-17T05:00:00+00:00\",\r\n      \"currentValue\": 0,\r\n      \"anniversaryDate\": \"2027-06-17T05:00:00+00:00\",\r\n      \"taxType\": \"Qualified\",\r\n      \"contractStatus\": \"Active\",\r\n      \"taxQualification\": \"IRA\",\r\n      \"distributionCompany\": \"AELife\"\r\n    }\r\n  ],\r\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\r\n}\r\n```\r\n\r\n---",
       "headingTokens": [
         "all",
         "contract"
@@ -192,7 +200,7 @@
     },
     {
       "heading": "Get Contract by Number",
-      "content": "### Get Contract by Number\n\n**Endpoint:** `GET /contracts/:contractNumber`\n\n**Description:** Returns a single contract by its contract number.\n\n**Path Parameters:**\n\n- `contractNumber` (string, required) — The contract number\n\n**Example Request:**\n\n```\nGET /contracts/1561091\n```\n\n**Success Response:**\n\n```json\n{\n  \"success\": true,\n  \"message\": \"Request successful\",\n  \"data\": {\n    \"contractNumber\": \"1561091\",\n    \"clientName\": \"NETTING AETEST\",\n    \"productName\": \"AMERICAN EQUITY ASSETSHIELD 5 FIXED INDEX ANNUITY\",\n    \"issuedDate\": \"2026-06-17T05:00:00+00:00\",\n    \"currentValue\": 0,\n    \"anniversaryDate\": \"2027-06-17T05:00:00+00:00\",\n    \"taxType\": \"Qualified\",\n    \"contractStatus\": \"Active\",\n    \"taxQualification\": \"IRA\",\n    \"distributionCompany\": \"AELife\"\n  },\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\n}\n```\n\n**Not Found Response (404):**\n\n```json\n{\n  \"success\": false,\n  \"message\": \"Contract 9999999 not found\",\n  \"data\": null,\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\n}\n```\n\n---",
+      "content": "### Get Contract by Number\r\n\r\n**Endpoint:** `GET /contracts/:contractNumber`\r\n\r\n**Description:** Returns a single contract by its contract number.\r\n\r\n**Path Parameters:**\r\n\r\n- `contractNumber` (string, required) — The contract number\r\n\r\n**Example Request:**\r\n\r\n```\r\nGET /contracts/1561091\r\n```\r\n\r\n**Success Response:**\r\n\r\n```json\r\n{\r\n  \"success\": true,\r\n  \"message\": \"Request successful\",\r\n  \"data\": {\r\n    \"contractNumber\": \"1561091\",\r\n    \"clientName\": \"NETTING AETEST\",\r\n    \"productName\": \"AMERICAN EQUITY ASSETSHIELD 5 FIXED INDEX ANNUITY\",\r\n    \"issuedDate\": \"2026-06-17T05:00:00+00:00\",\r\n    \"currentValue\": 0,\r\n    \"anniversaryDate\": \"2027-06-17T05:00:00+00:00\",\r\n    \"taxType\": \"Qualified\",\r\n    \"contractStatus\": \"Active\",\r\n    \"taxQualification\": \"IRA\",\r\n    \"distributionCompany\": \"AELife\"\r\n  },\r\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\r\n}\r\n```\r\n\r\n**Not Found Response (404):**\r\n\r\n```json\r\n{\r\n  \"success\": false,\r\n  \"message\": \"Contract 9999999 not found\",\r\n  \"data\": null,\r\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\r\n}\r\n```\r\n\r\n---",
       "headingTokens": [
         "contract",
         "by",
@@ -316,7 +324,7 @@
     },
     {
       "heading": "Get All Applications",
-      "content": "### Get All Applications\n\n**Endpoint:** `GET /applications`\n\n**Description:** Returns a list of all applications. Supports filtering by query parameters.\n\n**Filterable Fields:**\n\n- `clientName` — Filter by client name (partial match, case-insensitive)\n- `product` — Filter by product name (partial match, case-insensitive)\n- `taxType` — Filter by tax type: `Qualified`, `Non-Qualified`\n- `status` — Filter by status: `In Progress`, `Submitted`, `Approved`, `Rejected`\n- `contractNumber` — Filter by contract number\n- `productId` — Filter by product ID\n- `agentNumber` — Filter by agent number\n- `contactId` — Filter by contact ID\n- `applicationName` — Filter by application name (partial match, case-insensitive)\n- `startDate` — Filter by start date (partial match, e.g., `2026-07-15`)\n\n**Example Requests:**\n\n```\nGET /applications\nGET /applications?status=In Progress\nGET /applications?product=ESTATESHIELD\nGET /applications?agentNumber=2026\nGET /applications?applicationName=JOHNSON\nGET /applications?startDate=2026-07\nGET /applications?status=Approved&taxType=Qualified\n```\n\n**Response:**\n\n```json\n{\n  \"success\": true,\n  \"message\": \"Request successful\",\n  \"data\": [\n    {\n      \"clientName\": \"sdf sdf\",\n      \"product\": \"AMERICAN EQUITY ESTATESHIELD 10 FIXED INDEX ANNUITY\",\n      \"anticipatedPremium\": 99999,\n      \"startDate\": \"2026-07-15T13:27:11.782+00:00\",\n      \"taxType\": \"Non-Qualified\",\n      \"status\": \"In Progress\",\n      \"contractNumber\": \"1561438\",\n      \"productId\": \"I-ESTATE24\",\n      \"agentNumber\": \"2026\",\n      \"applicationLink\": \"https://american-equity-uatx.unqork.io/app/application#/display/application?id=6a5789ec1ce36757d331b5b8\",\n      \"contactId\": \"482354\",\n      \"applicationName\": \"sdf sdf Application\"\n    }\n  ],\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\n}\n```\n\n---",
+      "content": "### Get All Applications\r\n\r\n**Endpoint:** `GET /applications`\r\n\r\n**Description:** Returns a list of all applications. Supports filtering by query parameters.\r\n\r\n**Filterable Fields:**\r\n\r\n- `clientName` — Filter by client name (partial match, case-insensitive)\r\n- `product` — Filter by product name (partial match, case-insensitive)\r\n- `taxType` — Filter by tax type: `Qualified`, `Non-Qualified`\r\n- `status` — Filter by status: `In Progress`, `Submitted`, `Approved`, `Rejected`\r\n- `contractNumber` — Filter by contract number\r\n- `productId` — Filter by product ID\r\n- `agentNumber` — Filter by agent number\r\n- `contactId` — Filter by contact ID\r\n- `applicationName` — Filter by application name (partial match, case-insensitive)\r\n- `startDate` — Filter by start date (partial match, e.g., `2026-07-15`)\r\n\r\n**Example Requests:**\r\n\r\n```\r\nGET /applications\r\nGET /applications?status=In Progress\r\nGET /applications?product=ESTATESHIELD\r\nGET /applications?agentNumber=2026\r\nGET /applications?applicationName=JOHNSON\r\nGET /applications?startDate=2026-07\r\nGET /applications?status=Approved&taxType=Qualified\r\n```\r\n\r\n**Response:**\r\n\r\n```json\r\n{\r\n  \"success\": true,\r\n  \"message\": \"Request successful\",\r\n  \"data\": [\r\n    {\r\n      \"clientName\": \"sdf sdf\",\r\n      \"product\": \"AMERICAN EQUITY ESTATESHIELD 10 FIXED INDEX ANNUITY\",\r\n      \"anticipatedPremium\": 99999,\r\n      \"startDate\": \"2026-07-15T13:27:11.782+00:00\",\r\n      \"taxType\": \"Non-Qualified\",\r\n      \"status\": \"In Progress\",\r\n      \"contractNumber\": \"1561438\",\r\n      \"productId\": \"I-ESTATE24\",\r\n      \"agentNumber\": \"2026\",\r\n      \"applicationLink\": \"https://american-equity-uatx.unqork.io/app/application#/display/application?id=6a5789ec1ce36757d331b5b8\",\r\n      \"contactId\": \"482354\",\r\n      \"applicationName\": \"sdf sdf Application\"\r\n    }\r\n  ],\r\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\r\n}\r\n```\r\n\r\n---",
       "headingTokens": [
         "all",
         "application"
@@ -508,7 +516,7 @@
     },
     {
       "heading": "Get Application by Contract Number",
-      "content": "### Get Application by Contract Number\n\n**Endpoint:** `GET /applications/:contractNumber`\n\n**Description:** Returns a single application by its contract number.\n\n**Path Parameters:**\n\n- `contractNumber` (string, required) — The contract number\n\n**Example Request:**\n\n```\nGET /applications/1561438\n```\n\n**Success Response:**\n\n```json\n{\n  \"success\": true,\n  \"message\": \"Request successful\",\n  \"data\": {\n    \"clientName\": \"sdf sdf\",\n    \"product\": \"AMERICAN EQUITY ESTATESHIELD 10 FIXED INDEX ANNUITY\",\n    \"anticipatedPremium\": 99999,\n    \"startDate\": \"2026-07-15T13:27:11.782+00:00\",\n    \"taxType\": \"Non-Qualified\",\n    \"status\": \"In Progress\",\n    \"contractNumber\": \"1561438\",\n    \"productId\": \"I-ESTATE24\",\n    \"agentNumber\": \"2026\",\n    \"applicationLink\": \"https://american-equity-uatx.unqork.io/app/application#/display/application?id=6a5789ec1ce36757d331b5b8\",\n    \"contactId\": \"482354\",\n    \"applicationName\": \"sdf sdf Application\"\n  },\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\n}\n```\n\n**Not Found Response (404):**\n\n```json\n{\n  \"success\": false,\n  \"message\": \"Application with contract number 9999999 not found\",\n  \"data\": null,\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\n}\n```\n\n---",
+      "content": "### Get Application by Contract Number\r\n\r\n**Endpoint:** `GET /applications/:contractNumber`\r\n\r\n**Description:** Returns a single application by its contract number.\r\n\r\n**Path Parameters:**\r\n\r\n- `contractNumber` (string, required) — The contract number\r\n\r\n**Example Request:**\r\n\r\n```\r\nGET /applications/1561438\r\n```\r\n\r\n**Success Response:**\r\n\r\n```json\r\n{\r\n  \"success\": true,\r\n  \"message\": \"Request successful\",\r\n  \"data\": {\r\n    \"clientName\": \"sdf sdf\",\r\n    \"product\": \"AMERICAN EQUITY ESTATESHIELD 10 FIXED INDEX ANNUITY\",\r\n    \"anticipatedPremium\": 99999,\r\n    \"startDate\": \"2026-07-15T13:27:11.782+00:00\",\r\n    \"taxType\": \"Non-Qualified\",\r\n    \"status\": \"In Progress\",\r\n    \"contractNumber\": \"1561438\",\r\n    \"productId\": \"I-ESTATE24\",\r\n    \"agentNumber\": \"2026\",\r\n    \"applicationLink\": \"https://american-equity-uatx.unqork.io/app/application#/display/application?id=6a5789ec1ce36757d331b5b8\",\r\n    \"contactId\": \"482354\",\r\n    \"applicationName\": \"sdf sdf Application\"\r\n  },\r\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\r\n}\r\n```\r\n\r\n**Not Found Response (404):**\r\n\r\n```json\r\n{\r\n  \"success\": false,\r\n  \"message\": \"Application with contract number 9999999 not found\",\r\n  \"data\": null,\r\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\r\n}\r\n```\r\n\r\n---",
       "headingTokens": [
         "application",
         "by",
@@ -637,7 +645,7 @@
     },
     {
       "heading": "Common Response Structure",
-      "content": "## Common Response Structure\n\nAll API responses follow this consistent format:\n\n```json\n{\n  \"success\": true | false,\n  \"message\": \"string\",\n  \"data\": object | array | null,\n  \"timestamp\": \"ISO 8601 string\"\n}\n```",
+      "content": "## Common Response Structure\r\n\r\nAll API responses follow this consistent format:\r\n\r\n```json\r\n{\r\n  \"success\": true | false,\r\n  \"message\": \"string\",\r\n  \"data\": object | array | null,\r\n  \"timestamp\": \"ISO 8601 string\"\r\n}\r\n```",
       "headingTokens": [
         "common",
         "response",
@@ -672,7 +680,7 @@
     },
     {
       "heading": "Error Responses",
-      "content": "## Error Responses\n\n| Status Code | Meaning               |\n| ----------- | --------------------- |\n| 200         | Success               |\n| 404         | Resource not found    |\n| 400         | Bad request           |\n| 500         | Internal server error |\n\n---",
+      "content": "## Error Responses\r\n\r\n| Status Code | Meaning               |\r\n| ----------- | --------------------- |\r\n| 200         | Success               |\r\n| 404         | Resource not found    |\r\n| 400         | Bad request           |\r\n| 500         | Internal server error |\r\n\r\n---",
       "headingTokens": [
         "error",
         "response"
@@ -700,7 +708,7 @@
     },
     {
       "heading": "Filtering Behavior",
-      "content": "## Filtering Behavior\n\n- All filters use **AND** logic (all conditions must match)\n- Matching is **case-insensitive**\n- Matching supports **partial match** (contains)\n- Empty or undefined filter values are **ignored**\n- Multiple filters can be combined: `?status=Active&taxType=Qualified`",
+      "content": "## Filtering Behavior\r\n\r\n- All filters use **AND** logic (all conditions must match)\r\n- Matching is **case-insensitive**\r\n- Matching supports **partial match** (contains)\r\n- Empty or undefined filter values are **ignored**\r\n- Multiple filters can be combined: `?status=Active&taxType=Qualified`",
       "headingTokens": [
         "filtering",
         "behavior"
@@ -738,6 +746,572 @@
         "active",
         "taxtype",
         "qualified"
+      ]
+    },
+    {
+      "heading": "Beneficiary Management (beneficiary-guide.md)",
+      "content": "# Beneficiary Management\n\nPolicy owners may add, remove or update beneficiaries.\n\nRequired information:\n\n- Full Name\n- Relationship\n- Date of Birth\n- Percentage Allocation\n\nChanges become effective after successful verification.",
+      "headingTokens": [
+        "beneficiary",
+        "management",
+        "beneficiary",
+        "guide",
+        "md"
+      ],
+      "contentTokens": [
+        "beneficiary",
+        "management",
+        "policy",
+        "owner",
+        "may",
+        "add",
+        "remove",
+        "or",
+        "update",
+        "beneficiary",
+        "required",
+        "information",
+        "full",
+        "name",
+        "relationship",
+        "date",
+        "birth",
+        "percentage",
+        "allocation",
+        "change",
+        "become",
+        "effective",
+        "after",
+        "successful",
+        "verification"
+      ]
+    },
+    {
+      "heading": "Claims Guide (claims-guide.md)",
+      "content": "# Claims Guide",
+      "headingTokens": [
+        "claim",
+        "guide",
+        "claim",
+        "guide",
+        "md"
+      ],
+      "contentTokens": [
+        "claim",
+        "guide"
+      ]
+    },
+    {
+      "heading": "Claims Guide — Filing a Claim (claims-guide.md)",
+      "content": "## Filing a Claim\n\nTo submit a claim:\n\n1. Login to the portal.\n2. Open Claims.\n3. Select Create New Claim.\n4. Upload supporting documents.\n5. Submit the claim.\n\n---",
+      "headingTokens": [
+        "claim",
+        "guide",
+        "filing",
+        "claim",
+        "claim",
+        "guide",
+        "md"
+      ],
+      "contentTokens": [
+        "filing",
+        "claim",
+        "submit",
+        "claim",
+        "1",
+        "login",
+        "portal",
+        "2",
+        "open",
+        "claim",
+        "3",
+        "select",
+        "create",
+        "new",
+        "claim",
+        "4",
+        "upload",
+        "supporting",
+        "document",
+        "5",
+        "submit",
+        "claim"
+      ]
+    },
+    {
+      "heading": "Claims Guide — Required Documents (claims-guide.md)",
+      "content": "## Required Documents\n\n- Death Certificate\n- Government ID\n- Policy Number\n- Claim Form\n\n---",
+      "headingTokens": [
+        "claim",
+        "guide",
+        "required",
+        "document",
+        "claim",
+        "guide",
+        "md"
+      ],
+      "contentTokens": [
+        "required",
+        "document",
+        "death",
+        "certificate",
+        "government",
+        "id",
+        "policy",
+        "number",
+        "claim",
+        "form"
+      ]
+    },
+    {
+      "heading": "Claims Guide — Processing Time (claims-guide.md)",
+      "content": "## Processing Time\n\nMost claims are processed within 7–10 business days after all required documents are received.",
+      "headingTokens": [
+        "claim",
+        "guide",
+        "processing",
+        "time",
+        "claim",
+        "guide",
+        "md"
+      ],
+      "contentTokens": [
+        "processing",
+        "time",
+        "most",
+        "claim",
+        "processed",
+        "within",
+        "7",
+        "10",
+        "busines",
+        "day",
+        "after",
+        "all",
+        "required",
+        "document",
+        "received"
+      ]
+    },
+    {
+      "heading": "Customer Support (customer-support.md)",
+      "content": "# Customer Support",
+      "headingTokens": [
+        "customer",
+        "support",
+        "customer",
+        "support",
+        "md"
+      ],
+      "contentTokens": [
+        "customer",
+        "support"
+      ]
+    },
+    {
+      "heading": "Customer Support — Support Channels (customer-support.md)",
+      "content": "## Support Channels\n\n- Phone\n- Email\n- Live Chat",
+      "headingTokens": [
+        "customer",
+        "support",
+        "support",
+        "channel",
+        "customer",
+        "support",
+        "md"
+      ],
+      "contentTokens": [
+        "support",
+        "channel",
+        "phone",
+        "email",
+        "live",
+        "chat"
+      ]
+    },
+    {
+      "heading": "Customer Support — Business Hours (customer-support.md)",
+      "content": "## Business Hours\n\nMonday to Friday\n\n8:00 AM – 6:00 PM",
+      "headingTokens": [
+        "customer",
+        "support",
+        "busines",
+        "hour",
+        "customer",
+        "support",
+        "md"
+      ],
+      "contentTokens": [
+        "busines",
+        "hour",
+        "monday",
+        "friday",
+        "8",
+        "00",
+        "am",
+        "6",
+        "00",
+        "pm"
+      ]
+    },
+    {
+      "heading": "Customer Support — Common Support Topics (customer-support.md)",
+      "content": "## Common Support Topics\n\n- Policy Information\n- Premium Payments\n- Claims Status\n- Beneficiary Updates\n- Portal Login Issues",
+      "headingTokens": [
+        "customer",
+        "support",
+        "common",
+        "support",
+        "topic",
+        "customer",
+        "support",
+        "md"
+      ],
+      "contentTokens": [
+        "common",
+        "support",
+        "topic",
+        "policy",
+        "information",
+        "premium",
+        "payment",
+        "claim",
+        "statu",
+        "beneficiary",
+        "update",
+        "portal",
+        "login",
+        "issue"
+      ]
+    },
+    {
+      "heading": "Frequently Asked Questions (policy-faq.md)",
+      "content": "# Frequently Asked Questions",
+      "headingTokens": [
+        "frequently",
+        "asked",
+        "question",
+        "policy",
+        "faq",
+        "md"
+      ],
+      "contentTokens": [
+        "frequently",
+        "asked",
+        "question"
+      ]
+    },
+    {
+      "heading": "Frequently Asked Questions — How do I update my beneficiary? (policy-faq.md)",
+      "content": "## How do I update my beneficiary?\n\nNavigate to Profile > Beneficiary Details and submit the required information.\n\n---",
+      "headingTokens": [
+        "frequently",
+        "asked",
+        "question",
+        "how",
+        "update",
+        "beneficiary",
+        "policy",
+        "faq",
+        "md"
+      ],
+      "contentTokens": [
+        "how",
+        "update",
+        "beneficiary",
+        "navigate",
+        "profile",
+        "beneficiary",
+        "detail",
+        "submit",
+        "required",
+        "information"
+      ]
+    },
+    {
+      "heading": "Frequently Asked Questions — How can I download my policy document? (policy-faq.md)",
+      "content": "## How can I download my policy document?\n\nOpen the Policies page and select Download Policy Document.\n\n---",
+      "headingTokens": [
+        "frequently",
+        "asked",
+        "question",
+        "how",
+        "download",
+        "policy",
+        "document",
+        "policy",
+        "faq",
+        "md"
+      ],
+      "contentTokens": [
+        "how",
+        "download",
+        "policy",
+        "document",
+        "open",
+        "policy",
+        "page",
+        "select",
+        "download",
+        "policy",
+        "document"
+      ]
+    },
+    {
+      "heading": "Frequently Asked Questions — Can I change my premium payment frequency? (policy-faq.md)",
+      "content": "## Can I change my premium payment frequency?\n\nYes.\n\nMonthly, quarterly, semi-annual and annual payment options are available.\n\n---",
+      "headingTokens": [
+        "frequently",
+        "asked",
+        "question",
+        "change",
+        "premium",
+        "payment",
+        "frequency",
+        "policy",
+        "faq",
+        "md"
+      ],
+      "contentTokens": [
+        "change",
+        "premium",
+        "payment",
+        "frequency",
+        "yes",
+        "monthly",
+        "quarterly",
+        "semi",
+        "annual",
+        "annual",
+        "payment",
+        "option",
+        "available"
+      ]
+    },
+    {
+      "heading": "Frequently Asked Questions — How do I contact customer support? (policy-faq.md)",
+      "content": "## How do I contact customer support?\n\nCustomer support is available Monday through Friday from 8:00 AM to 6:00 PM.",
+      "headingTokens": [
+        "frequently",
+        "asked",
+        "question",
+        "how",
+        "contact",
+        "customer",
+        "support",
+        "policy",
+        "faq",
+        "md"
+      ],
+      "contentTokens": [
+        "how",
+        "contact",
+        "customer",
+        "support",
+        "customer",
+        "support",
+        "available",
+        "monday",
+        "through",
+        "friday",
+        "8",
+        "00",
+        "am",
+        "6",
+        "00",
+        "pm"
+      ]
+    },
+    {
+      "heading": "Premium Payments (premium-payments.md)",
+      "content": "# Premium Payments\n\nPremiums can be paid using:\n\n- Bank Transfer\n- Credit Card\n- Debit Card\n- Auto Pay\n\n---",
+      "headingTokens": [
+        "premium",
+        "payment",
+        "premium",
+        "payment",
+        "md"
+      ],
+      "contentTokens": [
+        "premium",
+        "payment",
+        "premium",
+        "be",
+        "paid",
+        "using",
+        "bank",
+        "transfer",
+        "credit",
+        "card",
+        "debit",
+        "card",
+        "auto",
+        "pay"
+      ]
+    },
+    {
+      "heading": "Premium Payments — Grace Period (premium-payments.md)",
+      "content": "## Grace Period\n\nA 30-day grace period applies after the premium due date.\n\n---",
+      "headingTokens": [
+        "premium",
+        "payment",
+        "grace",
+        "period",
+        "premium",
+        "payment",
+        "md"
+      ],
+      "contentTokens": [
+        "grace",
+        "period",
+        "30",
+        "day",
+        "grace",
+        "period",
+        "apply",
+        "after",
+        "premium",
+        "due",
+        "date"
+      ]
+    },
+    {
+      "heading": "Premium Payments — Missed Payment (premium-payments.md)",
+      "content": "## Missed Payment\n\nIf payment is not received within the grace period, the policy may lapse.",
+      "headingTokens": [
+        "premium",
+        "payment",
+        "missed",
+        "payment",
+        "premium",
+        "payment",
+        "md"
+      ],
+      "contentTokens": [
+        "missed",
+        "payment",
+        "if",
+        "payment",
+        "not",
+        "received",
+        "within",
+        "grace",
+        "period",
+        "policy",
+        "may",
+        "lapse"
+      ]
+    },
+    {
+      "heading": "SecureLife Plus Insurance (product-guide.md)",
+      "content": "# SecureLife Plus Insurance\n\nSecureLife Plus is a flexible life insurance product designed to provide long-term financial protection.",
+      "headingTokens": [
+        "securelife",
+        "plu",
+        "insurance",
+        "product",
+        "guide",
+        "md"
+      ],
+      "contentTokens": [
+        "securelife",
+        "plu",
+        "insurance",
+        "securelife",
+        "plu",
+        "flexible",
+        "life",
+        "insurance",
+        "product",
+        "designed",
+        "provide",
+        "long",
+        "term",
+        "financial",
+        "protection"
+      ]
+    },
+    {
+      "heading": "SecureLife Plus Insurance — Features (product-guide.md)",
+      "content": "## Features\n\n- Flexible premium payment options\n- Lifetime death benefit\n- Optional accidental death rider\n- Cash value accumulation\n- Online policy management",
+      "headingTokens": [
+        "securelife",
+        "plu",
+        "insurance",
+        "feature",
+        "product",
+        "guide",
+        "md"
+      ],
+      "contentTokens": [
+        "feature",
+        "flexible",
+        "premium",
+        "payment",
+        "option",
+        "lifetime",
+        "death",
+        "benefit",
+        "optional",
+        "accidental",
+        "death",
+        "rider",
+        "cash",
+        "value",
+        "accumulation",
+        "online",
+        "policy",
+        "management"
+      ]
+    },
+    {
+      "heading": "SecureLife Plus Insurance — Eligibility (product-guide.md)",
+      "content": "## Eligibility\n\n- Minimum age: 18 years\n- Maximum age: 65 years",
+      "headingTokens": [
+        "securelife",
+        "plu",
+        "insurance",
+        "eligibility",
+        "product",
+        "guide",
+        "md"
+      ],
+      "contentTokens": [
+        "eligibility",
+        "minimum",
+        "age",
+        "18",
+        "year",
+        "maximum",
+        "age",
+        "65",
+        "year"
+      ]
+    },
+    {
+      "heading": "SecureLife Plus Insurance — Policy Term (product-guide.md)",
+      "content": "## Policy Term\n\nCoverage continues until age 99 provided premiums are paid.",
+      "headingTokens": [
+        "securelife",
+        "plu",
+        "insurance",
+        "policy",
+        "term",
+        "product",
+        "guide",
+        "md"
+      ],
+      "contentTokens": [
+        "policy",
+        "term",
+        "coverage",
+        "continue",
+        "until",
+        "age",
+        "99",
+        "provided",
+        "premium",
+        "paid"
       ]
     }
   ]

@@ -68,6 +68,31 @@ test("loads the generated enterprise API RAG index", () => {
   assert.ok(rag.retrieveContext("applications", 10).length <= 3_500);
 });
 
+test("retrieves SecureLife Plus product-guide information", () => {
+  const rag = new ApiDocumentationRag();
+  const [result] = rag.retrieve("What is the maximum eligibility age for SecureLife Plus?", 1);
+
+  assert.match(result?.heading ?? "", /SecureLife Plus Insurance — Eligibility/);
+  assert.match(result?.content ?? "", /Maximum age: 65 years/);
+});
+
+test("retrieves information from every supplied knowledge document", () => {
+  const rag = new ApiDocumentationRag();
+  const cases = [
+    ["SecureLife maximum eligibility age", /Maximum age: 65 years/],
+    ["How do I download my policy document?", /Download Policy Document/],
+    ["What documents are required to file a claim?", /Death Certificate/],
+    ["How long is the premium grace period?", /30-day grace period/],
+    ["What information is required for a beneficiary?", /Percentage Allocation/],
+    ["What customer support channels are available?", /Live Chat/],
+  ] as const;
+
+  for (const [query, expectedContent] of cases) {
+    const [result] = rag.retrieve(query, 1);
+    assert.match(result?.content ?? "", expectedContent, query);
+  }
+});
+
 test("returns exact model usage and provider rate-limit balance", async () => {
   const orchestrator = new AIOrchestrator(
     new ConversationService(),

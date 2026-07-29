@@ -58,7 +58,7 @@ interface DocumentationSection {
 
 interface GeneratedDocumentationIndex {
   readonly version: number;
-  readonly source: string;
+  readonly sources: readonly string[];
   readonly sourceHash: string;
   readonly sections: readonly DocumentationSection[];
 }
@@ -112,8 +112,12 @@ const loadGeneratedIndex = (): readonly DocumentationSection[] => {
     ),
   ) as GeneratedDocumentationIndex;
 
-  if (index.version !== 1 || !Array.isArray(index.sections)) {
-    throw new Error("The generated enterprise API RAG index is invalid.");
+  if (
+    index.version !== 2 ||
+    !Array.isArray(index.sources) ||
+    !Array.isArray(index.sections)
+  ) {
+    throw new Error("The generated knowledge-base RAG index is invalid.");
   }
 
   return index.sections;
@@ -138,7 +142,7 @@ const relevanceScore = (
   );
 
 /**
- * Small, local RAG index over the enterprise API reference.
+ * Small, local RAG index over enterprise API and product reference documents.
  *
  * The document is loaded and chunked once. Each chat turn retrieves only the
  * highest-scoring sections, keeping prompt context focused and deterministic.

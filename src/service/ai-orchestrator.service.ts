@@ -195,13 +195,14 @@ export class AIOrchestrator {
 
     return `${INSURANCE_AGENT_SYSTEM_PROMPT}
 
-Use the following retrieved enterprise API reference when it is relevant to the
-current request. It describes available endpoints and fields, not live customer
-data. Use an enterprise tool when the user needs an actual record.
+Use the following retrieved knowledge-base reference when it is relevant to the
+current request. It may describe product information or enterprise endpoints and
+fields. It is not live customer data; use an enterprise tool when the user needs
+an actual record.
 
-<enterprise_api_reference>
+<knowledge_base_reference>
 ${retrievedContext}
-</enterprise_api_reference>`;
+</knowledge_base_reference>`;
   }
 
   private throwIfAborted(signal?: AbortSignal): void {
