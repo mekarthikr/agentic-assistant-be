@@ -20,7 +20,7 @@ const HISTORY_MESSAGE_LIMIT = 6;
 const RETRIEVAL_MESSAGE_LIMIT = 2;
 const RECORD_IDENTIFIER_PATTERN = /\b\d{5,}\b/;
 const CONTRACT_PATTERN =
-  /\b(?:annuit(?:y|ies)|contracts?|contrats?|polic(?:y|ies))\b/i;
+  /\b(?:annuit(?:y|ies)|contracts?|contrats?)\b/i;
 const APPLICATION_PATTERN = /\b(?:applications?|approvals?|cases?)\b/i;
 const AMBIGUOUS_RECORD_PATTERN = /\b(?:clients?|customers?|records?)\b/i;
 

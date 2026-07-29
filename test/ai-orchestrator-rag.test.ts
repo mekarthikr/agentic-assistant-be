@@ -189,6 +189,24 @@ test("exposes only tools relevant to the current request", async () => {
   assert.equal(provider.toolChoice, "auto");
 });
 
+test("does not call live-record tools for knowledge-base policy questions", async () => {
+  const provider = new CapturingProvider();
+  const orchestrator = new AIOrchestrator(
+    new ConversationService(),
+    provider,
+    createRegistry(),
+    new ApiDocumentationRag(
+      "## Policy documents\n\nOpen Policies and select Download Policy Document.",
+    ),
+  );
+
+  await orchestrator.chat("policy-document", "How do I download my policy document?");
+
+  assert.deepEqual(provider.toolNames, []);
+  assert.equal(provider.toolChoice, "auto");
+  assert.match(provider.instructions ?? "", /Download Policy Document/);
+});
+
 test("selects tools from the current request instead of stale record history", async () => {
   const provider = new CapturingProvider();
   const conversations = new ConversationService();
