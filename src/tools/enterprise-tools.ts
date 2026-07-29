@@ -142,11 +142,24 @@ export const createEnterpriseTools = (
     description:
       "Search insurance applications using one or more known filters, including application status, client name, product, agent number, or contract number.",
     inputSchema: jsonSchema(filterSchema(applicationFilters)),
-    execute: (input, context) =>
-      enterpriseApi.getApplications(
+    execute: async (input, context) => {
+      if (
+        context.userType === "client" &&
+        context.clientApplicationContractNumber
+      ) {
+        const response = await enterpriseApi.getApplication(
+          context.clientApplicationContractNumber,
+          context.signal,
+        );
+        assertClientOwnsRecord(response.data, context);
+        return { ...response, data: [response.data] };
+      }
+
+      return enterpriseApi.getApplications(
         scopedApplicationFilters(input, context),
         context.signal,
-      ),
+      );
+    },
   },
   {
     name: "getApplication",

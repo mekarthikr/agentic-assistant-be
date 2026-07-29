@@ -28,6 +28,7 @@ const sendJson = (socket: WebSocket, payload: object): void => {
 // with a client name/ID read from a verified login session when authentication
 // is available.
 const CLIENT_NAME = "SMITH ROBERT";
+const CLIENT_APPLICATION_CONTRACT_NUMBER = "1561440";
 
 const parseMessage = (data: WebSocketRawData): ClientMessage | null => {
   try {
@@ -260,6 +261,10 @@ export class ChatSocketServer {
         signal: abortController.signal,
         userType,
         clientName: userType === "client" ? CLIENT_NAME : undefined,
+        clientApplicationContractNumber:
+          userType === "client"
+            ? CLIENT_APPLICATION_CONTRACT_NUMBER
+            : undefined,
       });
 
       let tokenUsage;

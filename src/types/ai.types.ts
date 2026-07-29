@@ -76,6 +76,8 @@ export interface ChatOptions {
   readonly userType?: "agent" | "client";
   /** Trusted identity used to scope client data access. */
   readonly clientName?: string;
+  /** Trusted application identifier for the current client. */
+  readonly clientApplicationContractNumber?: string;
   /** Safety limit for consecutive model-to-tool rounds in one chat turn. */
   readonly maxToolRounds?: number;
 }

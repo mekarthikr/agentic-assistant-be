@@ -10,6 +10,7 @@ export interface ToolExecutionContext {
   readonly signal?: AbortSignal;
   readonly userType?: "agent" | "client";
   readonly clientName?: string;
+  readonly clientApplicationContractNumber?: string;
 }
 
 /**

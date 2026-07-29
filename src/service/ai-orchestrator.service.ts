@@ -163,6 +163,8 @@ export class AIOrchestrator {
           signal: options.signal,
           userType: options.userType,
           clientName: options.clientName,
+          clientApplicationContractNumber:
+            options.clientApplicationContractNumber,
         }),
       ];
     }
@@ -240,7 +242,7 @@ export class AIOrchestrator {
   ): string {
     const audienceInstructions =
       userType === "client"
-        ? "The current user is a client. Discuss only this client's contract and application information. Retrieve client records only when the client explicitly asks about their own records, such as 'my contracts', 'my product', or 'my application status'. Never retrieve or summarize all contracts, all applications, or information about other clients."
+        ? "The current user is a client. Discuss only this client's contract and application information. Retrieve client records only when the client explicitly asks about their own records, such as 'my contracts', 'my product', or 'my application status'. Never retrieve or summarize all contracts, all applications, or information about other clients. If the client's own record lookup returns no results, state that no record is currently available; do not ask the client for extra identifiers."
         : "The current user is an agent. You may assist with agent workflows, applications, and contracts.";
     const basePrompt = `${INSURANCE_AGENT_SYSTEM_PROMPT}\n\n${audienceInstructions}`;
 
