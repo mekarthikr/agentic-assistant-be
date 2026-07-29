@@ -198,7 +198,9 @@ export class AIOrchestrator {
 Use the following retrieved knowledge-base reference when it is relevant to the
 current request. It may describe product information or enterprise endpoints and
 fields. It is not live customer data; use an enterprise tool when the user needs
-an actual record.
+an actual contract or application record. If this reference directly answers the
+question, answer only with information from it; do not supplement it with
+general insurance knowledge or suggest unavailable tools.
 
 <knowledge_base_reference>
 ${retrievedContext}

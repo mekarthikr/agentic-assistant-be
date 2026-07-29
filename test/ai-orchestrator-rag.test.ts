@@ -139,6 +139,10 @@ GET /contracts/:contractNumber returns one insurance contract.`);
     /professional copilot for insurance agents/,
   );
   assert.match(provider.instructions ?? "", /GET \/contracts\/:contractNumber/);
+  assert.match(
+    provider.instructions ?? "",
+    /do not supplement it with\s+general insurance knowledge/i,
+  );
 });
 
 test("sends only the most recent conversation messages", async () => {
