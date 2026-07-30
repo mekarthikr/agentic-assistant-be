@@ -3,7 +3,10 @@ import type { FlexibleSchema, ToolModelMessage, ToolSet } from "ai";
 import type { LLMToolCall } from "@app/types";
 import { logError } from "@app/utils/error-logger";
 
-const MAX_TOOL_RESULT_CHARACTERS = 6_000;
+// The documented mock Applications API currently returns roughly 10,000
+// characters for an unfiltered list. Keep a complete agent list available to
+// the model while retaining a bound for unexpectedly large production data.
+const MAX_TOOL_RESULT_CHARACTERS = 12_000;
 
 export interface ToolExecutionContext {
   readonly toolCallId: string;

@@ -211,6 +211,98 @@ test("does not call live-record tools for knowledge-base policy questions", asyn
   assert.match(provider.instructions ?? "", /Download Policy Document/);
 });
 
+test("does not force a live-record tool for a client policy-document request", async () => {
+  const provider = new CapturingProvider();
+  const orchestrator = new AIOrchestrator(
+    new ConversationService(),
+    provider,
+    createRegistry(),
+    new ApiDocumentationRag(
+      "## Policy documents\n\nOpen Policies and select Download Policy Document.",
+    ),
+  );
+
+  await orchestrator.chat("client-policy-document", "Download policy document", {
+    userType: "client",
+    clientName: "SMITH ROBERT",
+    clientApplicationContractNumber: "1561440",
+  });
+
+  assert.deepEqual(provider.toolNames, []);
+  assert.equal(provider.toolChoice, "auto");
+  assert.match(provider.instructions ?? "", /Download Policy Document/);
+});
+
+test("instructs client application-status responses to include useful record details", async () => {
+  const provider = new CapturingProvider();
+  const orchestrator = new AIOrchestrator(
+    new ConversationService(),
+    provider,
+    createRegistry(),
+    new ApiDocumentationRag("## Applications API\n\nApplication reference."),
+  );
+
+  await orchestrator.chat("client-application-status", "What is my application status?", {
+    userType: "client",
+    clientName: "SMITH ROBERT",
+    clientApplicationContractNumber: "1561440",
+  });
+
+  assert.deepEqual(provider.toolNames, ["searchApplications"]);
+  assert.match(
+    provider.instructions ?? "",
+    /application-status question, provide the returned status, product, and contract number/i,
+  );
+});
+
+test("instructs client record responses to use descriptive summaries", async () => {
+  const provider = new CapturingProvider();
+  const orchestrator = new AIOrchestrator(
+    new ConversationService(),
+    provider,
+    createRegistry(),
+    new ApiDocumentationRag("## Applications API\n\nApplication reference."),
+  );
+
+  await orchestrator.chat("client-application-product", "What is my product name?", {
+    userType: "client",
+    clientName: "SMITH ROBERT",
+    clientApplicationContractNumber: "1561440",
+  });
+
+  assert.match(provider.instructions ?? "", /Do not reply with only a raw field value/i);
+  assert.match(
+    provider.instructions ?? "",
+    /application-details question, give a concise labeled summary/i,
+  );
+  assert.match(
+    provider.instructions ?? "",
+    /contract-details question, give a concise labeled summary/i,
+  );
+});
+
+test("does not expose a lookup identifier when a client contract record is unavailable", async () => {
+  const provider = new CapturingProvider();
+  const orchestrator = new AIOrchestrator(
+    new ConversationService(),
+    provider,
+    createRegistry(),
+    new ApiDocumentationRag("## Contracts API\n\nContract reference."),
+  );
+
+  await orchestrator.chat("client-contract-details", "Show me my contract details.", {
+    userType: "client",
+    clientName: "SMITH ROBERT",
+    clientApplicationContractNumber: "1561440",
+  });
+
+  assert.match(
+    provider.instructions ?? "",
+    /No contract record is currently available\./,
+  );
+  assert.match(provider.instructions ?? "", /Do not mention the lookup identifier/i);
+});
+
 test("does not call live-record tools for customer-support questions", async () => {
   const provider = new CapturingProvider();
   const orchestrator = new AIOrchestrator(
@@ -230,6 +322,29 @@ test("does not call live-record tools for customer-support questions", async () 
   assert.deepEqual(provider.toolNames, []);
   assert.equal(provider.toolChoice, "auto");
   assert.match(provider.instructions ?? "", /Live Chat/);
+});
+
+test("preserves a complete applications-sized tool result", async () => {
+  const registry = new ToolRegistry([
+    {
+      name: "searchApplications",
+      description: "search applications",
+      inputSchema: jsonSchema({
+        type: "object",
+        properties: {},
+        additionalProperties: false,
+      }),
+      execute: () => ({ data: "a".repeat(9_634) }),
+    },
+  ]);
+
+  const result = await registry.executeAll([
+    { toolCallId: "applications-1", toolName: "searchApplications", input: {} },
+  ]);
+
+  const serialized = JSON.stringify(result);
+  assert.match(serialized, /a{9634}/);
+  assert.doesNotMatch(serialized, /tool result truncated/i);
 });
 
 test("selects tools from the current request instead of stale record history", async () => {
