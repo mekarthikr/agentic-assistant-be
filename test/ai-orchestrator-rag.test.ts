@@ -233,6 +233,26 @@ test("does not force a live-record tool for a client policy-document request", a
   assert.match(provider.instructions ?? "", /Download Policy Document/);
 });
 
+test("does not force a live-record tool for a client premium grace-period question", async () => {
+  const provider = new CapturingProvider();
+  const orchestrator = new AIOrchestrator(
+    new ConversationService(),
+    provider,
+    createRegistry(),
+    new ApiDocumentationRag("## Grace Period\n\nA 30-day grace period applies."),
+  );
+
+  await orchestrator.chat("client-premium-grace", "Premium grace period", {
+    userType: "client",
+    clientName: "SMITH ROBERT",
+    clientApplicationContractNumber: "1561440",
+  });
+
+  assert.deepEqual(provider.toolNames, []);
+  assert.equal(provider.toolChoice, "auto");
+  assert.match(provider.instructions ?? "", /30-day grace period/);
+});
+
 test("instructs client application-status responses to include useful record details", async () => {
   const provider = new CapturingProvider();
   const orchestrator = new AIOrchestrator(

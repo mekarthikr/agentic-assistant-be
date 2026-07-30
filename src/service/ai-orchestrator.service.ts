@@ -35,6 +35,11 @@ const CLIENT_LIST_REQUEST_PATTERN = /\b(?:list|all|every)\b/i;
 // A policy document is portal/self-service knowledge, not a live contract
 // lookup. Keep it ahead of the broader `policy` record-detail matcher below.
 const POLICY_DOCUMENT_PATTERN = /\bpolicy\s+documents?\b/i;
+// These phrases are answered from the supplied policy/service documents.
+// Check them before the broader client record-detail patterns (for example,
+// `premium`) so they never force a live enterprise tool call.
+const KNOWLEDGE_BASE_SELF_SERVICE_PATTERN =
+  /\b(?:policy\s+documents?|(?:premium\s+)?grace\s+period|missed\s+premium|premium\s+payment\s+(?:methods?|options?|frequency)|auto\s*pay|beneficiar(?:y|ies)|file\s+(?:a\s+)?claim|claim\s+(?:documents?|processing|status)|customer\s+support|support\s+(?:channels?|hours?)|portal\s+login)\b/i;
 
 export class AIOrchestrator {
   public constructor(
@@ -191,7 +196,10 @@ export class AIOrchestrator {
     const needsAmbiguousRecord = AMBIGUOUS_RECORD_PATTERN.test(query);
 
     if (userType === "client") {
-      if (POLICY_DOCUMENT_PATTERN.test(query)) {
+      if (
+        POLICY_DOCUMENT_PATTERN.test(query) ||
+        KNOWLEDGE_BASE_SELF_SERVICE_PATTERN.test(query)
+      ) {
         return [];
       }
       if (CLIENT_LIST_REQUEST_PATTERN.test(query)) {
