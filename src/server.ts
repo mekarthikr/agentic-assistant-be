@@ -61,11 +61,9 @@ const shutdown = (signal: NodeJS.Signals): void => {
       clearTimeout(forceShutdownTimer);
 
       if (socketError || httpError) {
-        logError(
-          "Error while closing server",
-          socketError ?? httpError,
-          { signal },
-        );
+        logError("Error while closing server", socketError ?? httpError, {
+          signal,
+        });
         process.exitCode = 1;
       }
 

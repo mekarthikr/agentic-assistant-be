@@ -5,7 +5,10 @@ const enterpriseDocumentationUrl = new URL(
   "../src/knowledge/enterprise-api-documentation.md",
   import.meta.url,
 );
-const documentsDirectoryUrl = new URL("../src/knowledge/documents/", import.meta.url);
+const documentsDirectoryUrl = new URL(
+  "../src/knowledge/documents/",
+  import.meta.url,
+);
 const indexUrl = new URL(
   "../src/knowledge/enterprise-api-rag.json",
   import.meta.url,
@@ -51,15 +54,17 @@ const tokenize = (value) =>
     .filter((token) => !STOP_WORDS.has(token));
 
 const sectionHeading = (content) =>
-  content.match(/^#{1,3}\s+(.+)$/m)?.[1]?.trim() ||
-  "Enterprise API overview";
+  content.match(/^#{1,3}\s+(.+)$/m)?.[1]?.trim() || "Enterprise API overview";
 
 const documentUrls = [
   enterpriseDocumentationUrl,
   ...(await readdir(documentsDirectoryUrl))
     .filter((filename) => filename.endsWith(".md"))
     .sort()
-    .map((filename) => new URL(`../src/knowledge/documents/${filename}`, import.meta.url)),
+    .map(
+      (filename) =>
+        new URL(`../src/knowledge/documents/${filename}`, import.meta.url),
+    ),
 ];
 const documents = await Promise.all(
   documentUrls.map(async (url) => ({
@@ -72,28 +77,28 @@ const sections = documents.flatMap(
   ({ filename, markdown, isEnterpriseReference }) => {
     const documentTitle = sectionHeading(markdown);
     return markdown
-    .split(/(?=^#{2,3}\s+)/m)
-    .map((content) => content.trim())
-    .filter(Boolean)
-    .map((content) => {
-      const heading = sectionHeading(content);
-      return {
-        heading: isEnterpriseReference
-          ? heading
-          : heading === documentTitle
-            ? `${heading} (${filename})`
-            : `${documentTitle} — ${heading} (${filename})`,
-        content,
-        headingTokens: tokenize(
-          isEnterpriseReference
+      .split(/(?=^#{2,3}\s+)/m)
+      .map((content) => content.trim())
+      .filter(Boolean)
+      .map((content) => {
+        const heading = sectionHeading(content);
+        return {
+          heading: isEnterpriseReference
             ? heading
             : heading === documentTitle
-              ? `${heading} ${filename}`
-              : `${documentTitle} ${heading} ${filename}`,
-        ),
-        contentTokens: tokenize(content),
-      };
-    });
+              ? `${heading} (${filename})`
+              : `${documentTitle} — ${heading} (${filename})`,
+          content,
+          headingTokens: tokenize(
+            isEnterpriseReference
+              ? heading
+              : heading === documentTitle
+                ? `${heading} ${filename}`
+                : `${documentTitle} ${heading} ${filename}`,
+          ),
+          contentTokens: tokenize(content),
+        };
+      });
   },
 );
 

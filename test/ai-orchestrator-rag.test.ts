@@ -70,9 +70,15 @@ test("loads the generated enterprise API RAG index", () => {
 
 test("retrieves SecureLife Plus product-guide information", () => {
   const rag = new ApiDocumentationRag();
-  const [result] = rag.retrieve("What is the maximum eligibility age for SecureLife Plus?", 1);
+  const [result] = rag.retrieve(
+    "What is the maximum eligibility age for SecureLife Plus?",
+    1,
+  );
 
-  assert.match(result?.heading ?? "", /SecureLife Plus Insurance — Eligibility/);
+  assert.match(
+    result?.heading ?? "",
+    /SecureLife Plus Insurance — Eligibility/,
+  );
   assert.match(result?.content ?? "", /Maximum age: 65 years/);
 });
 
@@ -83,7 +89,10 @@ test("retrieves information from every supplied knowledge document", () => {
     ["How do I download my policy document?", /Download Policy Document/],
     ["What documents are required to file a claim?", /Death Certificate/],
     ["How long is the premium grace period?", /30-day grace period/],
-    ["What information is required for a beneficiary?", /Percentage Allocation/],
+    [
+      "What information is required for a beneficiary?",
+      /Percentage Allocation/,
+    ],
     ["What customer support channels are available?", /Live Chat/],
   ] as const;
 
@@ -114,7 +123,9 @@ test("returns exact model usage and provider rate-limit balance", async () => {
       inputTokens: 120,
       outputTokens: 30,
       totalTokens: 150,
-      remainingTokens: 5_850,
+      contextTokensUsed: 120,
+      contextTokensRemaining: 880,
+      rateLimitRemainingTokens: 5_850,
     },
   });
 });
@@ -204,7 +215,10 @@ test("does not call live-record tools for knowledge-base policy questions", asyn
     ),
   );
 
-  await orchestrator.chat("policy-document", "How do I download my policy document?");
+  await orchestrator.chat(
+    "policy-document",
+    "How do I download my policy document?",
+  );
 
   assert.deepEqual(provider.toolNames, []);
   assert.equal(provider.toolChoice, "auto");
@@ -222,11 +236,15 @@ test("does not force a live-record tool for a client policy-document request", a
     ),
   );
 
-  await orchestrator.chat("client-policy-document", "Download policy document", {
-    userType: "client",
-    clientName: "SMITH ROBERT",
-    clientApplicationContractNumber: "1561440",
-  });
+  await orchestrator.chat(
+    "client-policy-document",
+    "Download policy document",
+    {
+      userType: "client",
+      clientName: "SMITH ROBERT",
+      clientApplicationContractNumber: "1561440",
+    },
+  );
 
   assert.deepEqual(provider.toolNames, []);
   assert.equal(provider.toolChoice, "auto");
@@ -239,7 +257,9 @@ test("does not force a live-record tool for a client premium grace-period questi
     new ConversationService(),
     provider,
     createRegistry(),
-    new ApiDocumentationRag("## Grace Period\n\nA 30-day grace period applies."),
+    new ApiDocumentationRag(
+      "## Grace Period\n\nA 30-day grace period applies.",
+    ),
   );
 
   await orchestrator.chat("client-premium-grace", "Premium grace period", {
@@ -262,11 +282,15 @@ test("instructs client application-status responses to include useful record det
     new ApiDocumentationRag("## Applications API\n\nApplication reference."),
   );
 
-  await orchestrator.chat("client-application-status", "What is my application status?", {
-    userType: "client",
-    clientName: "SMITH ROBERT",
-    clientApplicationContractNumber: "1561440",
-  });
+  await orchestrator.chat(
+    "client-application-status",
+    "What is my application status?",
+    {
+      userType: "client",
+      clientName: "SMITH ROBERT",
+      clientApplicationContractNumber: "1561440",
+    },
+  );
 
   assert.deepEqual(provider.toolNames, ["searchApplications"]);
   assert.match(
@@ -284,13 +308,20 @@ test("instructs client record responses to use descriptive summaries", async () 
     new ApiDocumentationRag("## Applications API\n\nApplication reference."),
   );
 
-  await orchestrator.chat("client-application-product", "What is my product name?", {
-    userType: "client",
-    clientName: "SMITH ROBERT",
-    clientApplicationContractNumber: "1561440",
-  });
+  await orchestrator.chat(
+    "client-application-product",
+    "What is my product name?",
+    {
+      userType: "client",
+      clientName: "SMITH ROBERT",
+      clientApplicationContractNumber: "1561440",
+    },
+  );
 
-  assert.match(provider.instructions ?? "", /Do not reply with only a raw field value/i);
+  assert.match(
+    provider.instructions ?? "",
+    /Do not reply with only a raw field value/i,
+  );
   assert.match(
     provider.instructions ?? "",
     /application-details question, give a concise labeled summary/i,
@@ -310,17 +341,24 @@ test("does not expose a lookup identifier when a client contract record is unava
     new ApiDocumentationRag("## Contracts API\n\nContract reference."),
   );
 
-  await orchestrator.chat("client-contract-details", "Show me my contract details.", {
-    userType: "client",
-    clientName: "SMITH ROBERT",
-    clientApplicationContractNumber: "1561440",
-  });
+  await orchestrator.chat(
+    "client-contract-details",
+    "Show me my contract details.",
+    {
+      userType: "client",
+      clientName: "SMITH ROBERT",
+      clientApplicationContractNumber: "1561440",
+    },
+  );
 
   assert.match(
     provider.instructions ?? "",
     /No contract record is currently available\./,
   );
-  assert.match(provider.instructions ?? "", /Do not mention the lookup identifier/i);
+  assert.match(
+    provider.instructions ?? "",
+    /Do not mention the lookup identifier/i,
+  );
 });
 
 test("does not call live-record tools for customer-support questions", async () => {

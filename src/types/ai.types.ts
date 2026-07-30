@@ -43,15 +43,19 @@ export interface ModelInfo {
   readonly contextWindow: number;
 }
 
-export interface LLMTokenUsage {
+interface LLMTokenUsage {
   readonly inputTokens: number;
   readonly outputTokens: number;
   readonly totalTokens: number;
 }
 
 export interface ModelTokenUsage extends ModelInfo, LLMTokenUsage {
+  /** Input tokens used by the final model request. */
+  readonly contextTokensUsed: number;
+  /** Context capacity still available after the final model request. */
+  readonly contextTokensRemaining: number;
   /** Exact per-minute token allowance remaining, reported by the provider. */
-  readonly remainingTokens: number | null;
+  readonly rateLimitRemainingTokens: number | null;
 }
 
 export interface LLMResponse {
@@ -219,10 +223,7 @@ export const isOutputParseError = (error: unknown): boolean => {
   while (pending.length > 0) {
     const current = pending.pop();
     if (current === null || typeof current !== "object") {
-      if (
-        typeof current === "string" &&
-        OUTPUT_PARSE_PATTERN.test(current)
-      ) {
+      if (typeof current === "string" && OUTPUT_PARSE_PATTERN.test(current)) {
         return true;
       }
       continue;
@@ -285,20 +286,14 @@ export const getRetryAfterMs = (
       const retryAfter =
         typeof getter === "function"
           ? getter.call(headers, "retry-after")
-          : headerRecord["retry-after"] ?? headerRecord["Retry-After"];
+          : (headerRecord["retry-after"] ?? headerRecord["Retry-After"]);
       if (typeof retryAfter === "string") {
         const delay = parseRetryAfter(retryAfter, now);
         if (delay !== undefined) return delay;
       }
     }
 
-    for (const key of [
-      "cause",
-      "lastError",
-      "errors",
-      "data",
-      "error",
-    ]) {
+    for (const key of ["cause", "lastError", "errors", "data", "error"]) {
       const value = record[key];
       if (value !== undefined) pending.push(value);
     }

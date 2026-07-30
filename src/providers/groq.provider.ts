@@ -35,7 +35,7 @@ const getRemainingTokens = (
   return Number.isSafeInteger(remainingTokens) ? remainingTokens : null;
 };
 
-export class GroqProviderError extends Error {
+class GroqProviderError extends Error {
   public constructor(operation: "generate" | "stream", cause: unknown) {
     super(`Groq could not ${operation} a response.`, { cause });
     this.name = "GroqProviderError";

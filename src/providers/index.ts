@@ -1,3 +1,2 @@
-export { GroqProvider, GroqProviderError } from "./groq.provider";
-export { MockProvider } from "./mock.provider";
+export { GroqProvider } from "./groq.provider";
 export { EnterpriseApiProvider } from "./enterprise-api.provider";

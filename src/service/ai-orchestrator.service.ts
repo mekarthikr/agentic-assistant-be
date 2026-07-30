@@ -19,8 +19,7 @@ const DEFAULT_MAX_TOOL_ROUNDS = 3;
 const HISTORY_MESSAGE_LIMIT = 6;
 const RETRIEVAL_MESSAGE_LIMIT = 2;
 const RECORD_IDENTIFIER_PATTERN = /\b\d{5,}\b/;
-const CONTRACT_PATTERN =
-  /\b(?:annuit(?:y|ies)|contracts?|contrats?)\b/i;
+const CONTRACT_PATTERN = /\b(?:annuit(?:y|ies)|contracts?|contrats?)\b/i;
 const APPLICATION_PATTERN = /\b(?:applications?|approvals?|cases?)\b/i;
 const AMBIGUOUS_RECORD_PATTERN = /\b(?:clients?|customers?|records?)\b/i;
 const RECORD_LOOKUP_INTENT_PATTERN =
@@ -104,13 +103,16 @@ export class AIOrchestrator {
     this.validateResponse(response.text);
     this.conversationService.addAssistantMessage(conversationId, response.text);
     const { model, contextWindow } = this.provider.modelInfo;
+    const contextTokensUsed = response.usage.inputTokens;
     return {
       text: response.text,
       usage: {
         ...response.usage,
         model,
         contextWindow,
-        remainingTokens: response.remainingTokens,
+        contextTokensUsed,
+        contextTokensRemaining: Math.max(contextWindow - contextTokensUsed, 0),
+        rateLimitRemainingTokens: response.remainingTokens,
       },
     };
   }
@@ -124,11 +126,7 @@ export class AIOrchestrator {
     // Tool calls require a complete model turn before their result can be
     // supplied. Reuse the tool-aware path so streaming conversations preserve
     // the same semantics; transports still receive the final response chunk.
-    const response = await this.chatWithUsage(
-      conversationId,
-      prompt,
-      options,
-    );
+    const response = await this.chatWithUsage(conversationId, prompt, options);
     yield response.text;
     return response.usage;
   }
@@ -209,10 +207,7 @@ export class AIOrchestrator {
       if (PRODUCT_DETAIL_PATTERN.test(query)) {
         return ["searchContracts", "searchApplications"];
       }
-      if (
-        needsApplications ||
-        CLIENT_APPLICATION_DETAIL_PATTERN.test(query)
-      ) {
+      if (needsApplications || CLIENT_APPLICATION_DETAIL_PATTERN.test(query)) {
         return ["searchApplications"];
       }
       if (
@@ -239,9 +234,7 @@ export class AIOrchestrator {
     ) {
       return ["searchApplications"];
     }
-    if (
-      needsAmbiguousRecord && RECORD_LOOKUP_INTENT_PATTERN.test(query)
-    ) {
+    if (needsAmbiguousRecord && RECORD_LOOKUP_INTENT_PATTERN.test(query)) {
       return ["searchContracts", "searchApplications"];
     }
 

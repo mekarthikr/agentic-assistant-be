@@ -119,11 +119,6 @@ server or provider supplies a wait duration, the payload includes
 `retryAfterMs`, `retryAfterSeconds`, and a human-readable message such as
 `"Too many requests. Try again in 12 seconds."`.
 
-The included backend mock returns `Hello! How can I help you today?` for a
-greeting and provides deterministic placeholders for contract, approval, and
-product questions. Replace `mockChatHandler` in `src/socket/chat-socket.ts`
-with the production AI agent handler when it is ready.
-
 ## Production safeguards
 
 The server includes graceful shutdown, WebSocket heartbeats, authentication,

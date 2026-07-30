@@ -213,7 +213,8 @@ export class ChatSocketServer {
         type: "chat.error",
         requestId,
         code: "VALIDATION_ERROR",
-        message: "requestId, conversationId, message, and userType are required.",
+        message:
+          "requestId, conversationId, message, and userType are required.",
       });
       return;
     }
