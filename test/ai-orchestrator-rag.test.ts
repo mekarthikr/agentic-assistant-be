@@ -154,6 +154,27 @@ GET /contracts/:contractNumber returns one insurance contract.`);
     provider.instructions ?? "",
     /do not supplement it with\s+general insurance knowledge/i,
   );
+  assert.match(provider.instructions ?? "", /normalize them to UTC/i);
+  assert.match(
+    provider.instructions ?? "",
+    /Never compare differently formatted date strings directly/i,
+  );
+  assert.match(
+    provider.instructions ?? "",
+    /date-only value in YYYY-MM-DD format as a calendar date/i,
+  );
+  assert.match(
+    provider.instructions ?? "",
+    /verify that it directly answers the user's current request/i,
+  );
+  assert.match(
+    provider.instructions ?? "",
+    /tool results correspond to the record, client, contract, application, filters, and date range/i,
+  );
+  assert.match(
+    provider.instructions ?? "",
+    /Do not imply that unrelated or partial data satisfies the request/i,
+  );
 });
 
 test("sends only the most recent conversation messages", async () => {
