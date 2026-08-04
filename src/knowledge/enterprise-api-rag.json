@@ -13,7 +13,7 @@
   "sections": [
     {
       "heading": "Enterprise API Documentation",
-      "content": "# Enterprise API Documentation\r\n\r\nBase URL: `https://mock-api-server-zeta.vercel.app/api/v1`\r\n\r\n---",
+      "content": "# Enterprise API Documentation\r\n\r\nBase URL: `https://mock-api-server-1.vercel.app/api/v1`\r\n\r\n---",
       "headingTokens": ["enterprise", "api", "documentation"],
       "contentTokens": [
         "enterprise",
