@@ -41,6 +41,18 @@ const contracts: Contract[] = [
     taxQualification: "NON-QUAL",
     distributionCompany: "AELife",
   },
+  {
+    contractNumber: "1561104",
+    clientName: "SMITH JOHN",
+    productName: "Product D",
+    issuedDate: "2025-09-15T05:00:00+00:00",
+    currentValue: 25000,
+    anniversaryDate: "2027-09-15T05:00:00+00:00",
+    taxType: "Non-Qualified",
+    contractStatus: "Active",
+    taxQualification: "NON-QUAL",
+    distributionCompany: "AELife",
+  },
 ];
 
 test("filters contract anniversaries by exact date, month, or year", async () => {
@@ -76,5 +88,33 @@ test("filters contract anniversaries by exact date, month, or year", async () =>
       ({ contractNumber }) => contractNumber,
     ),
     ["1561094"],
+  );
+});
+
+test("client contract searches use the client name and return every matching contract", async () => {
+  let receivedFilters: Record<string, string | undefined> | undefined;
+  const searchContracts = createEnterpriseTools({
+    getContracts: async (filters: Record<string, string | undefined>) => {
+      receivedFilters = filters;
+      return {
+        success: true,
+        message: "Request successful",
+        data: contracts.filter(({ clientName }) => clientName === "SMITH JOHN"),
+        timestamp: "2026-08-04T00:00:00.000Z",
+      };
+    },
+  } as never).find(({ name }) => name === "searchContracts");
+
+  const response = (await searchContracts?.execute({}, {
+    toolCallId: "client-contract-search",
+    userType: "client",
+    clientName: "SMITH JOHN",
+    clientApplicationContractNumber: "1561092",
+  })) as ApiResponse<Contract[]>;
+
+  assert.equal(receivedFilters?.clientName, "SMITH JOHN");
+  assert.deepEqual(
+    response.data.map(({ contractNumber }) => contractNumber),
+    ["1561092", "1561104"],
   );
 });
