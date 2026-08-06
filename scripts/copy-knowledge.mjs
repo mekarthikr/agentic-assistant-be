@@ -9,6 +9,11 @@ await cp(sourceDirectory, outputDirectory, {
   recursive: true,
   filter: (source) => {
     const extension = extname(source);
-    return extension === "" || extension === ".md" || extension === ".json";
+    return (
+      extension === "" ||
+      extension === ".md" ||
+      extension === ".json" ||
+      extension === ".pdf"
+    );
   },
 });

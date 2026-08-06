@@ -1,7 +1,7 @@
 import generatedIndex from "./enterprise-api-rag.json" with { type: "json" };
 
-const DEFAULT_RESULT_LIMIT = 1;
-const MAX_CONTEXT_CHARACTERS = 3_500;
+const DEFAULT_RESULT_LIMIT = 2;
+const MAX_CONTEXT_CHARACTERS = 7_000;
 const MINIMUM_RELEVANCE_SCORE = 1;
 const TOKEN_PATTERN = /[a-z0-9]+/g;
 const STOP_WORDS = new Set([

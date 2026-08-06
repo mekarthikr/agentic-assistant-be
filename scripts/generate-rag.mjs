@@ -1,5 +1,7 @@
 import { createHash } from "node:crypto";
 import { readdir, readFile, writeFile } from "node:fs/promises";
+import { extname } from "node:path";
+import { PDFParse } from "pdf-parse";
 
 const enterpriseDocumentationUrl = new URL(
   "../src/knowledge/enterprise-api-documentation.md",
@@ -56,10 +58,39 @@ const tokenize = (value) =>
 const sectionHeading = (content) =>
   content.match(/^#{1,3}\s+(.+)$/m)?.[1]?.trim() || "Enterprise API overview";
 
+const readKnowledgeDocument = async (url) => {
+  const filename = decodeURIComponent(url.pathname.split("/").at(-1));
+  const source = await readFile(url);
+
+  if (extname(filename).toLowerCase() !== ".pdf") {
+    return {
+      filename,
+      source,
+      sections: [source.toString("utf8")],
+    };
+  }
+
+  const parser = new PDFParse({ data: source });
+  try {
+    const result = await parser.getText({ pageJoiner: "" });
+    const title = filename.replace(/\.pdf$/i, "").replaceAll("-", " ");
+    return {
+      filename,
+      source,
+      sections: result.pages.map(
+        ({ num, text }) =>
+          `# ${title}\n\nSource: ${filename}, page ${num} of ${result.total}\n\n${text.trim()}`,
+      ),
+    };
+  } finally {
+    await parser.destroy();
+  }
+};
+
 const documentUrls = [
   enterpriseDocumentationUrl,
   ...(await readdir(documentsDirectoryUrl))
-    .filter((filename) => filename.endsWith(".md"))
+    .filter((filename) => [".md", ".pdf"].includes(extname(filename)))
     .sort()
     .map(
       (filename) =>
@@ -68,45 +99,45 @@ const documentUrls = [
 ];
 const documents = await Promise.all(
   documentUrls.map(async (url) => ({
-    filename: url.pathname.split("/").at(-1),
-    markdown: await readFile(url, "utf8"),
+    ...(await readKnowledgeDocument(url)),
     isEnterpriseReference: url.href === enterpriseDocumentationUrl.href,
   })),
 );
 const sections = documents.flatMap(
-  ({ filename, markdown, isEnterpriseReference }) => {
-    const documentTitle = sectionHeading(markdown);
-    return markdown
-      .split(/(?=^#{2,3}\s+)/m)
-      .map((content) => content.trim())
-      .filter(Boolean)
-      .map((content) => {
-        const heading = sectionHeading(content);
-        return {
-          heading: isEnterpriseReference
-            ? heading
-            : heading === documentTitle
-              ? `${heading} (${filename})`
-              : `${documentTitle} — ${heading} (${filename})`,
-          content,
-          headingTokens: tokenize(
-            isEnterpriseReference
+  ({ filename, sections: documentSections, isEnterpriseReference }) =>
+    documentSections.flatMap((document) => {
+      const documentTitle = sectionHeading(document);
+      return document
+        .split(/(?=^#{2,3}\s+)/m)
+        .map((content) => content.trim())
+        .filter(Boolean)
+        .map((content) => {
+          const heading = sectionHeading(content);
+          return {
+            heading: isEnterpriseReference
               ? heading
               : heading === documentTitle
-                ? `${heading} ${filename}`
-                : `${documentTitle} ${heading} ${filename}`,
-          ),
-          contentTokens: tokenize(content),
-        };
-      });
-  },
+                ? `${heading} (${filename})`
+                : `${documentTitle} — ${heading} (${filename})`,
+            content,
+            headingTokens: tokenize(
+              isEnterpriseReference
+                ? heading
+                : heading === documentTitle
+                  ? `${heading} ${filename}`
+                  : `${documentTitle} ${heading} ${filename}`,
+            ),
+            contentTokens: tokenize(content),
+          };
+        });
+    }),
 );
 
 const index = {
   version: 2,
   sources: documents.map(({ filename }) => filename),
   sourceHash: createHash("sha256")
-    .update(documents.map(({ markdown }) => markdown).join("\n"))
+    .update(Buffer.concat(documents.map(({ source }) => source)))
     .digest("hex"),
   sections,
 };
