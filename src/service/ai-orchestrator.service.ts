@@ -39,6 +39,8 @@ const POLICY_DOCUMENT_PATTERN = /\bpolicy\s+documents?\b/i;
 // `premium`) so they never force a live enterprise tool call.
 const KNOWLEDGE_BASE_SELF_SERVICE_PATTERN =
   /\b(?:policy\s+documents?|(?:premium\s+)?grace\s+period|missed\s+premium|premium\s+payment\s+(?:methods?|options?|frequency)|auto\s*pay|beneficiar(?:y|ies)|file\s+(?:a\s+)?claim|claim\s+(?:documents?|processing|status)|customer\s+support|support\s+(?:channels?|hours?)|portal\s+login)\b/i;
+const PORTAL_NAVIGATION_INTENT_PATTERN =
+  /\b(?:open|navigate(?:\s+to)?|take\s+me\s+to|go\s+to|access)\b[\s\S]*\b(?:profile|personal\s+info(?:rmation)?|banking|documents?|pending\s+contract|contract(?:\s+details?)?|beneficiar(?:y|ies))\b/i;
 
 export class AIOrchestrator {
   public constructor(
@@ -192,6 +194,10 @@ export class AIOrchestrator {
     const needsContracts = CONTRACT_PATTERN.test(query);
     const needsApplications = APPLICATION_PATTERN.test(query);
     const needsAmbiguousRecord = AMBIGUOUS_RECORD_PATTERN.test(query);
+
+    if (PORTAL_NAVIGATION_INTENT_PATTERN.test(query)) {
+      return ["getPortalNavigationLink"];
+    }
 
     if (userType === "client") {
       if (

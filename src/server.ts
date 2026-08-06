@@ -8,13 +8,17 @@ import {
 import { createServer } from "http";
 import { NodeChatSocketServer } from "@app/socket";
 import { createEnterpriseTools } from "@app/tools/enterprise-tools";
+import { createPortalNavigationLinkTool } from "@app/tools/get-portal-navigation-link.tool";
 import { logError } from "@app/utils/error-logger";
 import app from "./app";
 
 const httpServer = createServer(app);
 const conversationService = serviceContainer.get(ConversationService);
 const provider = new GroqProvider(groqConfiguration);
-const toolRegistry = new ToolRegistry(createEnterpriseTools());
+const toolRegistry = new ToolRegistry([
+  ...createEnterpriseTools(),
+  createPortalNavigationLinkTool(),
+]);
 const orchestrator = new AIOrchestrator(
   conversationService,
   provider,
