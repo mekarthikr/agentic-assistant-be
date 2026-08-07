@@ -3,7 +3,7 @@ import test from "node:test";
 
 import { AIOrchestrator } from "../src/service/ai-orchestrator.service";
 import { createEnterpriseTools } from "../src/tools/enterprise-tools";
-import type { ApiResponse, Contract } from "../src/types";
+import type { ApiResponse, Application, Contract } from "../src/types";
 
 const contracts: Contract[] = [
   {
@@ -106,6 +106,30 @@ test("searches all client contracts by the trusted client name", async () => {
 
   assert.equal(receivedFilters?.clientName, "SMITH ROBERT");
   assert.deepEqual(result.data, response.data);
+});
+
+test("searches client applications by the trusted client name", async () => {
+  let receivedFilters: Record<string, string | undefined> | undefined;
+  const response: ApiResponse<Application[]> = {
+    success: true,
+    message: "Request successful",
+    data: [],
+    timestamp: "2026-08-04T00:00:00.000Z",
+  };
+  const searchApplications = createEnterpriseTools({
+    getApplications: async (filters: Record<string, string | undefined>) => {
+      receivedFilters = filters;
+      return response;
+    },
+  } as never).find(({ name }) => name === "searchApplications");
+
+  await searchApplications?.execute({}, {
+    toolCallId: "client-applications-test",
+    userType: "client",
+    clientName: "SMITH ROBERT",
+  });
+
+  assert.equal(receivedFilters?.clientName, "SMITH ROBERT");
 });
 
 test("routes client contract questions to the contract list only", () => {
