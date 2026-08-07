@@ -49,6 +49,7 @@ export interface RetrievedDocumentationSection {
 }
 
 export interface PortalNavigationKnowledgeResult {
+  readonly linkText: string;
   readonly message: string;
   readonly url?: string;
   readonly missingParameter?: string;
@@ -197,7 +198,7 @@ export class ApiDocumentationRag {
       if (portalNavigation.missingParameter) {
         return `Portal navigation result\nmissingParameter: ${portalNavigation.missingParameter}`;
       }
-      return `Portal navigation result\nMessage:\n${portalNavigation.message}\n\nURL:\n${portalNavigation.url}`;
+      return `Portal navigation result\nMessage:\n${portalNavigation.message}\n\nLink Text:\n${portalNavigation.linkText}\n\nURL:\n${portalNavigation.url}`;
     }
 
     const sections = this.retrieve(query, limit);
@@ -231,10 +232,15 @@ export class ApiDocumentationRag {
     );
     const contractId = contractIdFrom(query);
     if (parameters.includes("contractId") && !contractId) {
-      return { message, missingParameter: "contractId" };
+      return {
+        linkText: navigationSection.heading,
+        message,
+        missingParameter: "contractId",
+      };
     }
 
     return {
+      linkText: navigationSection.heading,
       message,
       url: template.replaceAll("{contractId}", encodeURIComponent(contractId ?? "")),
     };

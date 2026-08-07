@@ -14,7 +14,7 @@ test("retrieves the configured banking link from Markdown knowledge", () => {
 
   assert.equal(
     rag.retrieveContext("Take me to banking"),
-    "Portal navigation result\nMessage:\nYou can access this page using the link below.\n\nURL:\nhttps://dev-myportal.american-equity.com/agent/user/profile?activeTab=banking",
+    "Portal navigation result\nMessage:\nYou can access this page using the link below.\n\nLink Text:\nBanking\n\nURL:\nhttps://dev-myportal.american-equity.com/agent/user/profile?activeTab=banking",
   );
 });
 
@@ -35,6 +35,7 @@ test("resolves contract URL parameters and reports missing values", () => {
     "https://dev-myportal.american-equity.com/agent/book-business/contract-details/1445587?activeTab=info",
   );
   assert.deepEqual(rag.resolvePortalNavigation("Open contract details"), {
+    linkText: "Contract Details",
     message: "You can access this page using the link below.",
     missingParameter: "contractId",
   });
