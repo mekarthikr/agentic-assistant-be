@@ -34,7 +34,7 @@ export const env: AppEnvironment = {
   ),
   ENTERPRISE_API_BASE_URL:
     process.env.ENTERPRISE_API_BASE_URL?.trim() ||
-    "https://mock-api-server-1.vercel.app/api/v1",
+    "https://mock-api-server-seven.vercel.app/api/v1",
   SOCKET_AUTH_TOKEN: socketAuthToken,
   WS_PATH: process.env.WS_PATH || "/ws",
   WS_MAX_PAYLOAD_BYTES: 64 * 1024,
