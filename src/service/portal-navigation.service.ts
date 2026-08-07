@@ -33,10 +33,9 @@ export class PortalNavigationService {
     page: string,
     params: Readonly<Record<string, string>> = {},
   ): PortalNavigationResult {
-    const normalizedPage = page.trim();
-    console.log('normalizedPage', normalizedPage)
+    const normalizedPage = this.normalizePageName(page);
     const route = portalRoutes[normalizedPage];
-    if (!route) return { unsupportedPage: normalizedPage };
+    if (!route) return { unsupportedPage: page };
 
     const missingParameter = this.getMissingParameter(route, params);
     if (missingParameter) return { missingParameter };
@@ -47,6 +46,33 @@ export class PortalNavigationService {
         encodeURIComponent(params[parameter].trim()),
       ),
     };
+  }
+
+  private normalizePageName(page: string): string {
+    // Remove common suffixes and normalize spacing
+    let normalized = page
+      .trim()
+      .toLowerCase()
+      .replace(/\s+(page|tab|section)\s*$/, '')
+      .replace(/\s+/g, ' ');
+
+    // Map common variations to exact keys in portalRoutes
+    const pageMap: Record<string, string> = {
+      'personal info': 'personalInfo',
+      'personal information': 'personalInfo',
+      'contract details': 'contractDetails',
+      'contract detail': 'contractDetails',
+      'pending contract': 'pendingContractDetails',
+      'pending contract details': 'pendingContractDetails',
+      'profile': 'profile',
+      'banking': 'banking',
+      'documents': 'documents',
+      'document': 'documents',
+      'beneficiaries': 'beneficiaries',
+      'beneficiary': 'beneficiaries',
+    };
+
+    return pageMap[normalized] || normalized;
   }
 
   private getMissingParameter(
