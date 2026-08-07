@@ -26,7 +26,7 @@ const RECORD_LOOKUP_INTENT_PATTERN =
   /\b(?:find|search|show|list|look\s*up|retrieve|get)\b/i;
 const LIST_RECORDS_PATTERN = /\b(?:show|list|display|retrieve)\b/i;
 const CLIENT_CONTRACT_DETAIL_PATTERN =
-  /\b(?:my|product|policy|account|current value|anniversary|premium|beneficiar(?:y|ies)|contract details?)\b/i;
+  /\b(?:product|policy|account|current value|anniversary|premium|beneficiar(?:y|ies)|contract details?)\b/i;
 const CLIENT_APPLICATION_DETAIL_PATTERN =
   /\b(?:application|approval|case|status|anticipated premium|start date|agent number|application link|contract number|product id|contact id|application name|tax type)\b/i;
 const PRODUCT_DETAIL_PATTERN = /\bproduct(?:\s+name)?\b/i;
@@ -81,7 +81,11 @@ export class AIOrchestrator {
       const retrievedContext =
         this.apiDocumentation.retrieveContext(retrievalQuery);
       response = await this.generateWithTools(
-        this.buildSystemPrompt(retrievedContext, options.userType),
+        this.buildSystemPrompt(
+          retrievedContext,
+          options.userType,
+          options.clientName,
+        ),
         conversation.messages
           .slice(-HISTORY_MESSAGE_LIMIT)
           .map(({ role, content }) => ({ role, content })),
@@ -252,10 +256,11 @@ export class AIOrchestrator {
   private buildSystemPrompt(
     retrievedContext: string,
     userType?: "agent" | "client",
+    clientName?: string,
   ): string {
     const audienceInstructions =
       userType === "client"
-        ? "The current user is a client. Discuss only this client's contract and application information. Retrieve client records only when the client explicitly asks about their own records, such as 'my contracts', 'my product', or 'my application status'. The client's own application fields, including status, agent number, application link, product, premium, start date, contract number, product ID, contact ID, application name, and tax type, may be provided. Do not reply with only a raw field value. For a question about one application field, state the requested value in a complete sentence and add the application product and current status when returned. When answering an application-status question, provide the returned status, product, and contract number; also include the anticipated premium and start date when returned. When a contract lookup returns more than one contract, never select one or give the details for just one. State how many contracts were found, list each contract number with its product and status, and ask the client to select a contract number or product before providing contract-specific details. For a question asking for contract numbers, list every returned contract number with its product and status, then ask which contract they want to discuss. For contract details without a selected contract, apply the same selection prompt rather than giving detailed information. Once the client selects a contract number or product, provide a concise labeled contract-details summary containing product, contract status, tax type, tax qualification, issued date, anniversary date, current value, and distribution company. Do not omit these returned fields. For an application-details question, give a concise labeled summary of the returned product, status, contract number, anticipated premium, start date, tax type, agent number, application name, product ID, contact ID, and application link. Never retrieve or summarize contracts, applications, or information about other clients. If the client's own record lookup returns no results, say 'No contract record is currently available.' Do not mention the lookup identifier or application number, and do not ask the client for extra identifiers other than selecting one of multiple returned contracts."
+        ? `The current user is a client${clientName ? ` signed in as ${clientName}` : ""}. If they ask for their name, state their signed-in name and do not retrieve contracts or applications. Discuss only this client's contract and application information. Retrieve client records only when the client explicitly asks about their own records, such as 'my contracts', 'my product', or 'my application status'. The client's own application fields, including status, agent number, application link, product, premium, start date, contract number, product ID, contact ID, application name, and tax type, may be provided. Do not reply with only a raw field value. For a question about one application field, state the requested value in a complete sentence and add the application product and current status when returned. When answering an application-status question, provide the returned status, product, and contract number; also include the anticipated premium and start date when returned. When a contract lookup returns more than one contract, never select one or give the details for just one. State how many contracts were found, list each contract number with its product and status, and ask the client to select a contract number or product before providing contract-specific details. For a question asking for contract numbers, list every returned contract number with its product and status, then ask which contract they want to discuss. For contract details without a selected contract, apply the same selection prompt rather than giving detailed information. Once the client selects a contract number or product, provide a concise labeled contract-details summary containing product, contract status, tax type, tax qualification, issued date, anniversary date, current value, and distribution company. Do not omit these returned fields. For an application-details question, give a concise labeled summary of the returned product, status, contract number, anticipated premium, start date, tax type, agent number, application name, product ID, contact ID, and application link. Never retrieve or summarize contracts, applications, or information about other clients. If the client's own record lookup returns no results, say 'No contract record is currently available.' Do not mention the lookup identifier or application number, and do not ask the client for extra identifiers other than selecting one of multiple returned contracts.`
         : "The current user is an agent. You may assist with agent workflows, applications, and contracts. When the agent asks to show or list contracts or applications, retrieve the list and present every available returned record with its identifying number and key details; do not ask the agent to choose a specific record. For a single-record question, such as application status or contract details, ask for a contract number, application number, client name, or another identifying filter when the request does not include one.";
     const basePrompt = `${INSURANCE_AGENT_SYSTEM_PROMPT}\n\n${audienceInstructions}`;
 

@@ -129,4 +129,5 @@ test("routes client contract questions to the contract list only", () => {
   assert.deepEqual(selectToolNames("What is my product name?", "client"), [
     "searchContracts",
   ]);
+  assert.deepEqual(selectToolNames("What is my name?", "client"), []);
 });
