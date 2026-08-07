@@ -9,6 +9,10 @@ const documentsDirectoryUrl = new URL(
   "../src/knowledge/documents/",
   import.meta.url,
 );
+const navigationDirectoryUrl = new URL(
+  "../src/knowledge/navigation/",
+  import.meta.url,
+);
 const indexUrl = new URL(
   "../src/knowledge/enterprise-api-rag.json",
   import.meta.url,
@@ -56,15 +60,23 @@ const tokenize = (value) =>
 const sectionHeading = (content) =>
   content.match(/^#{1,3}\s+(.+)$/m)?.[1]?.trim() || "Enterprise API overview";
 
+/** Returns all Markdown documents under a knowledge directory. */
+const markdownUrls = async (directoryUrl) => {
+  const entries = await readdir(directoryUrl, { withFileTypes: true });
+  const urls = await Promise.all(
+    entries.map(async (entry) => {
+      const entryUrl = new URL(entry.name, directoryUrl);
+      if (entry.isDirectory()) return markdownUrls(new URL(`${entry.name}/`, directoryUrl));
+      return entry.isFile() && entry.name.endsWith(".md") ? [entryUrl] : [];
+    }),
+  );
+  return urls.flat().sort((left, right) => left.href.localeCompare(right.href));
+};
+
 const documentUrls = [
   enterpriseDocumentationUrl,
-  ...(await readdir(documentsDirectoryUrl))
-    .filter((filename) => filename.endsWith(".md"))
-    .sort()
-    .map(
-      (filename) =>
-        new URL(`../src/knowledge/documents/${filename}`, import.meta.url),
-    ),
+  ...(await markdownUrls(documentsDirectoryUrl)),
+  ...(await markdownUrls(navigationDirectoryUrl)),
 ];
 const documents = await Promise.all(
   documentUrls.map(async (url) => ({

@@ -7,14 +7,19 @@
     "customer-support.md",
     "policy-faq.md",
     "premium-payments.md",
-    "product-guide.md"
+    "product-guide.md",
+    "portal-navigation.md"
   ],
-  "sourceHash": "5c90c2bb84c4d5869376733de053af3a6f9d8302248d23cb008a8e5af600baad",
+  "sourceHash": "40955f9b35eb16d86091021f980148fb2bb73f2594a7cca04ad34fa8eb288d65",
   "sections": [
     {
       "heading": "Enterprise API Documentation",
       "content": "# Enterprise API Documentation\r\n\r\nBase URL: `https://mock-api-server-seven.vercel.app/api/v1`\r\n\r\n---",
-      "headingTokens": ["enterprise", "api", "documentation"],
+      "headingTokens": [
+        "enterprise",
+        "api",
+        "documentation"
+      ],
       "contentTokens": [
         "enterprise",
         "api",
@@ -25,7 +30,7 @@
         "mock",
         "api",
         "server",
-        "zeta",
+        "seven",
         "vercel",
         "app",
         "api",
@@ -35,13 +40,22 @@
     {
       "heading": "Contracts API",
       "content": "## Contracts API",
-      "headingTokens": ["contract", "api"],
-      "contentTokens": ["contract", "api"]
+      "headingTokens": [
+        "contract",
+        "api"
+      ],
+      "contentTokens": [
+        "contract",
+        "api"
+      ]
     },
     {
       "heading": "Get All Contracts",
       "content": "### Get All Contracts\r\n\r\n**Endpoint:** `GET /contracts`\r\n\r\n**Description:** Returns a list of all contracts. Supports filtering by query parameters.\r\n\r\n**Filterable Fields:**\r\n\r\n- `contractNumber` — Filter by contract number\r\n- `clientName` — Filter by client name (partial match, case-insensitive)\r\n- `productName` — Filter by product name (partial match, case-insensitive)\r\n- `contractStatus` — Filter by status: `Active`, `Inactive`, `Surrendered`\r\n- `taxType` — Filter by tax type: `Qualified`, `Non-Qualified`\r\n- `taxQualification` — Filter by qualification: `IRA`, `ROTH IRA`, `NON-QUAL`\r\n- `distributionCompany` — Filter by distribution company\r\n\r\n**Example Requests:**\r\n\r\n```\r\nGET /contracts\r\nGET /contracts?contractStatus=Active\r\nGET /contracts?taxType=Qualified\r\nGET /contracts?productName=ASSETSHIELD 5\r\nGET /contracts?contractStatus=Active&taxType=Qualified\r\n```\r\n\r\n**Response:**\r\n\r\n```json\r\n{\r\n  \"success\": true,\r\n  \"message\": \"Request successful\",\r\n  \"data\": [\r\n    {\r\n      \"contractNumber\": \"1561091\",\r\n      \"clientName\": \"NETTING AETEST\",\r\n      \"productName\": \"AMERICAN EQUITY ASSETSHIELD 5 FIXED INDEX ANNUITY\",\r\n      \"issuedDate\": \"2026-06-17T05:00:00+00:00\",\r\n      \"currentValue\": 0,\r\n      \"anniversaryDate\": \"2027-06-17T05:00:00+00:00\",\r\n      \"taxType\": \"Qualified\",\r\n      \"contractStatus\": \"Active\",\r\n      \"taxQualification\": \"IRA\",\r\n      \"distributionCompany\": \"AELife\"\r\n    }\r\n  ],\r\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\r\n}\r\n```\r\n\r\n---",
-      "headingTokens": ["all", "contract"],
+      "headingTokens": [
+        "all",
+        "contract"
+      ],
       "contentTokens": [
         "all",
         "contract",
@@ -188,7 +202,11 @@
     {
       "heading": "Get Contract by Number",
       "content": "### Get Contract by Number\r\n\r\n**Endpoint:** `GET /contracts/:contractNumber`\r\n\r\n**Description:** Returns a single contract by its contract number.\r\n\r\n**Path Parameters:**\r\n\r\n- `contractNumber` (string, required) — The contract number\r\n\r\n**Example Request:**\r\n\r\n```\r\nGET /contracts/1561091\r\n```\r\n\r\n**Success Response:**\r\n\r\n```json\r\n{\r\n  \"success\": true,\r\n  \"message\": \"Request successful\",\r\n  \"data\": {\r\n    \"contractNumber\": \"1561091\",\r\n    \"clientName\": \"NETTING AETEST\",\r\n    \"productName\": \"AMERICAN EQUITY ASSETSHIELD 5 FIXED INDEX ANNUITY\",\r\n    \"issuedDate\": \"2026-06-17T05:00:00+00:00\",\r\n    \"currentValue\": 0,\r\n    \"anniversaryDate\": \"2027-06-17T05:00:00+00:00\",\r\n    \"taxType\": \"Qualified\",\r\n    \"contractStatus\": \"Active\",\r\n    \"taxQualification\": \"IRA\",\r\n    \"distributionCompany\": \"AELife\"\r\n  },\r\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\r\n}\r\n```\r\n\r\n**Not Found Response (404):**\r\n\r\n```json\r\n{\r\n  \"success\": false,\r\n  \"message\": \"Contract 9999999 not found\",\r\n  \"data\": null,\r\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\r\n}\r\n```\r\n\r\n---",
-      "headingTokens": ["contract", "by", "number"],
+      "headingTokens": [
+        "contract",
+        "by",
+        "number"
+      ],
       "contentTokens": [
         "contract",
         "by",
@@ -296,13 +314,22 @@
     {
       "heading": "Applications API",
       "content": "## Applications API",
-      "headingTokens": ["application", "api"],
-      "contentTokens": ["application", "api"]
+      "headingTokens": [
+        "application",
+        "api"
+      ],
+      "contentTokens": [
+        "application",
+        "api"
+      ]
     },
     {
       "heading": "Get All Applications",
-      "content": "### Get All Applications\r\n\r\n**Endpoint:** `GET /applications`\r\n\r\n**Description:** Returns a list of all applications. Supports filtering by query parameters.\r\n\r\n**Filterable Fields:**\r\n\r\n- `clientName` — Filter by client name (partial match, case-insensitive)\r\n- `product` — Filter by product name (partial match, case-insensitive)\r\n- `taxType` — Filter by tax type: `Qualified`, `Non-Qualified`\r\n- `status` — Filter by status: `In Progress`, `Submitted`, `Approved`, `Rejected`\r\n- `contractNumber` — Filter by contract number\r\n- `productId` — Filter by product ID\r\n- `agentNumber` — Filter by agent number\r\n- `contactId` — Filter by contact ID\r\n- `applicationName` — Filter by application name (partial match, case-insensitive)\r\n- `startDate` — Filter by start date (partial match, e.g., `2026-07-15`)\r\n\r\n**Example Requests:**\r\n\r\n```\r\nGET /applications\r\nGET /applications?status=In Progress\r\nGET /applications?product=ESTATESHIELD\r\nGET /applications?agentNumber=2026\r\nGET /applications?applicationName=JOHNSON\r\nGET /applications?startDate=2026-07\r\nGET /applications?status=Approved&taxType=Qualified\r\n```\r\n\r\n**Response:**\r\n\r\n```json\r\n{\r\n  \"success\": true,\r\n  \"message\": \"Request successful\",\r\n  \"data\": [\r\n    {\r\n      \"clientName\": \"sdf sdf\",\r\n      \"product\": \"AMERICAN EQUITY ESTATESHIELD 10 FIXED INDEX ANNUITY\",\r\n      \"anticipatedPremium\": 99999,\r\n      \"startDate\": \"2026-07-15T13:27:11.782+00:00\",\r\n      \"taxType\": \"Non-Qualified\",\r\n      \"status\": \"In Progress\",\r\n      \"contractNumber\": \"1561438\",\r\n      \"productId\": \"I-ESTATE24\",\r\n      \"agentNumber\": \"2026\",\r\n     \"contactId\": \"482354\",\r\n      \"applicationName\": \"sdf sdf Application\"\r\n    }\r\n  ],\r\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\r\n}\r\n```\r\n\r\n---",
-      "headingTokens": ["all", "application"],
+      "content": "### Get All Applications\r\n\r\n**Endpoint:** `GET /applications`\r\n\r\n**Description:** Returns a list of all applications. Supports filtering by query parameters.\r\n\r\n**Filterable Fields:**\r\n\r\n- `clientName` — Filter by client name (partial match, case-insensitive)\r\n- `product` — Filter by product name (partial match, case-insensitive)\r\n- `taxType` — Filter by tax type: `Qualified`, `Non-Qualified`\r\n- `status` — Filter by status: `In Progress`, `Submitted`, `Approved`, `Rejected`\r\n- `contractNumber` — Filter by contract number\r\n- `productId` — Filter by product ID\r\n- `agentNumber` — Filter by agent number\r\n- `contactId` — Filter by contact ID\r\n- `applicationName` — Filter by application name (partial match, case-insensitive)\r\n- `startDate` — Filter by start date (partial match, e.g., `2026-07-15`)\r\n\r\n**Example Requests:**\r\n\r\n```\r\nGET /applications\r\nGET /applications?status=In Progress\r\nGET /applications?product=ESTATESHIELD\r\nGET /applications?agentNumber=2026\r\nGET /applications?applicationName=JOHNSON\r\nGET /applications?startDate=2026-07\r\nGET /applications?status=Approved&taxType=Qualified\r\n```\r\n\r\n**Response:**\r\n\r\n```json\r\n{\r\n  \"success\": true,\r\n  \"message\": \"Request successful\",\r\n  \"data\": [\r\n    {\r\n      \"clientName\": \"sdf sdf\",\r\n      \"product\": \"AMERICAN EQUITY ESTATESHIELD 10 FIXED INDEX ANNUITY\",\r\n      \"anticipatedPremium\": 99999,\r\n      \"startDate\": \"2026-07-15T13:27:11.782+00:00\",\r\n      \"taxType\": \"Non-Qualified\",\r\n      \"status\": \"In Progress\",\r\n      \"contractNumber\": \"1561438\",\r\n      \"productId\": \"I-ESTATE24\",\r\n      \"agentNumber\": \"2026\",\r\n      \"contactId\": \"482354\",\r\n      \"applicationName\": \"sdf sdf Application\"\r\n    }\r\n  ],\r\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\r\n}\r\n```\r\n\r\n---",
+      "headingTokens": [
+        "all",
+        "application"
+      ],
       "contentTokens": [
         "all",
         "application",
@@ -460,19 +487,6 @@
         "estate24",
         "agentnumber",
         "2026",
-        "applicationlink",
-        "http",
-        "american",
-        "equity",
-        "uatx",
-        "unqork",
-        "io",
-        "app",
-        "application",
-        "display",
-        "application",
-        "id",
-        "6a5789ec1ce36757d331b5b8",
         "contactid",
         "482354",
         "applicationname",
@@ -491,7 +505,12 @@
     {
       "heading": "Get Application by Contract Number",
       "content": "### Get Application by Contract Number\r\n\r\n**Endpoint:** `GET /applications/:contractNumber`\r\n\r\n**Description:** Returns a single application by its contract number.\r\n\r\n**Path Parameters:**\r\n\r\n- `contractNumber` (string, required) — The contract number\r\n\r\n**Example Request:**\r\n\r\n```\r\nGET /applications/1561438\r\n```\r\n\r\n**Success Response:**\r\n\r\n```json\r\n{\r\n  \"success\": true,\r\n  \"message\": \"Request successful\",\r\n  \"data\": {\r\n    \"clientName\": \"sdf sdf\",\r\n    \"product\": \"AMERICAN EQUITY ESTATESHIELD 10 FIXED INDEX ANNUITY\",\r\n    \"anticipatedPremium\": 99999,\r\n    \"startDate\": \"2026-07-15T13:27:11.782+00:00\",\r\n    \"taxType\": \"Non-Qualified\",\r\n    \"status\": \"In Progress\",\r\n    \"contractNumber\": \"1561438\",\r\n    \"productId\": \"I-ESTATE24\",\r\n    \"agentNumber\": \"2026\",\r\n    \"contactId\": \"482354\",\r\n    \"applicationName\": \"sdf sdf Application\"\r\n  },\r\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\r\n}\r\n```\r\n\r\n**Not Found Response (404):**\r\n\r\n```json\r\n{\r\n  \"success\": false,\r\n  \"message\": \"Application with contract number 9999999 not found\",\r\n  \"data\": null,\r\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\r\n}\r\n```\r\n\r\n---",
-      "headingTokens": ["application", "by", "contract", "number"],
+      "headingTokens": [
+        "application",
+        "by",
+        "contract",
+        "number"
+      ],
       "contentTokens": [
         "application",
         "by",
@@ -561,19 +580,6 @@
         "estate24",
         "agentnumber",
         "2026",
-        "applicationlink",
-        "http",
-        "american",
-        "equity",
-        "uatx",
-        "unqork",
-        "io",
-        "app",
-        "application",
-        "display",
-        "application",
-        "id",
-        "6a5789ec1ce36757d331b5b8",
         "contactid",
         "482354",
         "applicationname",
@@ -615,7 +621,11 @@
     {
       "heading": "Common Response Structure",
       "content": "## Common Response Structure\r\n\r\nAll API responses follow this consistent format:\r\n\r\n```json\r\n{\r\n  \"success\": true | false,\r\n  \"message\": \"string\",\r\n  \"data\": object | array | null,\r\n  \"timestamp\": \"ISO 8601 string\"\r\n}\r\n```",
-      "headingTokens": ["common", "response", "structure"],
+      "headingTokens": [
+        "common",
+        "response",
+        "structure"
+      ],
       "contentTokens": [
         "common",
         "response",
@@ -646,7 +656,10 @@
     {
       "heading": "Error Responses",
       "content": "## Error Responses\r\n\r\n| Status Code | Meaning               |\r\n| ----------- | --------------------- |\r\n| 200         | Success               |\r\n| 404         | Resource not found    |\r\n| 400         | Bad request           |\r\n| 500         | Internal server error |\r\n\r\n---",
-      "headingTokens": ["error", "response"],
+      "headingTokens": [
+        "error",
+        "response"
+      ],
       "contentTokens": [
         "error",
         "response",
@@ -671,7 +684,10 @@
     {
       "heading": "Filtering Behavior",
       "content": "## Filtering Behavior\r\n\r\n- All filters use **AND** logic (all conditions must match)\r\n- Matching is **case-insensitive**\r\n- Matching supports **partial match** (contains)\r\n- Empty or undefined filter values are **ignored**\r\n- Multiple filters can be combined: `?status=Active&taxType=Qualified`",
-      "headingTokens": ["filtering", "behavior"],
+      "headingTokens": [
+        "filtering",
+        "behavior"
+      ],
       "contentTokens": [
         "filtering",
         "behavior",
@@ -709,7 +725,7 @@
     },
     {
       "heading": "Beneficiary Management (beneficiary-guide.md)",
-      "content": "# Beneficiary Management\n\nPolicy owners may add, remove or update beneficiaries.\n\nRequired information:\n\n- Full Name\n- Relationship\n- Date of Birth\n- Percentage Allocation\n\nChanges become effective after successful verification.",
+      "content": "# Beneficiary Management\r\n\r\nPolicy owners may add, remove or update beneficiaries.\r\n\r\nRequired information:\r\n\r\n- Full Name\r\n- Relationship\r\n- Date of Birth\r\n- Percentage Allocation\r\n\r\nChanges become effective after successful verification.",
       "headingTokens": [
         "beneficiary",
         "management",
@@ -748,12 +764,21 @@
     {
       "heading": "Claims Guide (claims-guide.md)",
       "content": "# Claims Guide",
-      "headingTokens": ["claim", "guide", "claim", "guide", "md"],
-      "contentTokens": ["claim", "guide"]
+      "headingTokens": [
+        "claim",
+        "guide",
+        "claim",
+        "guide",
+        "md"
+      ],
+      "contentTokens": [
+        "claim",
+        "guide"
+      ]
     },
     {
       "heading": "Claims Guide — Filing a Claim (claims-guide.md)",
-      "content": "## Filing a Claim\n\nTo submit a claim:\n\n1. Login to the portal.\n2. Open Claims.\n3. Select Create New Claim.\n4. Upload supporting documents.\n5. Submit the claim.\n\n---",
+      "content": "## Filing a Claim\r\n\r\nTo submit a claim:\r\n\r\n1. Login to the portal.\r\n2. Open Claims.\r\n3. Select Create New Claim.\r\n4. Upload supporting documents.\r\n5. Submit the claim.\r\n\r\n---",
       "headingTokens": [
         "claim",
         "guide",
@@ -790,7 +815,7 @@
     },
     {
       "heading": "Claims Guide — Required Documents (claims-guide.md)",
-      "content": "## Required Documents\n\n- Death Certificate\n- Government ID\n- Policy Number\n- Claim Form\n\n---",
+      "content": "## Required Documents\r\n\r\n- Death Certificate\r\n- Government ID\r\n- Policy Number\r\n- Claim Form\r\n\r\n---",
       "headingTokens": [
         "claim",
         "guide",
@@ -815,7 +840,7 @@
     },
     {
       "heading": "Claims Guide — Processing Time (claims-guide.md)",
-      "content": "## Processing Time\n\nMost claims are processed within 7–10 business days after all required documents are received.",
+      "content": "## Processing Time\r\n\r\nMost claims are processed within 7–10 business days after all required documents are received.",
       "headingTokens": [
         "claim",
         "guide",
@@ -846,12 +871,21 @@
     {
       "heading": "Customer Support (customer-support.md)",
       "content": "# Customer Support",
-      "headingTokens": ["customer", "support", "customer", "support", "md"],
-      "contentTokens": ["customer", "support"]
+      "headingTokens": [
+        "customer",
+        "support",
+        "customer",
+        "support",
+        "md"
+      ],
+      "contentTokens": [
+        "customer",
+        "support"
+      ]
     },
     {
       "heading": "Customer Support — Support Channels (customer-support.md)",
-      "content": "## Support Channels\n\n- Phone\n- Email\n- Live Chat",
+      "content": "## Support Channels\r\n\r\n- Phone\r\n- Email\r\n- Live Chat",
       "headingTokens": [
         "customer",
         "support",
@@ -861,11 +895,18 @@
         "support",
         "md"
       ],
-      "contentTokens": ["support", "channel", "phone", "email", "live", "chat"]
+      "contentTokens": [
+        "support",
+        "channel",
+        "phone",
+        "email",
+        "live",
+        "chat"
+      ]
     },
     {
       "heading": "Customer Support — Business Hours (customer-support.md)",
-      "content": "## Business Hours\n\nMonday to Friday\n\n8:00 AM – 6:00 PM",
+      "content": "## Business Hours\r\n\r\nMonday to Friday\r\n\r\n8:00 AM – 6:00 PM",
       "headingTokens": [
         "customer",
         "support",
@@ -890,7 +931,7 @@
     },
     {
       "heading": "Customer Support — Common Support Topics (customer-support.md)",
-      "content": "## Common Support Topics\n\n- Policy Information\n- Premium Payments\n- Claims Status\n- Beneficiary Updates\n- Portal Login Issues",
+      "content": "## Common Support Topics\r\n\r\n- Policy Information\r\n- Premium Payments\r\n- Claims Status\r\n- Beneficiary Updates\r\n- Portal Login Issues",
       "headingTokens": [
         "customer",
         "support",
@@ -929,11 +970,15 @@
         "faq",
         "md"
       ],
-      "contentTokens": ["frequently", "asked", "question"]
+      "contentTokens": [
+        "frequently",
+        "asked",
+        "question"
+      ]
     },
     {
       "heading": "Frequently Asked Questions — How do I update my beneficiary? (policy-faq.md)",
-      "content": "## How do I update my beneficiary?\n\nNavigate to Profile > Beneficiary Details and submit the required information.\n\n---",
+      "content": "## How do I update my beneficiary?\r\n\r\nNavigate to Profile > Beneficiary Details and submit the required information.\r\n\r\n---",
       "headingTokens": [
         "frequently",
         "asked",
@@ -960,7 +1005,7 @@
     },
     {
       "heading": "Frequently Asked Questions — How can I download my policy document? (policy-faq.md)",
-      "content": "## How can I download my policy document?\n\nOpen the Policies page and select Download Policy Document.\n\n---",
+      "content": "## How can I download my policy document?\r\n\r\nOpen the Policies page and select Download Policy Document.\r\n\r\n---",
       "headingTokens": [
         "frequently",
         "asked",
@@ -989,7 +1034,7 @@
     },
     {
       "heading": "Frequently Asked Questions — Can I change my premium payment frequency? (policy-faq.md)",
-      "content": "## Can I change my premium payment frequency?\n\nYes.\n\nMonthly, quarterly, semi-annual and annual payment options are available.\n\n---",
+      "content": "## Can I change my premium payment frequency?\r\n\r\nYes.\r\n\r\nMonthly, quarterly, semi-annual and annual payment options are available.\r\n\r\n---",
       "headingTokens": [
         "frequently",
         "asked",
@@ -1020,7 +1065,7 @@
     },
     {
       "heading": "Frequently Asked Questions — How do I contact customer support? (policy-faq.md)",
-      "content": "## How do I contact customer support?\n\nCustomer support is available Monday through Friday from 8:00 AM to 6:00 PM.",
+      "content": "## How do I contact customer support?\r\n\r\nCustomer support is available Monday through Friday from 8:00 AM to 6:00 PM.",
       "headingTokens": [
         "frequently",
         "asked",
@@ -1054,8 +1099,14 @@
     },
     {
       "heading": "Premium Payments (premium-payments.md)",
-      "content": "# Premium Payments\n\nPremiums can be paid using:\n\n- Bank Transfer\n- Credit Card\n- Debit Card\n- Auto Pay\n\n---",
-      "headingTokens": ["premium", "payment", "premium", "payment", "md"],
+      "content": "# Premium Payments\r\n\r\nPremiums can be paid using:\r\n\r\n- Bank Transfer\r\n- Credit Card\r\n- Debit Card\r\n- Auto Pay\r\n\r\n---",
+      "headingTokens": [
+        "premium",
+        "payment",
+        "premium",
+        "payment",
+        "md"
+      ],
       "contentTokens": [
         "premium",
         "payment",
@@ -1075,7 +1126,7 @@
     },
     {
       "heading": "Premium Payments — Grace Period (premium-payments.md)",
-      "content": "## Grace Period\n\nA 30-day grace period applies after the premium due date.\n\n---",
+      "content": "## Grace Period\r\n\r\nA 30-day grace period applies after the premium due date.\r\n\r\n---",
       "headingTokens": [
         "premium",
         "payment",
@@ -1101,7 +1152,7 @@
     },
     {
       "heading": "Premium Payments — Missed Payment (premium-payments.md)",
-      "content": "## Missed Payment\n\nIf payment is not received within the grace period, the policy may lapse.",
+      "content": "## Missed Payment\r\n\r\nIf payment is not received within the grace period, the policy may lapse.",
       "headingTokens": [
         "premium",
         "payment",
@@ -1128,7 +1179,7 @@
     },
     {
       "heading": "SecureLife Plus Insurance (product-guide.md)",
-      "content": "# SecureLife Plus Insurance\n\nSecureLife Plus is a flexible life insurance product designed to provide long-term financial protection.",
+      "content": "# SecureLife Plus Insurance\r\n\r\nSecureLife Plus is a flexible life insurance product designed to provide long-term financial protection.",
       "headingTokens": [
         "securelife",
         "plu",
@@ -1157,7 +1208,7 @@
     },
     {
       "heading": "SecureLife Plus Insurance — Features (product-guide.md)",
-      "content": "## Features\n\n- Flexible premium payment options\n- Lifetime death benefit\n- Optional accidental death rider\n- Cash value accumulation\n- Online policy management",
+      "content": "## Features\r\n\r\n- Flexible premium payment options\r\n- Lifetime death benefit\r\n- Optional accidental death rider\r\n- Cash value accumulation\r\n- Online policy management",
       "headingTokens": [
         "securelife",
         "plu",
@@ -1190,7 +1241,7 @@
     },
     {
       "heading": "SecureLife Plus Insurance — Eligibility (product-guide.md)",
-      "content": "## Eligibility\n\n- Minimum age: 18 years\n- Maximum age: 65 years",
+      "content": "## Eligibility\r\n\r\n- Minimum age: 18 years\r\n- Maximum age: 65 years",
       "headingTokens": [
         "securelife",
         "plu",
@@ -1214,7 +1265,7 @@
     },
     {
       "heading": "SecureLife Plus Insurance — Policy Term (product-guide.md)",
-      "content": "## Policy Term\n\nCoverage continues until age 99 provided premiums are paid.",
+      "content": "## Policy Term\r\n\r\nCoverage continues until age 99 provided premiums are paid.",
       "headingTokens": [
         "securelife",
         "plu",
@@ -1236,6 +1287,278 @@
         "provided",
         "premium",
         "paid"
+      ]
+    },
+    {
+      "heading": "Portal Navigation (portal-navigation.md)",
+      "content": "# Portal Navigation",
+      "headingTokens": [
+        "portal",
+        "navigation",
+        "portal",
+        "navigation",
+        "md"
+      ],
+      "contentTokens": [
+        "portal",
+        "navigation"
+      ]
+    },
+    {
+      "heading": "Portal Navigation — Profile (portal-navigation.md)",
+      "content": "## Profile\n\nKeywords:\n- profile\n- personal info\n- personal information\n\nMessage:\nYou can access this page using the link below.\n\nURL:\nhttps://dev-myportal.american-equity.com/agent/user/profile?activeTab=personalInfo",
+      "headingTokens": [
+        "portal",
+        "navigation",
+        "profile",
+        "portal",
+        "navigation",
+        "md"
+      ],
+      "contentTokens": [
+        "profile",
+        "keyword",
+        "profile",
+        "personal",
+        "info",
+        "personal",
+        "information",
+        "message",
+        "you",
+        "acces",
+        "thi",
+        "page",
+        "using",
+        "link",
+        "below",
+        "url",
+        "http",
+        "dev",
+        "myportal",
+        "american",
+        "equity",
+        "com",
+        "agent",
+        "user",
+        "profile",
+        "activetab",
+        "personalinfo"
+      ]
+    },
+    {
+      "heading": "Portal Navigation — Banking (portal-navigation.md)",
+      "content": "## Banking\n\nKeywords:\n- banking\n- bank details\n\nMessage:\nYou can access this page using the link below.\n\nURL:\nhttps://dev-myportal.american-equity.com/agent/user/profile?activeTab=banking",
+      "headingTokens": [
+        "portal",
+        "navigation",
+        "banking",
+        "portal",
+        "navigation",
+        "md"
+      ],
+      "contentTokens": [
+        "banking",
+        "keyword",
+        "banking",
+        "bank",
+        "detail",
+        "message",
+        "you",
+        "acces",
+        "thi",
+        "page",
+        "using",
+        "link",
+        "below",
+        "url",
+        "http",
+        "dev",
+        "myportal",
+        "american",
+        "equity",
+        "com",
+        "agent",
+        "user",
+        "profile",
+        "activetab",
+        "banking"
+      ]
+    },
+    {
+      "heading": "Portal Navigation — Documents (portal-navigation.md)",
+      "content": "## Documents\n\nKeywords:\n- documents\n- uploads\n\nMessage:\nYou can access this page using the link below.\n\nURL:\nhttps://dev-myportal.american-equity.com/agent/user/profile?activeTab=documents",
+      "headingTokens": [
+        "portal",
+        "navigation",
+        "document",
+        "portal",
+        "navigation",
+        "md"
+      ],
+      "contentTokens": [
+        "document",
+        "keyword",
+        "document",
+        "upload",
+        "message",
+        "you",
+        "acces",
+        "thi",
+        "page",
+        "using",
+        "link",
+        "below",
+        "url",
+        "http",
+        "dev",
+        "myportal",
+        "american",
+        "equity",
+        "com",
+        "agent",
+        "user",
+        "profile",
+        "activetab",
+        "document"
+      ]
+    },
+    {
+      "heading": "Portal Navigation — Contract Details (portal-navigation.md)",
+      "content": "## Contract Details\n\nKeywords:\n- contract\n- contract details\n- policy details\n\nMessage:\nYou can access this page using the link below.\n\nURL:\nhttps://dev-myportal.american-equity.com/agent/book-business/contract-details/{contractId}?activeTab=info\n\nRequired Parameters:\n- contractId",
+      "headingTokens": [
+        "portal",
+        "navigation",
+        "contract",
+        "detail",
+        "portal",
+        "navigation",
+        "md"
+      ],
+      "contentTokens": [
+        "contract",
+        "detail",
+        "keyword",
+        "contract",
+        "contract",
+        "detail",
+        "policy",
+        "detail",
+        "message",
+        "you",
+        "acces",
+        "thi",
+        "page",
+        "using",
+        "link",
+        "below",
+        "url",
+        "http",
+        "dev",
+        "myportal",
+        "american",
+        "equity",
+        "com",
+        "agent",
+        "book",
+        "busines",
+        "contract",
+        "detail",
+        "contractid",
+        "activetab",
+        "info",
+        "required",
+        "parameter",
+        "contractid"
+      ]
+    },
+    {
+      "heading": "Portal Navigation — Beneficiaries (portal-navigation.md)",
+      "content": "## Beneficiaries\n\nKeywords:\n- beneficiaries\n- beneficiary\n\nMessage:\nYou can access this page using the link below.\n\nURL:\nhttps://dev-myportal.american-equity.com/agent/book-business/contract-details/{contractId}?activeTab=beneficiaries\n\nRequired Parameters:\n- contractId",
+      "headingTokens": [
+        "portal",
+        "navigation",
+        "beneficiary",
+        "portal",
+        "navigation",
+        "md"
+      ],
+      "contentTokens": [
+        "beneficiary",
+        "keyword",
+        "beneficiary",
+        "beneficiary",
+        "message",
+        "you",
+        "acces",
+        "thi",
+        "page",
+        "using",
+        "link",
+        "below",
+        "url",
+        "http",
+        "dev",
+        "myportal",
+        "american",
+        "equity",
+        "com",
+        "agent",
+        "book",
+        "busines",
+        "contract",
+        "detail",
+        "contractid",
+        "activetab",
+        "beneficiary",
+        "required",
+        "parameter",
+        "contractid"
+      ]
+    },
+    {
+      "heading": "Portal Navigation — Pending Contract (portal-navigation.md)",
+      "content": "## Pending Contract\n\nKeywords:\n- pending contract\n\nMessage:\nYou can access this page using the link below.\n\nURL:\nhttps://dev-myportal.american-equity.com/agent/book-business/pending-contract/{contractId}?activeTab=info\n\nRequired Parameters:\n- contractId",
+      "headingTokens": [
+        "portal",
+        "navigation",
+        "pending",
+        "contract",
+        "portal",
+        "navigation",
+        "md"
+      ],
+      "contentTokens": [
+        "pending",
+        "contract",
+        "keyword",
+        "pending",
+        "contract",
+        "message",
+        "you",
+        "acces",
+        "thi",
+        "page",
+        "using",
+        "link",
+        "below",
+        "url",
+        "http",
+        "dev",
+        "myportal",
+        "american",
+        "equity",
+        "com",
+        "agent",
+        "book",
+        "busines",
+        "pending",
+        "contract",
+        "contractid",
+        "activetab",
+        "info",
+        "required",
+        "parameter",
+        "contractid"
       ]
     }
   ]

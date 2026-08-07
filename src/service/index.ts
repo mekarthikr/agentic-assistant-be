@@ -6,4 +6,3 @@ export {
   type ToolExecutionContext,
 } from "./tool-registry.service";
 export { ConversationService } from "./conversation.service";
-export { PortalNavigationService } from "./portal-navigation.service";

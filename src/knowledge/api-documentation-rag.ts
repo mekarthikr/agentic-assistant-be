@@ -48,6 +48,12 @@ export interface RetrievedDocumentationSection {
   readonly score: number;
 }
 
+export interface PortalNavigationKnowledgeResult {
+  readonly message: string;
+  readonly url?: string;
+  readonly missingParameter?: string;
+}
+
 interface DocumentationSection {
   readonly heading: string;
   readonly content: string;
@@ -102,6 +108,19 @@ const splitDocumentation = (markdown: string): DocumentationSection[] =>
         contentTokens: tokenize(content),
       };
     });
+
+const fieldValue = (content: string, field: string): string | undefined => {
+  const match = content.match(
+    new RegExp(
+      `^${field}:[ \\t]*\\r?\\n([\\s\\S]*?)(?:\\r?\\n(?=(?:[A-Z][^\\r\\n]*:|#{1,3}\\s+))|(?![\\s\\S]))`,
+      "m",
+    ),
+  );
+  return match?.[1]?.trim();
+};
+
+const contractIdFrom = (query: string): string | undefined =>
+  query.match(/\b\d+\b/)?.[0];
 
 const loadGeneratedIndex = (): readonly DocumentationSection[] => {
   const index = generatedIndex as GeneratedDocumentationIndex;
@@ -173,6 +192,14 @@ export class ApiDocumentationRag {
   }
 
   public retrieveContext(query: string, limit = DEFAULT_RESULT_LIMIT): string {
+    const portalNavigation = this.resolvePortalNavigation(query);
+    if (portalNavigation) {
+      if (portalNavigation.missingParameter) {
+        return `Portal navigation result\nmissingParameter: ${portalNavigation.missingParameter}`;
+      }
+      return `Portal navigation result\nMessage:\n${portalNavigation.message}\n\nURL:\n${portalNavigation.url}`;
+    }
+
     const sections = this.retrieve(query, limit);
     if (sections.length === 0) return "";
 
@@ -180,5 +207,36 @@ export class ApiDocumentationRag {
       .map(({ content }) => content)
       .join("\n\n---\n\n")
       .slice(0, MAX_CONTEXT_CHARACTERS);
+  }
+
+  /** Resolves a portal-navigation entry from the indexed Markdown knowledge. */
+  public resolvePortalNavigation(
+    query: string,
+  ): PortalNavigationKnowledgeResult | undefined {
+    const navigationSection = this.retrieve(query, this.sections.length).find(
+      ({ content }) =>
+        content.startsWith("## ") &&
+        fieldValue(content, "Keywords") !== undefined &&
+        fieldValue(content, "Message") !== undefined &&
+        fieldValue(content, "URL") !== undefined,
+    );
+    if (!navigationSection) return undefined;
+
+    const message = fieldValue(navigationSection.content, "Message");
+    const template = fieldValue(navigationSection.content, "URL");
+    if (!message || !template) return undefined;
+
+    const parameters = [...template.matchAll(/\{([^}]+)\}/g)].map(
+      (match) => match[1],
+    );
+    const contractId = contractIdFrom(query);
+    if (parameters.includes("contractId") && !contractId) {
+      return { message, missingParameter: "contractId" };
+    }
+
+    return {
+      message,
+      url: template.replaceAll("{contractId}", encodeURIComponent(contractId ?? "")),
+    };
   }
 }

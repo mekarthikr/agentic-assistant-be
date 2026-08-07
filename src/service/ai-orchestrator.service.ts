@@ -12,7 +12,6 @@ import {
   INSURANCE_AGENT_SYSTEM_PROMPT,
 } from "@app/knowledge";
 import { ConversationService } from "./conversation.service";
-import { isPortalNavigationRequest } from "./portal-navigation.service";
 import { ToolRegistry } from "./tool-registry.service";
 import { logError } from "@app/utils/error-logger";
 
@@ -193,11 +192,6 @@ export class AIOrchestrator {
     const needsContracts = CONTRACT_PATTERN.test(query);
     const needsApplications = APPLICATION_PATTERN.test(query);
     const needsAmbiguousRecord = AMBIGUOUS_RECORD_PATTERN.test(query);
-
-    if (isPortalNavigationRequest(query)) {
-      console.log('portal navigation request')
-      return ["getPortalNavigationLink"];
-    }
 
     if (userType === "client") {
       if (
