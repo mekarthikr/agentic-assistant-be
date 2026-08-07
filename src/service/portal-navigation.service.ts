@@ -28,6 +28,7 @@ export class PortalNavigationService {
     params: Readonly<Record<string, string>> = {},
   ): PortalNavigationResult {
     const normalizedPage = page.trim();
+    console.log('normalizedPage',normalizedPage)
     const route = portalRoutes[normalizedPage];
     if (!route) return { unsupportedPage: normalizedPage };
 
