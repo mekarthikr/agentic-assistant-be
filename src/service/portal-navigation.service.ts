@@ -19,6 +19,12 @@ export type PortalNavigationResult =
   | UnsupportedPortalPage;
 
 const PLACEHOLDER_PATTERN = /\{([^}]+)\}/g;
+const PORTAL_DESTINATION_PATTERN =
+  /\b(?:how\s+(?:do|can)\s+i\s+(?:open|find)|open|take\s+me\s+to|navigate(?:\s+to)?|open\s+page|where\s+can\s+i\s+find|go\s+to|(?:portal\s+)?navigation(?:\s+link)?(?:\s+for)?|(?:portal\s+)?link\s+(?:to|for))\b[\s\S]*\b(?:profile|personal\s+info(?:rmation)?|banking|documents?|pending\s+contract|contract(?:\s+details?)?|beneficiar(?:y|ies))\b/i;
+
+/** Identifies requests that must use the portal-navigation capability. */
+export const isPortalNavigationRequest = (query: string): boolean =>
+  PORTAL_DESTINATION_PATTERN.test(query);
 
 /** Builds validated portal links from the central portal route catalog. */
 export class PortalNavigationService {
@@ -28,7 +34,7 @@ export class PortalNavigationService {
     params: Readonly<Record<string, string>> = {},
   ): PortalNavigationResult {
     const normalizedPage = page.trim();
-    console.log('normalizedPage',normalizedPage)
+    console.log('normalizedPage', normalizedPage)
     const route = portalRoutes[normalizedPage];
     if (!route) return { unsupportedPage: normalizedPage };
 

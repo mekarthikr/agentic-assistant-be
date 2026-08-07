@@ -52,7 +52,6 @@ export const createPortalNavigationLinkTool = (
   }),
   execute: (input) => {
     const { page, params } = navigationInput(input);
-    console.log('navigationService.getLink(page, params)',navigationService.getLink(page, params))
     return navigationService.getLink(page, params);
   },
 });

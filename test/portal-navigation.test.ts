@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { PortalNavigationService } from "../src/service/portal-navigation.service";
+import {
+  isPortalNavigationRequest,
+  PortalNavigationService,
+} from "../src/service/portal-navigation.service";
 import { createPortalNavigationLinkTool } from "../src/tools/getPortalNavigationLink.tool";
 
 test("builds configured portal links and encodes placeholders", () => {
@@ -24,6 +27,12 @@ test("returns typed missing and unsupported results without throwing", () => {
     missingParameter: "contractId",
   });
   assert.deepEqual(service.getLink("unknown"), { unsupportedPage: "unknown" });
+});
+
+test("recognizes direct portal navigation-link requests", () => {
+  assert.equal(isPortalNavigationRequest("navigation link for banking page"), true);
+  assert.equal(isPortalNavigationRequest("Take me to banking"), true);
+  assert.equal(isPortalNavigationRequest("show banking transactions"), false);
 });
 
 test("exposes portal navigation as an application tool", () => {
