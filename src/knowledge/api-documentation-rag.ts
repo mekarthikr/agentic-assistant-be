@@ -46,6 +46,14 @@ export interface RetrievedDocumentationSection {
   readonly heading: string;
   readonly content: string;
   readonly score: number;
+  readonly source: RetrievedDocumentationSource;
+}
+
+export interface RetrievedDocumentationSource {
+  readonly filename: string;
+  readonly title: string;
+  readonly mediaType: string;
+  readonly page?: number;
 }
 
 interface DocumentationSection {
@@ -53,6 +61,7 @@ interface DocumentationSection {
   readonly content: string;
   readonly headingTokens: readonly string[];
   readonly contentTokens: readonly string[];
+  readonly source: RetrievedDocumentationSource;
 }
 
 interface GeneratedDocumentationIndex {
@@ -100,6 +109,11 @@ const splitDocumentation = (markdown: string): DocumentationSection[] =>
         content,
         headingTokens: tokenize(heading),
         contentTokens: tokenize(content),
+        source: {
+          filename: "inline-document.md",
+          title: heading,
+          mediaType: "text/markdown",
+        },
       };
     });
 
@@ -107,7 +121,7 @@ const loadGeneratedIndex = (): readonly DocumentationSection[] => {
   const index = generatedIndex as GeneratedDocumentationIndex;
 
   if (
-    index.version !== 2 ||
+    index.version !== 3 ||
     !Array.isArray(index.sources) ||
     !Array.isArray(index.sections)
   ) {
@@ -163,6 +177,7 @@ export class ApiDocumentationRag {
         heading: section.heading,
         content: section.content,
         score: relevanceScore(section, queryTokens),
+        source: section.source,
       }))
       .filter(({ score }) => score >= MINIMUM_RELEVANCE_SCORE)
       .sort(
@@ -174,6 +189,12 @@ export class ApiDocumentationRag {
 
   public retrieveContext(query: string, limit = DEFAULT_RESULT_LIMIT): string {
     const sections = this.retrieve(query, limit);
+    return this.formatContext(sections);
+  }
+
+  public formatContext(
+    sections: readonly RetrievedDocumentationSection[],
+  ): string {
     if (sections.length === 0) return "";
 
     return sections

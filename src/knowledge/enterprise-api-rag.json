@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "sources": [
     "enterprise-api-documentation.md",
     "beneficiary-guide.md",
@@ -16,6 +16,11 @@
     {
       "heading": "Enterprise API Documentation",
       "content": "# Enterprise API Documentation\r\n\r\nBase URL: `https://mock-api-server-seven.vercel.app/api/v1`\r\n\r\n---",
+      "source": {
+        "filename": "enterprise-api-documentation.md",
+        "title": "Enterprise API Documentation",
+        "mediaType": "text/markdown"
+      },
       "headingTokens": [
         "enterprise",
         "api",
@@ -41,6 +46,11 @@
     {
       "heading": "Contracts API",
       "content": "## Contracts API",
+      "source": {
+        "filename": "enterprise-api-documentation.md",
+        "title": "Enterprise API Documentation",
+        "mediaType": "text/markdown"
+      },
       "headingTokens": [
         "contract",
         "api"
@@ -53,6 +63,11 @@
     {
       "heading": "Get All Contracts",
       "content": "### Get All Contracts\r\n\r\n**Endpoint:** `GET /contracts`\r\n\r\n**Description:** Returns a list of all contracts. Supports filtering by query parameters.\r\n\r\n**Filterable Fields:**\r\n\r\n- `contractNumber` — Filter by contract number\r\n- `clientName` — Filter by client name (partial match, case-insensitive)\r\n- `productName` — Filter by product name (partial match, case-insensitive)\r\n- `contractStatus` — Filter by status: `Active`, `Inactive`, `Surrendered`\r\n- `taxType` — Filter by tax type: `Qualified`, `Non-Qualified`\r\n- `taxQualification` — Filter by qualification: `IRA`, `ROTH IRA`, `NON-QUAL`\r\n- `distributionCompany` — Filter by distribution company\r\n\r\n**Example Requests:**\r\n\r\n```\r\nGET /contracts\r\nGET /contracts?contractStatus=Active\r\nGET /contracts?taxType=Qualified\r\nGET /contracts?productName=ASSETSHIELD 5\r\nGET /contracts?contractStatus=Active&taxType=Qualified\r\n```\r\n\r\n**Response:**\r\n\r\n```json\r\n{\r\n  \"success\": true,\r\n  \"message\": \"Request successful\",\r\n  \"data\": [\r\n    {\r\n      \"contractNumber\": \"1561091\",\r\n      \"clientName\": \"NETTING AETEST\",\r\n      \"productName\": \"AMERICAN EQUITY ASSETSHIELD 5 FIXED INDEX ANNUITY\",\r\n      \"issuedDate\": \"2026-06-17T05:00:00+00:00\",\r\n      \"currentValue\": 0,\r\n      \"anniversaryDate\": \"2027-06-17T05:00:00+00:00\",\r\n      \"taxType\": \"Qualified\",\r\n      \"contractStatus\": \"Active\",\r\n      \"taxQualification\": \"IRA\",\r\n      \"distributionCompany\": \"AELife\"\r\n    }\r\n  ],\r\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\r\n}\r\n```\r\n\r\n---",
+      "source": {
+        "filename": "enterprise-api-documentation.md",
+        "title": "Enterprise API Documentation",
+        "mediaType": "text/markdown"
+      },
       "headingTokens": [
         "all",
         "contract"
@@ -203,6 +218,11 @@
     {
       "heading": "Get Contract by Number",
       "content": "### Get Contract by Number\r\n\r\n**Endpoint:** `GET /contracts/:contractNumber`\r\n\r\n**Description:** Returns a single contract by its contract number.\r\n\r\n**Path Parameters:**\r\n\r\n- `contractNumber` (string, required) — The contract number\r\n\r\n**Example Request:**\r\n\r\n```\r\nGET /contracts/1561091\r\n```\r\n\r\n**Success Response:**\r\n\r\n```json\r\n{\r\n  \"success\": true,\r\n  \"message\": \"Request successful\",\r\n  \"data\": {\r\n    \"contractNumber\": \"1561091\",\r\n    \"clientName\": \"NETTING AETEST\",\r\n    \"productName\": \"AMERICAN EQUITY ASSETSHIELD 5 FIXED INDEX ANNUITY\",\r\n    \"issuedDate\": \"2026-06-17T05:00:00+00:00\",\r\n    \"currentValue\": 0,\r\n    \"anniversaryDate\": \"2027-06-17T05:00:00+00:00\",\r\n    \"taxType\": \"Qualified\",\r\n    \"contractStatus\": \"Active\",\r\n    \"taxQualification\": \"IRA\",\r\n    \"distributionCompany\": \"AELife\"\r\n  },\r\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\r\n}\r\n```\r\n\r\n**Not Found Response (404):**\r\n\r\n```json\r\n{\r\n  \"success\": false,\r\n  \"message\": \"Contract 9999999 not found\",\r\n  \"data\": null,\r\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\r\n}\r\n```\r\n\r\n---",
+      "source": {
+        "filename": "enterprise-api-documentation.md",
+        "title": "Enterprise API Documentation",
+        "mediaType": "text/markdown"
+      },
       "headingTokens": [
         "contract",
         "by",
@@ -315,6 +335,11 @@
     {
       "heading": "Applications API",
       "content": "## Applications API",
+      "source": {
+        "filename": "enterprise-api-documentation.md",
+        "title": "Enterprise API Documentation",
+        "mediaType": "text/markdown"
+      },
       "headingTokens": [
         "application",
         "api"
@@ -327,6 +352,11 @@
     {
       "heading": "Get All Applications",
       "content": "### Get All Applications\r\n\r\n**Endpoint:** `GET /applications`\r\n\r\n**Description:** Returns a list of all applications. Supports filtering by query parameters.\r\n\r\n**Filterable Fields:**\r\n\r\n- `clientName` — Filter by client name (partial match, case-insensitive)\r\n- `product` — Filter by product name (partial match, case-insensitive)\r\n- `taxType` — Filter by tax type: `Qualified`, `Non-Qualified`\r\n- `status` — Filter by status: `In Progress`, `Submitted`, `Approved`, `Rejected`\r\n- `contractNumber` — Filter by contract number\r\n- `productId` — Filter by product ID\r\n- `agentNumber` — Filter by agent number\r\n- `contactId` — Filter by contact ID\r\n- `applicationName` — Filter by application name (partial match, case-insensitive)\r\n- `startDate` — Filter by start date (partial match, e.g., `2026-07-15`)\r\n\r\n**Example Requests:**\r\n\r\n```\r\nGET /applications\r\nGET /applications?status=In Progress\r\nGET /applications?product=ESTATESHIELD\r\nGET /applications?agentNumber=2026\r\nGET /applications?applicationName=JOHNSON\r\nGET /applications?startDate=2026-07\r\nGET /applications?status=Approved&taxType=Qualified\r\n```\r\n\r\n**Response:**\r\n\r\n```json\r\n{\r\n  \"success\": true,\r\n  \"message\": \"Request successful\",\r\n  \"data\": [\r\n    {\r\n      \"clientName\": \"sdf sdf\",\r\n      \"product\": \"AMERICAN EQUITY ESTATESHIELD 10 FIXED INDEX ANNUITY\",\r\n      \"anticipatedPremium\": 99999,\r\n      \"startDate\": \"2026-07-15T13:27:11.782+00:00\",\r\n      \"taxType\": \"Non-Qualified\",\r\n      \"status\": \"In Progress\",\r\n      \"contractNumber\": \"1561438\",\r\n      \"productId\": \"I-ESTATE24\",\r\n      \"agentNumber\": \"2026\",\r\n      \"applicationLink\": \"https://american-equity-uatx.unqork.io/app/application#/display/application?id=6a5789ec1ce36757d331b5b8\",\r\n      \"contactId\": \"482354\",\r\n      \"applicationName\": \"sdf sdf Application\"\r\n    }\r\n  ],\r\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\r\n}\r\n```\r\n\r\n---",
+      "source": {
+        "filename": "enterprise-api-documentation.md",
+        "title": "Enterprise API Documentation",
+        "mediaType": "text/markdown"
+      },
       "headingTokens": [
         "all",
         "application"
@@ -519,6 +549,11 @@
     {
       "heading": "Get Application by Contract Number",
       "content": "### Get Application by Contract Number\r\n\r\n**Endpoint:** `GET /applications/:contractNumber`\r\n\r\n**Description:** Returns a single application by its contract number.\r\n\r\n**Path Parameters:**\r\n\r\n- `contractNumber` (string, required) — The contract number\r\n\r\n**Example Request:**\r\n\r\n```\r\nGET /applications/1561438\r\n```\r\n\r\n**Success Response:**\r\n\r\n```json\r\n{\r\n  \"success\": true,\r\n  \"message\": \"Request successful\",\r\n  \"data\": {\r\n    \"clientName\": \"sdf sdf\",\r\n    \"product\": \"AMERICAN EQUITY ESTATESHIELD 10 FIXED INDEX ANNUITY\",\r\n    \"anticipatedPremium\": 99999,\r\n    \"startDate\": \"2026-07-15T13:27:11.782+00:00\",\r\n    \"taxType\": \"Non-Qualified\",\r\n    \"status\": \"In Progress\",\r\n    \"contractNumber\": \"1561438\",\r\n    \"productId\": \"I-ESTATE24\",\r\n    \"agentNumber\": \"2026\",\r\n    \"applicationLink\": \"https://american-equity-uatx.unqork.io/app/application#/display/application?id=6a5789ec1ce36757d331b5b8\",\r\n    \"contactId\": \"482354\",\r\n    \"applicationName\": \"sdf sdf Application\"\r\n  },\r\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\r\n}\r\n```\r\n\r\n**Not Found Response (404):**\r\n\r\n```json\r\n{\r\n  \"success\": false,\r\n  \"message\": \"Application with contract number 9999999 not found\",\r\n  \"data\": null,\r\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\r\n}\r\n```\r\n\r\n---",
+      "source": {
+        "filename": "enterprise-api-documentation.md",
+        "title": "Enterprise API Documentation",
+        "mediaType": "text/markdown"
+      },
       "headingTokens": [
         "application",
         "by",
@@ -648,6 +683,11 @@
     {
       "heading": "Common Response Structure",
       "content": "## Common Response Structure\r\n\r\nAll API responses follow this consistent format:\r\n\r\n```json\r\n{\r\n  \"success\": true | false,\r\n  \"message\": \"string\",\r\n  \"data\": object | array | null,\r\n  \"timestamp\": \"ISO 8601 string\"\r\n}\r\n```",
+      "source": {
+        "filename": "enterprise-api-documentation.md",
+        "title": "Enterprise API Documentation",
+        "mediaType": "text/markdown"
+      },
       "headingTokens": [
         "common",
         "response",
@@ -683,6 +723,11 @@
     {
       "heading": "Error Responses",
       "content": "## Error Responses\r\n\r\n| Status Code | Meaning               |\r\n| ----------- | --------------------- |\r\n| 200         | Success               |\r\n| 404         | Resource not found    |\r\n| 400         | Bad request           |\r\n| 500         | Internal server error |\r\n\r\n---",
+      "source": {
+        "filename": "enterprise-api-documentation.md",
+        "title": "Enterprise API Documentation",
+        "mediaType": "text/markdown"
+      },
       "headingTokens": [
         "error",
         "response"
@@ -711,6 +756,11 @@
     {
       "heading": "Filtering Behavior",
       "content": "## Filtering Behavior\r\n\r\n- All filters use **AND** logic (all conditions must match)\r\n- Matching is **case-insensitive**\r\n- Matching supports **partial match** (contains)\r\n- Empty or undefined filter values are **ignored**\r\n- Multiple filters can be combined: `?status=Active&taxType=Qualified`",
+      "source": {
+        "filename": "enterprise-api-documentation.md",
+        "title": "Enterprise API Documentation",
+        "mediaType": "text/markdown"
+      },
       "headingTokens": [
         "filtering",
         "behavior"
@@ -753,6 +803,11 @@
     {
       "heading": "Beneficiary Management (beneficiary-guide.md)",
       "content": "# Beneficiary Management\r\n\r\nPolicy owners may add, remove or update beneficiaries.\r\n\r\nRequired information:\r\n\r\n- Full Name\r\n- Relationship\r\n- Date of Birth\r\n- Percentage Allocation\r\n\r\nChanges become effective after successful verification.",
+      "source": {
+        "filename": "beneficiary-guide.md",
+        "title": "Beneficiary Management",
+        "mediaType": "text/markdown"
+      },
       "headingTokens": [
         "beneficiary",
         "management",
@@ -791,6 +846,11 @@
     {
       "heading": "Claims Guide (claims-guide.md)",
       "content": "# Claims Guide",
+      "source": {
+        "filename": "claims-guide.md",
+        "title": "Claims Guide",
+        "mediaType": "text/markdown"
+      },
       "headingTokens": [
         "claim",
         "guide",
@@ -806,6 +866,11 @@
     {
       "heading": "Claims Guide — Filing a Claim (claims-guide.md)",
       "content": "## Filing a Claim\r\n\r\nTo submit a claim:\r\n\r\n1. Login to the portal.\r\n2. Open Claims.\r\n3. Select Create New Claim.\r\n4. Upload supporting documents.\r\n5. Submit the claim.\r\n\r\n---",
+      "source": {
+        "filename": "claims-guide.md",
+        "title": "Claims Guide",
+        "mediaType": "text/markdown"
+      },
       "headingTokens": [
         "claim",
         "guide",
@@ -843,6 +908,11 @@
     {
       "heading": "Claims Guide — Required Documents (claims-guide.md)",
       "content": "## Required Documents\r\n\r\n- Death Certificate\r\n- Government ID\r\n- Policy Number\r\n- Claim Form\r\n\r\n---",
+      "source": {
+        "filename": "claims-guide.md",
+        "title": "Claims Guide",
+        "mediaType": "text/markdown"
+      },
       "headingTokens": [
         "claim",
         "guide",
@@ -868,6 +938,11 @@
     {
       "heading": "Claims Guide — Processing Time (claims-guide.md)",
       "content": "## Processing Time\r\n\r\nMost claims are processed within 7–10 business days after all required documents are received.",
+      "source": {
+        "filename": "claims-guide.md",
+        "title": "Claims Guide",
+        "mediaType": "text/markdown"
+      },
       "headingTokens": [
         "claim",
         "guide",
@@ -898,6 +973,11 @@
     {
       "heading": "Customer Support (customer-support.md)",
       "content": "# Customer Support",
+      "source": {
+        "filename": "customer-support.md",
+        "title": "Customer Support",
+        "mediaType": "text/markdown"
+      },
       "headingTokens": [
         "customer",
         "support",
@@ -913,6 +993,11 @@
     {
       "heading": "Customer Support — Support Channels (customer-support.md)",
       "content": "## Support Channels\r\n\r\n- Phone\r\n- Email\r\n- Live Chat",
+      "source": {
+        "filename": "customer-support.md",
+        "title": "Customer Support",
+        "mediaType": "text/markdown"
+      },
       "headingTokens": [
         "customer",
         "support",
@@ -934,6 +1019,11 @@
     {
       "heading": "Customer Support — Business Hours (customer-support.md)",
       "content": "## Business Hours\r\n\r\nMonday to Friday\r\n\r\n8:00 AM – 6:00 PM",
+      "source": {
+        "filename": "customer-support.md",
+        "title": "Customer Support",
+        "mediaType": "text/markdown"
+      },
       "headingTokens": [
         "customer",
         "support",
@@ -959,6 +1049,11 @@
     {
       "heading": "Customer Support — Common Support Topics (customer-support.md)",
       "content": "## Common Support Topics\r\n\r\n- Policy Information\r\n- Premium Payments\r\n- Claims Status\r\n- Beneficiary Updates\r\n- Portal Login Issues",
+      "source": {
+        "filename": "customer-support.md",
+        "title": "Customer Support",
+        "mediaType": "text/markdown"
+      },
       "headingTokens": [
         "customer",
         "support",
@@ -987,8 +1082,14 @@
       ]
     },
     {
-      "heading": "items to take over the phone (items-to-take-over-the-phone.pdf)",
-      "content": "# items to take over the phone\n\nSource: items-to-take-over-the-phone.pdf, page 1 of 12\n\n1\nBack to Top\nItems to Take Over The Phone\nDepartment: Customer Excellence- Post Production\nContacts: Manager or Training Team\nSee the end of the document for the revision history.\nIt is the responsibility of all employees to comply with all written procedures including the procedures documented herein. Printed copies\nor copies saved to personal drives are for reference only. Please refer to the electronic copy for the latest version. Failure to comply may lead\nto disciplinary action, up to and including termination.\nPurpose: To provide guidance on what information is acceptable to take over the phone with verified\ncallers.\nReference: Call Verification Requirements l Types of Callers l Call Scripting l Transferring Calls To\nAnother Area l Bene Req Talking Points l Community Property States Reference Guide l New Business\nItems to Take Over the Phone vs Corrections l Forms & Calculators\nTable of Contents\nConsiderations: .........................................................................................................................................................................................................................................2\nJoint Ownership: .................................................................................................................................................................................................................................2\nSpousal Consent:.................................................................................................................................................................................................................................2\nNIGO Items: ...........................................................................................................................................................................................................................................2\nRequests to Cancel a Processing Request: .............................................................................................................................................................................2\nService Only Agents: .........................................................................................................................................................................................................................2\nAddress Changes ......................................................................................................................................................................................................................2\nAgent Authorization (Form 8053) ....................................................................................................................................................................................3\nAgent Requests .........................................................................................................................................................................................................................................3\nAnnuitization (SCs) ...................................................................................................................................................................................................................3\nBeneficiary Changes ..................................................................................................................................................................................................................3\nElectronic Fund Transfers (EFTs) ....................................................................................................................................................................................4\nLetter of Instruction (LOIs) .................................................................................................................................................................................................................4\nLifetime Income Benefit Rider (LIBR) .............................................................................................................................................................................5\nMaturity Dates/ Matured Contracts ...............................................................................................................................................................................................6\nMiscellaneous: All Forms .....................................................................................................................................................................................................................6\nOutstanding Checks ................................................................................................................................................................................................................................7\nOvernight Requests.................................................................................................................................................................................................................................7\nPartial Withdrawals .................................................................................................................................................................................................................7\nPre-Authorized Credits (PACs) .........................................................................................................................................................................................8\nRefund Requests.......................................................................................................................................................................................................................................9\nRequired Minimum Distributions (RMD) ...................................................................................................................................................................9\nRush Reviews.......................................................................................................................................................................................................................................... 10\nSurrenders ........................................................................................................................................................................................................................... 10\nSystematic Withdrawals .................................................................................................................................................................................................... 10\nTransfer of Values (TOVs) ................................................................................................................................................................................................ 11\n72T / 72Q Payments .............................................................................................................................................................................................................. 11\nRevision History .................................................................................................................................................................................................................................... 12",
+      "heading": "Items to Take Over the Phone (items-to-take-over-the-phone.pdf)",
+      "content": "# Items to Take Over the Phone\n\n1\nBack to Top\nItems to Take Over The Phone\nDepartment: Customer Excellence- Post Production\nContacts: Manager or Training Team\nSee the end of the document for the revision history.\nIt is the responsibility of all employees to comply with all written procedures including the procedures documented herein. Printed copies\nor copies saved to personal drives are for reference only. Please refer to the electronic copy for the latest version. Failure to comply may lead\nto disciplinary action, up to and including termination.\nPurpose: To provide guidance on what information is acceptable to take over the phone with verified\ncallers.\nReference: Call Verification Requirements l Types of Callers l Call Scripting l Transferring Calls To\nAnother Area l Bene Req Talking Points l Community Property States Reference Guide l New Business\nItems to Take Over the Phone vs Corrections l Forms & Calculators\nTable of Contents\nConsiderations: .........................................................................................................................................................................................................................................2\nJoint Ownership: .................................................................................................................................................................................................................................2\nSpousal Consent:.................................................................................................................................................................................................................................2\nNIGO Items: ...........................................................................................................................................................................................................................................2\nRequests to Cancel a Processing Request: .............................................................................................................................................................................2\nService Only Agents: .........................................................................................................................................................................................................................2\nAddress Changes ......................................................................................................................................................................................................................2\nAgent Authorization (Form 8053) ....................................................................................................................................................................................3\nAgent Requests .........................................................................................................................................................................................................................................3\nAnnuitization (SCs) ...................................................................................................................................................................................................................3\nBeneficiary Changes ..................................................................................................................................................................................................................3\nElectronic Fund Transfers (EFTs) ....................................................................................................................................................................................4\nLetter of Instruction (LOIs) .................................................................................................................................................................................................................4\nLifetime Income Benefit Rider (LIBR) .............................................................................................................................................................................5\nMaturity Dates/ Matured Contracts ...............................................................................................................................................................................................6\nMiscellaneous: All Forms .....................................................................................................................................................................................................................6\nOutstanding Checks ................................................................................................................................................................................................................................7\nOvernight Requests.................................................................................................................................................................................................................................7\nPartial Withdrawals .................................................................................................................................................................................................................7\nPre-Authorized Credits (PACs) .........................................................................................................................................................................................8\nRefund Requests.......................................................................................................................................................................................................................................9\nRequired Minimum Distributions (RMD) ...................................................................................................................................................................9\nRush Reviews.......................................................................................................................................................................................................................................... 10\nSurrenders ........................................................................................................................................................................................................................... 10\nSystematic Withdrawals .................................................................................................................................................................................................... 10\nTransfer of Values (TOVs) ................................................................................................................................................................................................ 11\n72T / 72Q Payments .............................................................................................................................................................................................................. 11\nRevision History .................................................................................................................................................................................................................................... 12",
+      "source": {
+        "filename": "items-to-take-over-the-phone.pdf",
+        "title": "Items to Take Over the Phone",
+        "mediaType": "application/pdf",
+        "page": 1
+      },
       "headingTokens": [
         "item",
         "take",
@@ -1005,15 +1106,6 @@
         "take",
         "over",
         "phone",
-        "source",
-        "item",
-        "take",
-        "over",
-        "phone",
-        "pdf",
-        "page",
-        "1",
-        "12",
         "1",
         "back",
         "top",
@@ -1226,8 +1318,14 @@
       ]
     },
     {
-      "heading": "items to take over the phone (items-to-take-over-the-phone.pdf)",
-      "content": "# items to take over the phone\n\nSource: items-to-take-over-the-phone.pdf, page 2 of 12\n\n2\nBack to Top\nConsiderations:\nJoint Ownership:\n• For TOVs, LIBR Resets, and Address Changes:\no If joint owners are spouses, only one is required to be on the phone to make a request\no If joint owners are not spouses, both owners are required to be on the phone to make a request\n• For all other tasks:\no Both owners are required to be on the phone to make a request/update\nSpousal Consent:\n• If ‘Yes’ is stated in the below table, please ask to speak to the client’s spouse. Confirm the spouse’s\nname and that they are okay with the request.\no If the spouse is not available, we cannot complete the request over the phone. The client\ncan call back later with their spouse, or we can send a form to have completed and signed\nby both spouses.\nNIGO Items:\n• Verify the information that was missing from the form with the client\n• Complete a new form with all the required information\no This does not apply to tax withholding changes. If client is wanting to change their tax withholding\nonly, Create a Task in Infinitie. No new form is needed.\n• Upload/Prod Image new form to workflow (OPUS or Infinitie depending upon department) for processing\n• Note the contract\n• New Business Items to Take Over the Phone vs Corrections\nRequests to Cancel a Processing Request:\n• If a request was initiated by the agent (who was authorized to make the request on behalf of the client),\neither the agent or client can request to cancel the request. If the agent cancels, a quick callout must be\nmade to the client to confirm before cancelling.\n• If the client initiated the request, only the client can cancel the request\nService Only Agents:\n• Agents with a Service Only Agreement can take all actions on contracts as agents indicated by the chart\nbelow so long as they retain an active status\nAddress Changes Address Change Procedure\nRequest Client can provide Agent can provide Spousal Consent\nIn CP state\nAddtl Steps\nAddress Update Yes Yes No LifePro",
+      "heading": "Items to Take Over the Phone (items-to-take-over-the-phone.pdf)",
+      "content": "# Items to Take Over the Phone\n\n2\nBack to Top\nConsiderations:\nJoint Ownership:\n• For TOVs, LIBR Resets, and Address Changes:\no If joint owners are spouses, only one is required to be on the phone to make a request\no If joint owners are not spouses, both owners are required to be on the phone to make a request\n• For all other tasks:\no Both owners are required to be on the phone to make a request/update\nSpousal Consent:\n• If ‘Yes’ is stated in the below table, please ask to speak to the client’s spouse. Confirm the spouse’s\nname and that they are okay with the request.\no If the spouse is not available, we cannot complete the request over the phone. The client\ncan call back later with their spouse, or we can send a form to have completed and signed\nby both spouses.\nNIGO Items:\n• Verify the information that was missing from the form with the client\n• Complete a new form with all the required information\no This does not apply to tax withholding changes. If client is wanting to change their tax withholding\nonly, Create a Task in Infinitie. No new form is needed.\n• Upload/Prod Image new form to workflow (OPUS or Infinitie depending upon department) for processing\n• Note the contract\n• New Business Items to Take Over the Phone vs Corrections\nRequests to Cancel a Processing Request:\n• If a request was initiated by the agent (who was authorized to make the request on behalf of the client),\neither the agent or client can request to cancel the request. If the agent cancels, a quick callout must be\nmade to the client to confirm before cancelling.\n• If the client initiated the request, only the client can cancel the request\nService Only Agents:\n• Agents with a Service Only Agreement can take all actions on contracts as agents indicated by the chart\nbelow so long as they retain an active status\nAddress Changes Address Change Procedure\nRequest Client can provide Agent can provide Spousal Consent\nIn CP state\nAddtl Steps\nAddress Update Yes Yes No LifePro",
+      "source": {
+        "filename": "items-to-take-over-the-phone.pdf",
+        "title": "Items to Take Over the Phone",
+        "mediaType": "application/pdf",
+        "page": 2
+      },
       "headingTokens": [
         "item",
         "take",
@@ -1244,15 +1342,6 @@
         "take",
         "over",
         "phone",
-        "source",
-        "item",
-        "take",
-        "over",
-        "phone",
-        "pdf",
-        "page",
-        "2",
-        "12",
         "2",
         "back",
         "top",
@@ -1502,8 +1591,14 @@
       ]
     },
     {
-      "heading": "items to take over the phone (items-to-take-over-the-phone.pdf)",
-      "content": "# items to take over the phone\n\nSource: items-to-take-over-the-phone.pdf, page 3 of 12\n\n3\nBack to Top\nAgent Authorization (Form 8053) Agent Authorization Procedure\nRequest Client can provide Agent can provide Spousal Consent in\nCP state\nAddtl Steps\nRemove agents\nauthorization to\nreset LIBR or\nrequest TOVs\nYes No No Update Infinitie-\nContract 360, note\npolicy\nAgent Requests\nRequest Client can provide Agent can provide Spousal Consent in\nCP state\nAddtl Steps\nRemove an active\nagent\nYes Yes No Create a Task in\nInfinitie\nMaintenance>Agent of\nRecord Change\nAnnuitization (SCs) Annuitization Quote Procedures\nRequest Client can provide Agent can provide Spousal Consent in\nCP state\nAddtl Steps\nTax Withholding Yes No No Create a Task in\nInfinitie\nBeneficiary Changes Beneficiary Change Procedures\nRequest Client can provide Agent can provide Spousal Consent\nCommunity\nProperty States\nAddtl Steps\nBeneficiary Changes Yes No Yes, if spouse or\nestate is not 100%\nprimary bene\nFillable form in\nInfinitie – Contract\n360 or\nFillable form , Create a\nTask in Infinitie",
+      "heading": "Items to Take Over the Phone (items-to-take-over-the-phone.pdf)",
+      "content": "# Items to Take Over the Phone\n\n3\nBack to Top\nAgent Authorization (Form 8053) Agent Authorization Procedure\nRequest Client can provide Agent can provide Spousal Consent in\nCP state\nAddtl Steps\nRemove agents\nauthorization to\nreset LIBR or\nrequest TOVs\nYes No No Update Infinitie-\nContract 360, note\npolicy\nAgent Requests\nRequest Client can provide Agent can provide Spousal Consent in\nCP state\nAddtl Steps\nRemove an active\nagent\nYes Yes No Create a Task in\nInfinitie\nMaintenance>Agent of\nRecord Change\nAnnuitization (SCs) Annuitization Quote Procedures\nRequest Client can provide Agent can provide Spousal Consent in\nCP state\nAddtl Steps\nTax Withholding Yes No No Create a Task in\nInfinitie\nBeneficiary Changes Beneficiary Change Procedures\nRequest Client can provide Agent can provide Spousal Consent\nCommunity\nProperty States\nAddtl Steps\nBeneficiary Changes Yes No Yes, if spouse or\nestate is not 100%\nprimary bene\nFillable form in\nInfinitie – Contract\n360 or\nFillable form , Create a\nTask in Infinitie",
+      "source": {
+        "filename": "items-to-take-over-the-phone.pdf",
+        "title": "Items to Take Over the Phone",
+        "mediaType": "application/pdf",
+        "page": 3
+      },
       "headingTokens": [
         "item",
         "take",
@@ -1520,15 +1615,6 @@
         "take",
         "over",
         "phone",
-        "source",
-        "item",
-        "take",
-        "over",
-        "phone",
-        "pdf",
-        "page",
-        "3",
-        "12",
         "3",
         "back",
         "top",
@@ -1661,8 +1747,14 @@
       ]
     },
     {
-      "heading": "items to take over the phone (items-to-take-over-the-phone.pdf)",
-      "content": "# items to take over the phone\n\nSource: items-to-take-over-the-phone.pdf, page 4 of 12\n\n4\nBack to Top\nCorrections or\nadditions to the\npersonal\ninformation for a\nbene\nYes Yes No LifePro\nName Spelling\nCorrection\nYes Only if provided in\nwriting first\nNo LifePro\nNew Beneficiary\nDesignations\nYes No Yes, if spouse or\nestate is not 100%\nprimary bene\nFillable form in\nInfinitie – Contract\n360 or\nFillable form, Create a\nTask in Infinitie\nAdding Per Stirpes Yes No No Fillable form in\nInfinitie – Contract\n360 or\nFillable form, Create a\nTask in Infinitie\nElectronic Fund Transfers (EFTs) EFT Procedures\nRequest Client can provide Agent can provide Spousal Consent in\nCP state\nAddtl Steps\nAccount Type Yes No No Create a Task in\nInfinitie\nEFT Request Yes No No Fillable form in Infinitie\n– Contract 360\nRouting / Account\nNumber left blank\non form\nYes No No Create a Task in\nInfinitie\nStop EFT Yes Yes, if set up No LifePro\nIndex Lock Index Lock OTP\nRequest Client can provide Agent can provide Spousal Consent in\nCP state\nAddtl Steps\nRequest for an Index\nLock: BalanceShield\nYes Yes No See procedures\nlinked above\n*Same day elections\nmust be received by\n3pm CST, processed\nby 5pm CST",
+      "heading": "Items to Take Over the Phone (items-to-take-over-the-phone.pdf)",
+      "content": "# Items to Take Over the Phone\n\n4\nBack to Top\nCorrections or\nadditions to the\npersonal\ninformation for a\nbene\nYes Yes No LifePro\nName Spelling\nCorrection\nYes Only if provided in\nwriting first\nNo LifePro\nNew Beneficiary\nDesignations\nYes No Yes, if spouse or\nestate is not 100%\nprimary bene\nFillable form in\nInfinitie – Contract\n360 or\nFillable form, Create a\nTask in Infinitie\nAdding Per Stirpes Yes No No Fillable form in\nInfinitie – Contract\n360 or\nFillable form, Create a\nTask in Infinitie\nElectronic Fund Transfers (EFTs) EFT Procedures\nRequest Client can provide Agent can provide Spousal Consent in\nCP state\nAddtl Steps\nAccount Type Yes No No Create a Task in\nInfinitie\nEFT Request Yes No No Fillable form in Infinitie\n– Contract 360\nRouting / Account\nNumber left blank\non form\nYes No No Create a Task in\nInfinitie\nStop EFT Yes Yes, if set up No LifePro\nIndex Lock Index Lock OTP\nRequest Client can provide Agent can provide Spousal Consent in\nCP state\nAddtl Steps\nRequest for an Index\nLock: BalanceShield\nYes Yes No See procedures\nlinked above\n*Same day elections\nmust be received by\n3pm CST, processed\nby 5pm CST",
+      "source": {
+        "filename": "items-to-take-over-the-phone.pdf",
+        "title": "Items to Take Over the Phone",
+        "mediaType": "application/pdf",
+        "page": 4
+      },
       "headingTokens": [
         "item",
         "take",
@@ -1679,15 +1771,6 @@
         "take",
         "over",
         "phone",
-        "source",
-        "item",
-        "take",
-        "over",
-        "phone",
-        "pdf",
-        "page",
-        "4",
-        "12",
         "4",
         "back",
         "top",
@@ -1853,8 +1936,14 @@
       ]
     },
     {
-      "heading": "items to take over the phone (items-to-take-over-the-phone.pdf)",
-      "content": "# items to take over the phone\n\nSource: items-to-take-over-the-phone.pdf, page 5 of 12\n\n5\nBack to Top\nLetter of Instruction (LOIs)\nRequest Client can provide Agent can provide Spousal Consent in\nCP state\nAddtl Steps\nNot Dated/Stale\nDated/Future\nDated\nYes No No Create a Task in\nInfinitie\nLifetime Income Benefit Rider (LIBR) LIBR Procedures\nRequest Client can provide Agent can provide Spousal Consent\nCommunity\nProperty States\nAddtl Steps\nLevel or Increasing\npayment options if\npayments have not\nstarted yet\nYes No No See default\nprocedures\nLIBR form Yes No Yes Fillable form in\nInfinitie – Contract\n360 or\nFillable form, Create\na Task in Infinitie\nLIBR Resets Yes Yes, only with a\n8053 on file\nauthorizing the\nAgent or AA\nNo Create a Task in\nInfinitie\n*Must go over fees\nLIBR Termination Yes No No Create a Task in\nInfinitie\n*Must discuss this is\nan irrevocable\nchange\nMode (left blank on\nthe form, request\nhas not been\nprocessed yet, or\nthe payments have\nnot started yet)\nYes No No See default\nprocedures\nRMD Step-Up or\nStep-Down\nYes No No Create a Task in\nInfinitie\nSingle or Joint\noption if payments\nhave not started yet\nYes No No See default\nprocedures\n*Start Date if left\nblank on form or, If\nrequest has not\nbeen processed yet\nYes No No See default\nprocedures\nStop Payments Yes No No Create a Task in\nInfinitie",
+      "heading": "Items to Take Over the Phone (items-to-take-over-the-phone.pdf)",
+      "content": "# Items to Take Over the Phone\n\n5\nBack to Top\nLetter of Instruction (LOIs)\nRequest Client can provide Agent can provide Spousal Consent in\nCP state\nAddtl Steps\nNot Dated/Stale\nDated/Future\nDated\nYes No No Create a Task in\nInfinitie\nLifetime Income Benefit Rider (LIBR) LIBR Procedures\nRequest Client can provide Agent can provide Spousal Consent\nCommunity\nProperty States\nAddtl Steps\nLevel or Increasing\npayment options if\npayments have not\nstarted yet\nYes No No See default\nprocedures\nLIBR form Yes No Yes Fillable form in\nInfinitie – Contract\n360 or\nFillable form, Create\na Task in Infinitie\nLIBR Resets Yes Yes, only with a\n8053 on file\nauthorizing the\nAgent or AA\nNo Create a Task in\nInfinitie\n*Must go over fees\nLIBR Termination Yes No No Create a Task in\nInfinitie\n*Must discuss this is\nan irrevocable\nchange\nMode (left blank on\nthe form, request\nhas not been\nprocessed yet, or\nthe payments have\nnot started yet)\nYes No No See default\nprocedures\nRMD Step-Up or\nStep-Down\nYes No No Create a Task in\nInfinitie\nSingle or Joint\noption if payments\nhave not started yet\nYes No No See default\nprocedures\n*Start Date if left\nblank on form or, If\nrequest has not\nbeen processed yet\nYes No No See default\nprocedures\nStop Payments Yes No No Create a Task in\nInfinitie",
+      "source": {
+        "filename": "items-to-take-over-the-phone.pdf",
+        "title": "Items to Take Over the Phone",
+        "mediaType": "application/pdf",
+        "page": 5
+      },
       "headingTokens": [
         "item",
         "take",
@@ -1871,15 +1960,6 @@
         "take",
         "over",
         "phone",
-        "source",
-        "item",
-        "take",
-        "over",
-        "phone",
-        "pdf",
-        "page",
-        "5",
-        "12",
         "5",
         "back",
         "top",
@@ -2074,8 +2154,14 @@
       ]
     },
     {
-      "heading": "items to take over the phone (items-to-take-over-the-phone.pdf)",
-      "content": "# items to take over the phone\n\nSource: items-to-take-over-the-phone.pdf, page 6 of 12\n\n6\nBack to Top\nTax Withholding if\nleft blank on form\nYes No N/a Create a Task in\nInfinitie\nTax Withholding\nChange\nYes No N/a Create a Task in\nInfinitie\nMaturity Dates/ Matured Contracts\nRequest Client can provide Agent can provide Spousal Consent in\nCP state\nAddtl Steps\nExtend Maturity\nDate\nYes No No Note policy, email CR-\nprocessing to handle\nMiscellaneous: All Forms\nRequest Client can provide Agent can provide Spousal Consent in\nCP state\nAddtl Steps\nCapacity\n(POA/Guardian/\nConservator/Trustee)\nSigned the form in\nYes, from\nauthorized person\nNo N/a Create a Task in\nInfinitie\nDate form was signed Yes No N/a Create a Task in\nInfinitie\nE-Signature on non-\nAcord Transfer form\n• No E-signed\naudit page\nreceived under\n$100k)\nYes No N/a Note account, submit\nSolutions portal\nrequest to process\nSSN Doesn’t Match Call the client to\nconfirm if what they\nput on the form is\ncorrect. If what we\nhave on file is\ncorrect, we can\nprocess the request.\nIf what they put on\nthe new form is\ncorrect, we can\naccept the request\nand then update the\nSSN in the system.\nNo N/a If unable to obtain\nverbal confirmation\nfrom the client, NIGO\nthe request and send\nout a W-9 form for\nthem to complete. Do\nnot request their Social\nSecurity Card.",
+      "heading": "Items to Take Over the Phone (items-to-take-over-the-phone.pdf)",
+      "content": "# Items to Take Over the Phone\n\n6\nBack to Top\nTax Withholding if\nleft blank on form\nYes No N/a Create a Task in\nInfinitie\nTax Withholding\nChange\nYes No N/a Create a Task in\nInfinitie\nMaturity Dates/ Matured Contracts\nRequest Client can provide Agent can provide Spousal Consent in\nCP state\nAddtl Steps\nExtend Maturity\nDate\nYes No No Note policy, email CR-\nprocessing to handle\nMiscellaneous: All Forms\nRequest Client can provide Agent can provide Spousal Consent in\nCP state\nAddtl Steps\nCapacity\n(POA/Guardian/\nConservator/Trustee)\nSigned the form in\nYes, from\nauthorized person\nNo N/a Create a Task in\nInfinitie\nDate form was signed Yes No N/a Create a Task in\nInfinitie\nE-Signature on non-\nAcord Transfer form\n• No E-signed\naudit page\nreceived under\n$100k)\nYes No N/a Note account, submit\nSolutions portal\nrequest to process\nSSN Doesn’t Match Call the client to\nconfirm if what they\nput on the form is\ncorrect. If what we\nhave on file is\ncorrect, we can\nprocess the request.\nIf what they put on\nthe new form is\ncorrect, we can\naccept the request\nand then update the\nSSN in the system.\nNo N/a If unable to obtain\nverbal confirmation\nfrom the client, NIGO\nthe request and send\nout a W-9 form for\nthem to complete. Do\nnot request their Social\nSecurity Card.",
+      "source": {
+        "filename": "items-to-take-over-the-phone.pdf",
+        "title": "Items to Take Over the Phone",
+        "mediaType": "application/pdf",
+        "page": 6
+      },
       "headingTokens": [
         "item",
         "take",
@@ -2092,15 +2178,6 @@
         "take",
         "over",
         "phone",
-        "source",
-        "item",
-        "take",
-        "over",
-        "phone",
-        "pdf",
-        "page",
-        "6",
-        "12",
         "6",
         "back",
         "top",
@@ -2274,8 +2351,14 @@
       ]
     },
     {
-      "heading": "items to take over the phone (items-to-take-over-the-phone.pdf)",
-      "content": "# items to take over the phone\n\nSource: items-to-take-over-the-phone.pdf, page 7 of 12\n\n7\nBack to Top\nSSN Doesn’t Match Please call the client\nto confirm if what\nthey put on the form\nis correct. If what we\nhave on file is\ncorrect, we can\nprocess the request.\nIf what they put on\nthe new form is\ncorrect, we can\naccept the request\nand then update the\nSSN in the system.\nNo N/a If unable to obtain\nverbal confirmation\nfrom the client, NIGO\nthe request and send\nout a W-9 form for\nthem to complete. Do\nnot request their Social\nSecurity Card.\nSSN Missing Can make outbound\ncall to confirm SSN\nNo N/a Look for a W-9 or form\nwith Sub W-9 on file\n(Four-page application\ndoes count as a Sub W-\n9) If there is a W-9 or\nSub W-9 on file, the\nrequest is IGO. If none\non file, it is NIGO.\nOutstanding Checks\nRequest Client can provide Agent can provide Spousal Consent in\nCP state\nAddtl Steps\nReissue an Outstanding\nCheck\nYes Yes No Note account,\nsubmit ticket\nOvernight Requests\nRequest Client can provide Agent can provide Spousal Consent in\nCP state\nAddtl Steps\nAny financial\ntransaction that can be\nmailed overnight\nYes No N/a Create a Task in\nInfinitie\nPartial Withdrawals Partial Withdrawal Procedures\nRequest Client can provide Agent can provide Spousal Consent\nCommunity\nProperty States\nAddtl Steps",
+      "heading": "Items to Take Over the Phone (items-to-take-over-the-phone.pdf)",
+      "content": "# Items to Take Over the Phone\n\n7\nBack to Top\nSSN Doesn’t Match Please call the client\nto confirm if what\nthey put on the form\nis correct. If what we\nhave on file is\ncorrect, we can\nprocess the request.\nIf what they put on\nthe new form is\ncorrect, we can\naccept the request\nand then update the\nSSN in the system.\nNo N/a If unable to obtain\nverbal confirmation\nfrom the client, NIGO\nthe request and send\nout a W-9 form for\nthem to complete. Do\nnot request their Social\nSecurity Card.\nSSN Missing Can make outbound\ncall to confirm SSN\nNo N/a Look for a W-9 or form\nwith Sub W-9 on file\n(Four-page application\ndoes count as a Sub W-\n9) If there is a W-9 or\nSub W-9 on file, the\nrequest is IGO. If none\non file, it is NIGO.\nOutstanding Checks\nRequest Client can provide Agent can provide Spousal Consent in\nCP state\nAddtl Steps\nReissue an Outstanding\nCheck\nYes Yes No Note account,\nsubmit ticket\nOvernight Requests\nRequest Client can provide Agent can provide Spousal Consent in\nCP state\nAddtl Steps\nAny financial\ntransaction that can be\nmailed overnight\nYes No N/a Create a Task in\nInfinitie\nPartial Withdrawals Partial Withdrawal Procedures\nRequest Client can provide Agent can provide Spousal Consent\nCommunity\nProperty States\nAddtl Steps",
+      "source": {
+        "filename": "items-to-take-over-the-phone.pdf",
+        "title": "Items to Take Over the Phone",
+        "mediaType": "application/pdf",
+        "page": 7
+      },
       "headingTokens": [
         "item",
         "take",
@@ -2292,15 +2375,6 @@
         "take",
         "over",
         "phone",
-        "source",
-        "item",
-        "take",
-        "over",
-        "phone",
-        "pdf",
-        "page",
-        "7",
-        "12",
         "7",
         "back",
         "top",
@@ -2472,8 +2546,14 @@
       ]
     },
     {
-      "heading": "items to take over the phone (items-to-take-over-the-phone.pdf)",
-      "content": "# items to take over the phone\n\nSource: items-to-take-over-the-phone.pdf, page 8 of 12\n\n8\nBack to Top\nIf amount of withdrawal\nwas left blank on form\nYes No No Create a Task in\nInfinitie\nNet or Gross Yes No No Create a Task in\nInfinitie\nPartial Withdrawal OTP Yes No Yes Fillable form in\nInfinitie – Contract\n360 or\nFillable form, Create\na Task in Infinitie\nTax Withholding\nChanges\nYes No No Create a Task in\nInfinitie\nPre-Authorized Credits (PACs) PAC Procedures\nRequest Client can provide Agent can provide Spousal Consent in\nCP state\nAddtl Steps\nAccount Type Yes No No Create a Task in\nInfinitie\nAmount if left blank on\nform\nYes No No Create a Task in\nInfinitie\nChange to Amount Yes No No Create a Task in\nInfinitie\nChange to Date of Debit Yes No No Create a Task in\nInfinitie\nChange to Mode\n(Monthly, Annual)\nYes No No Create a Task in\nInfinitie\nDate of Debit if left\nblank on form\nYes No No Create a Task in\nInfinitie\nMode if left blank on\nform\nYes No No Create a Task in\nInfinitie\nPAC Form Yes No No Fillable form in\nInfinitie –\nContract 360 or\nFillable form,\nCreate a Task in\nInfinitie\nRouting or Account\nNumber left blank on\nform\nYes No No Create a Task in\nInfinitie",
+      "heading": "Items to Take Over the Phone (items-to-take-over-the-phone.pdf)",
+      "content": "# Items to Take Over the Phone\n\n8\nBack to Top\nIf amount of withdrawal\nwas left blank on form\nYes No No Create a Task in\nInfinitie\nNet or Gross Yes No No Create a Task in\nInfinitie\nPartial Withdrawal OTP Yes No Yes Fillable form in\nInfinitie – Contract\n360 or\nFillable form, Create\na Task in Infinitie\nTax Withholding\nChanges\nYes No No Create a Task in\nInfinitie\nPre-Authorized Credits (PACs) PAC Procedures\nRequest Client can provide Agent can provide Spousal Consent in\nCP state\nAddtl Steps\nAccount Type Yes No No Create a Task in\nInfinitie\nAmount if left blank on\nform\nYes No No Create a Task in\nInfinitie\nChange to Amount Yes No No Create a Task in\nInfinitie\nChange to Date of Debit Yes No No Create a Task in\nInfinitie\nChange to Mode\n(Monthly, Annual)\nYes No No Create a Task in\nInfinitie\nDate of Debit if left\nblank on form\nYes No No Create a Task in\nInfinitie\nMode if left blank on\nform\nYes No No Create a Task in\nInfinitie\nPAC Form Yes No No Fillable form in\nInfinitie –\nContract 360 or\nFillable form,\nCreate a Task in\nInfinitie\nRouting or Account\nNumber left blank on\nform\nYes No No Create a Task in\nInfinitie",
+      "source": {
+        "filename": "items-to-take-over-the-phone.pdf",
+        "title": "Items to Take Over the Phone",
+        "mediaType": "application/pdf",
+        "page": 8
+      },
       "headingTokens": [
         "item",
         "take",
@@ -2490,15 +2570,6 @@
         "take",
         "over",
         "phone",
-        "source",
-        "item",
-        "take",
-        "over",
-        "phone",
-        "pdf",
-        "page",
-        "8",
-        "12",
         "8",
         "back",
         "top",
@@ -2668,8 +2739,14 @@
       ]
     },
     {
-      "heading": "items to take over the phone (items-to-take-over-the-phone.pdf)",
-      "content": "# items to take over the phone\n\nSource: items-to-take-over-the-phone.pdf, page 9 of 12\n\n9\nBack to Top\nStop PAC Yes No No Create a Task in\nInfinitie\nRefund Requests\nRequest Client can provide Agent can provide Spousal Consent\nin CP state\nAddtl Steps\nOver Contribution\nRefund Request\nYes No No Note account,\nSubmit a TAXLT\nRequired Minimum Distributions (RMD) RMD Procedures\nRequest Client can provide Agent can provide Spousal Consent\nCommunity\nProperty States\nAddtl Steps\nMode (left blank on\nform)\nYes No No Create a Task\nin Infinitie\nMode (already\nprocessed)\nYes No No Create a Task\nin Infinitie\nRMD Form Yes No Yes Fillable form,\nCreate a Task\nin Infinitie See\nRMD\nProcedures\nSingle Life Option on the\nform\nYes No No Create a Task\nin Infinitie\nSpouse’s Name/DOB if\nJoint Option is chosen\nYes No No Create a Task\nin Infinitie\nStart Date/Payment Date\n(already processed)\nYes No No Create a Task\nin Infinitie\nStart Date/Payment Date\n(left blank on form)\nYes No No Create a Task\nin Infinitie\nStop Payments from\ngoing to a QCD- Send to\nPH instead\nYes No No Create a Task\nin Infinitie\nStop Payments/Waive\nRMD temporarily\nYes No No Create a Task\nin Infinitie\nTax Withholding Change Yes No No Create a Task\nin Infinitie",
+      "heading": "Items to Take Over the Phone (items-to-take-over-the-phone.pdf)",
+      "content": "# Items to Take Over the Phone\n\n9\nBack to Top\nStop PAC Yes No No Create a Task in\nInfinitie\nRefund Requests\nRequest Client can provide Agent can provide Spousal Consent\nin CP state\nAddtl Steps\nOver Contribution\nRefund Request\nYes No No Note account,\nSubmit a TAXLT\nRequired Minimum Distributions (RMD) RMD Procedures\nRequest Client can provide Agent can provide Spousal Consent\nCommunity\nProperty States\nAddtl Steps\nMode (left blank on\nform)\nYes No No Create a Task\nin Infinitie\nMode (already\nprocessed)\nYes No No Create a Task\nin Infinitie\nRMD Form Yes No Yes Fillable form,\nCreate a Task\nin Infinitie See\nRMD\nProcedures\nSingle Life Option on the\nform\nYes No No Create a Task\nin Infinitie\nSpouse’s Name/DOB if\nJoint Option is chosen\nYes No No Create a Task\nin Infinitie\nStart Date/Payment Date\n(already processed)\nYes No No Create a Task\nin Infinitie\nStart Date/Payment Date\n(left blank on form)\nYes No No Create a Task\nin Infinitie\nStop Payments from\ngoing to a QCD- Send to\nPH instead\nYes No No Create a Task\nin Infinitie\nStop Payments/Waive\nRMD temporarily\nYes No No Create a Task\nin Infinitie\nTax Withholding Change Yes No No Create a Task\nin Infinitie",
+      "source": {
+        "filename": "items-to-take-over-the-phone.pdf",
+        "title": "Items to Take Over the Phone",
+        "mediaType": "application/pdf",
+        "page": 9
+      },
       "headingTokens": [
         "item",
         "take",
@@ -2686,15 +2763,6 @@
         "take",
         "over",
         "phone",
-        "source",
-        "item",
-        "take",
-        "over",
-        "phone",
-        "pdf",
-        "page",
-        "9",
-        "12",
         "9",
         "back",
         "top",
@@ -2865,8 +2933,14 @@
       ]
     },
     {
-      "heading": "items to take over the phone (items-to-take-over-the-phone.pdf)",
-      "content": "# items to take over the phone\n\nSource: items-to-take-over-the-phone.pdf, page 10 of 12\n\n10\nBack to Top\nTax Withholding (left\nblank on form)\nYes No No Create a Task\nin Infinitie\nRush Reviews\nRequest Client can provide Agent can provide Spousal Consent Addtl Steps\nTrue Rush Request\n(Medical, Housing,\nDeath)\nYes No N/a Submit\nappropriate form\nOTP\nSubmit ticket in\nSolutions Portal\nfor review\nSurrenders Surrender Procedures\nRequest Client can provide Agent can provide Spousal Consent\nCommunity\nProperty States\nAddtl Steps\nSurrender Form OTP Yes No Yes Fillable form,\nCreate a Task in\nInfinitie\n*Must go over\nSurrender\nChecklist\nTax Withholding\nChanges\nYes No No Create a Task in\nInfinitie\nSystematic Withdrawals Systematic Withdrawal Procedures\nRequest Client can provide Agent can provide Spousal Consent\nCommunity\nProperty States\nAddtl Steps\nIncrease/Decrease\nPayment Amount\nYes No Only if payments\nare increasing\nCreate a Task in\nInfinitie\n*Discuss penalties\nif applicable\nMode (already\nprocessed)\nYes No No Create a Task in\nInfinitie\nMode (left blank on\nform)\nYes No No Create a Task in\nInfinitie",
+      "heading": "Items to Take Over the Phone (items-to-take-over-the-phone.pdf)",
+      "content": "# Items to Take Over the Phone\n\n10\nBack to Top\nTax Withholding (left\nblank on form)\nYes No No Create a Task\nin Infinitie\nRush Reviews\nRequest Client can provide Agent can provide Spousal Consent Addtl Steps\nTrue Rush Request\n(Medical, Housing,\nDeath)\nYes No N/a Submit\nappropriate form\nOTP\nSubmit ticket in\nSolutions Portal\nfor review\nSurrenders Surrender Procedures\nRequest Client can provide Agent can provide Spousal Consent\nCommunity\nProperty States\nAddtl Steps\nSurrender Form OTP Yes No Yes Fillable form,\nCreate a Task in\nInfinitie\n*Must go over\nSurrender\nChecklist\nTax Withholding\nChanges\nYes No No Create a Task in\nInfinitie\nSystematic Withdrawals Systematic Withdrawal Procedures\nRequest Client can provide Agent can provide Spousal Consent\nCommunity\nProperty States\nAddtl Steps\nIncrease/Decrease\nPayment Amount\nYes No Only if payments\nare increasing\nCreate a Task in\nInfinitie\n*Discuss penalties\nif applicable\nMode (already\nprocessed)\nYes No No Create a Task in\nInfinitie\nMode (left blank on\nform)\nYes No No Create a Task in\nInfinitie",
+      "source": {
+        "filename": "items-to-take-over-the-phone.pdf",
+        "title": "Items to Take Over the Phone",
+        "mediaType": "application/pdf",
+        "page": 10
+      },
       "headingTokens": [
         "item",
         "take",
@@ -2883,15 +2957,6 @@
         "take",
         "over",
         "phone",
-        "source",
-        "item",
-        "take",
-        "over",
-        "phone",
-        "pdf",
-        "page",
-        "10",
-        "12",
         "10",
         "back",
         "top",
@@ -3031,8 +3096,14 @@
       ]
     },
     {
-      "heading": "items to take over the phone (items-to-take-over-the-phone.pdf)",
-      "content": "# items to take over the phone\n\nSource: items-to-take-over-the-phone.pdf, page 11 of 12\n\n11\nBack to Top\nStart Date/Payment\nDate (already\nprocessed)\nYes No No Create a Task in\nInfinitie\nStart Date/Payment\nDate (left blank on\nform)\nYes No No Create a Task in\nInfinitie\nStop Payments Yes No No Create a Task in\nInfinitie\nSystematic Withdrawal\nForm OTP\nYes No Yes Fillable form,\nCreate a Task in\nInfinitie\nTax Withholding Change Yes No No Create a Task in\nInfinitie\nTax Withholding (left\nblank on form)\nYes No No Create a Task in\nInfinitie\nTransfer of Values (TOVs) TOV Procedures\nRequest Client can provide Agent can provide Spousal Consent in\nCP state\nAddtl Steps\nTOV Form OTP Yes Yes, if Agent Auth\n(8053) on file\nallows\nNo Fillable form in\nInfinitie – Contract\n360\n72T / 72Q Payments 72T / 72Q Procedures\nRequest Client can provide Agent can provide Spousal Consent\nCommunity\nProperty States\nAddtl Steps\nPayment Mode Change\n(after payments have\nbegun)\nYes No Yes Create a Task in\nInfinitie\nPayment Mode (left\nblank on form)\nYes No Yes Create a Task in\nInfinitie\nStart Date (left blank on\nform)\nYes No Yes Create a Task in\nInfinitie",
+      "heading": "Items to Take Over the Phone (items-to-take-over-the-phone.pdf)",
+      "content": "# Items to Take Over the Phone\n\n11\nBack to Top\nStart Date/Payment\nDate (already\nprocessed)\nYes No No Create a Task in\nInfinitie\nStart Date/Payment\nDate (left blank on\nform)\nYes No No Create a Task in\nInfinitie\nStop Payments Yes No No Create a Task in\nInfinitie\nSystematic Withdrawal\nForm OTP\nYes No Yes Fillable form,\nCreate a Task in\nInfinitie\nTax Withholding Change Yes No No Create a Task in\nInfinitie\nTax Withholding (left\nblank on form)\nYes No No Create a Task in\nInfinitie\nTransfer of Values (TOVs) TOV Procedures\nRequest Client can provide Agent can provide Spousal Consent in\nCP state\nAddtl Steps\nTOV Form OTP Yes Yes, if Agent Auth\n(8053) on file\nallows\nNo Fillable form in\nInfinitie – Contract\n360\n72T / 72Q Payments 72T / 72Q Procedures\nRequest Client can provide Agent can provide Spousal Consent\nCommunity\nProperty States\nAddtl Steps\nPayment Mode Change\n(after payments have\nbegun)\nYes No Yes Create a Task in\nInfinitie\nPayment Mode (left\nblank on form)\nYes No Yes Create a Task in\nInfinitie\nStart Date (left blank on\nform)\nYes No Yes Create a Task in\nInfinitie",
+      "source": {
+        "filename": "items-to-take-over-the-phone.pdf",
+        "title": "Items to Take Over the Phone",
+        "mediaType": "application/pdf",
+        "page": 11
+      },
       "headingTokens": [
         "item",
         "take",
@@ -3049,15 +3120,6 @@
         "take",
         "over",
         "phone",
-        "source",
-        "item",
-        "take",
-        "over",
-        "phone",
-        "pdf",
-        "page",
-        "11",
-        "12",
         "11",
         "back",
         "top",
@@ -3215,8 +3277,14 @@
       ]
     },
     {
-      "heading": "items to take over the phone (items-to-take-over-the-phone.pdf)",
-      "content": "# items to take over the phone\n\nSource: items-to-take-over-the-phone.pdf, page 12 of 12\n\n12\nBack to Top\nStart Date Change (if\npayments have NOT\nstarted)\nYes No Yes Create a Task in\nInfinitie\nTax Withholding\nChange (after payments\nhave begun)\nYes No Yes Create a Task in\nInfinitie\nRevision History\n03/16/2026 (updated title of Community Property States and Spousal Consent Reference Guide – renamed Community Property States\nReference Guide)\n02/03/2026 (updated steps to removing the Agent of Record)\n10/23/2025 (removed PAG references, updated to Infinitie – Contract 360)\n07/08/2025 (removed Prod Image verbiage, updated to Create a Task in Infinitie and linked to Job Aid)\n04/10/2024 (added link to NB OTP vs Corrections document)\n11/20/2024 (added Spousal Consent direction in the Considerations section)\n10/24/2024 (added Agent Removal OTP form in the Agent Request sections)\n07/11/2024 (added Index Lock)\n06/10/2024 (added LIBR Termination)\n05/21/2024 (Revised)\n02/27/2024 (Updated)\n07/05/2023 (Updated)\n05/15/2023-removed \"if not indicated on the form\" from LIBR RMD step-up section as requests to step-up LIB payments to satisfy an RMD\ncan be taken OTP at any time\n03/27/2023 (Updated)\n02/23/2023 (Created)",
+      "heading": "Items to Take Over the Phone (items-to-take-over-the-phone.pdf)",
+      "content": "# Items to Take Over the Phone\n\n12\nBack to Top\nStart Date Change (if\npayments have NOT\nstarted)\nYes No Yes Create a Task in\nInfinitie\nTax Withholding\nChange (after payments\nhave begun)\nYes No Yes Create a Task in\nInfinitie\nRevision History\n03/16/2026 (updated title of Community Property States and Spousal Consent Reference Guide – renamed Community Property States\nReference Guide)\n02/03/2026 (updated steps to removing the Agent of Record)\n10/23/2025 (removed PAG references, updated to Infinitie – Contract 360)\n07/08/2025 (removed Prod Image verbiage, updated to Create a Task in Infinitie and linked to Job Aid)\n04/10/2024 (added link to NB OTP vs Corrections document)\n11/20/2024 (added Spousal Consent direction in the Considerations section)\n10/24/2024 (added Agent Removal OTP form in the Agent Request sections)\n07/11/2024 (added Index Lock)\n06/10/2024 (added LIBR Termination)\n05/21/2024 (Revised)\n02/27/2024 (Updated)\n07/05/2023 (Updated)\n05/15/2023-removed \"if not indicated on the form\" from LIBR RMD step-up section as requests to step-up LIB payments to satisfy an RMD\ncan be taken OTP at any time\n03/27/2023 (Updated)\n02/23/2023 (Created)",
+      "source": {
+        "filename": "items-to-take-over-the-phone.pdf",
+        "title": "Items to Take Over the Phone",
+        "mediaType": "application/pdf",
+        "page": 12
+      },
       "headingTokens": [
         "item",
         "take",
@@ -3233,15 +3301,6 @@
         "take",
         "over",
         "phone",
-        "source",
-        "item",
-        "take",
-        "over",
-        "phone",
-        "pdf",
-        "page",
-        "12",
-        "12",
         "12",
         "back",
         "top",
@@ -3418,6 +3477,11 @@
     {
       "heading": "Frequently Asked Questions (policy-faq.md)",
       "content": "# Frequently Asked Questions",
+      "source": {
+        "filename": "policy-faq.md",
+        "title": "Frequently Asked Questions",
+        "mediaType": "text/markdown"
+      },
       "headingTokens": [
         "frequently",
         "asked",
@@ -3435,6 +3499,11 @@
     {
       "heading": "Frequently Asked Questions — How do I update my beneficiary? (policy-faq.md)",
       "content": "## How do I update my beneficiary?\r\n\r\nNavigate to Profile > Beneficiary Details and submit the required information.\r\n\r\n---",
+      "source": {
+        "filename": "policy-faq.md",
+        "title": "Frequently Asked Questions",
+        "mediaType": "text/markdown"
+      },
       "headingTokens": [
         "frequently",
         "asked",
@@ -3462,6 +3531,11 @@
     {
       "heading": "Frequently Asked Questions — How can I download my policy document? (policy-faq.md)",
       "content": "## How can I download my policy document?\r\n\r\nOpen the Policies page and select Download Policy Document.\r\n\r\n---",
+      "source": {
+        "filename": "policy-faq.md",
+        "title": "Frequently Asked Questions",
+        "mediaType": "text/markdown"
+      },
       "headingTokens": [
         "frequently",
         "asked",
@@ -3491,6 +3565,11 @@
     {
       "heading": "Frequently Asked Questions — Can I change my premium payment frequency? (policy-faq.md)",
       "content": "## Can I change my premium payment frequency?\r\n\r\nYes.\r\n\r\nMonthly, quarterly, semi-annual and annual payment options are available.\r\n\r\n---",
+      "source": {
+        "filename": "policy-faq.md",
+        "title": "Frequently Asked Questions",
+        "mediaType": "text/markdown"
+      },
       "headingTokens": [
         "frequently",
         "asked",
@@ -3522,6 +3601,11 @@
     {
       "heading": "Frequently Asked Questions — How do I contact customer support? (policy-faq.md)",
       "content": "## How do I contact customer support?\r\n\r\nCustomer support is available Monday through Friday from 8:00 AM to 6:00 PM.",
+      "source": {
+        "filename": "policy-faq.md",
+        "title": "Frequently Asked Questions",
+        "mediaType": "text/markdown"
+      },
       "headingTokens": [
         "frequently",
         "asked",
@@ -3556,6 +3640,11 @@
     {
       "heading": "Premium Payments (premium-payments.md)",
       "content": "# Premium Payments\r\n\r\nPremiums can be paid using:\r\n\r\n- Bank Transfer\r\n- Credit Card\r\n- Debit Card\r\n- Auto Pay\r\n\r\n---",
+      "source": {
+        "filename": "premium-payments.md",
+        "title": "Premium Payments",
+        "mediaType": "text/markdown"
+      },
       "headingTokens": [
         "premium",
         "payment",
@@ -3583,6 +3672,11 @@
     {
       "heading": "Premium Payments — Grace Period (premium-payments.md)",
       "content": "## Grace Period\r\n\r\nA 30-day grace period applies after the premium due date.\r\n\r\n---",
+      "source": {
+        "filename": "premium-payments.md",
+        "title": "Premium Payments",
+        "mediaType": "text/markdown"
+      },
       "headingTokens": [
         "premium",
         "payment",
@@ -3609,6 +3703,11 @@
     {
       "heading": "Premium Payments — Missed Payment (premium-payments.md)",
       "content": "## Missed Payment\r\n\r\nIf payment is not received within the grace period, the policy may lapse.",
+      "source": {
+        "filename": "premium-payments.md",
+        "title": "Premium Payments",
+        "mediaType": "text/markdown"
+      },
       "headingTokens": [
         "premium",
         "payment",
@@ -3636,6 +3735,11 @@
     {
       "heading": "SecureLife Plus Insurance (product-guide.md)",
       "content": "# SecureLife Plus Insurance\r\n\r\nSecureLife Plus is a flexible life insurance product designed to provide long-term financial protection.",
+      "source": {
+        "filename": "product-guide.md",
+        "title": "SecureLife Plus Insurance",
+        "mediaType": "text/markdown"
+      },
       "headingTokens": [
         "securelife",
         "plu",
@@ -3665,6 +3769,11 @@
     {
       "heading": "SecureLife Plus Insurance — Features (product-guide.md)",
       "content": "## Features\r\n\r\n- Flexible premium payment options\r\n- Lifetime death benefit\r\n- Optional accidental death rider\r\n- Cash value accumulation\r\n- Online policy management",
+      "source": {
+        "filename": "product-guide.md",
+        "title": "SecureLife Plus Insurance",
+        "mediaType": "text/markdown"
+      },
       "headingTokens": [
         "securelife",
         "plu",
@@ -3698,6 +3807,11 @@
     {
       "heading": "SecureLife Plus Insurance — Eligibility (product-guide.md)",
       "content": "## Eligibility\r\n\r\n- Minimum age: 18 years\r\n- Maximum age: 65 years",
+      "source": {
+        "filename": "product-guide.md",
+        "title": "SecureLife Plus Insurance",
+        "mediaType": "text/markdown"
+      },
       "headingTokens": [
         "securelife",
         "plu",
@@ -3722,6 +3836,11 @@
     {
       "heading": "SecureLife Plus Insurance — Policy Term (product-guide.md)",
       "content": "## Policy Term\r\n\r\nCoverage continues until age 99 provided premiums are paid.",
+      "source": {
+        "filename": "product-guide.md",
+        "title": "SecureLife Plus Insurance",
+        "mediaType": "text/markdown"
+      },
       "headingTokens": [
         "securelife",
         "plu",
@@ -3746,8 +3865,14 @@
       ]
     },
     {
-      "heading": "transferring calls to another area (transferring-calls-to-another-area.pdf)",
-      "content": "# transferring calls to another area\n\nSource: transferring-calls-to-another-area.pdf, page 1 of 7\n\nBack to top 1\nTransferring Calls to Another Area\nDepartment: Customer Excellence - Operations\nContact(s): Manager or Training Team\nSee the end of the document for the revision history.\nIt is the responsibility of all employees to comply with all written procedures including the procedures documented\nherein. Printed copies or copies saved to personal drives are for reference only. Please refer to the electronic copy for the\nlatest version. Failure to comply may lead to disciplinary action, up to and including termination.\nPurpose: Customer Excellence works with internal employees as well as external\ncustomers on a daily basis. Please utilize these guidelines when transferring calls to your\ncoworkers in other departments and teams to make sure we are providing excellent\ncustomer service to everyone.\nTable of Contents\nConsiderations: ..................................................................................................................................................................................................................................... 1\nAgent Locator Program: ................................................................................................................................................................................................................... 2\nSales Transfers:..................................................................................................................................................................................................................................... 2\nAgency Transfers: ................................................................................................................................................................................................................................ 3\nCustomer Excellence Calls: ............................................................................................................................................................................................................. 4\nNew Business Transfers: ................................................................................................................................................................................................................. 4\nSolutions Transfers: ........................................................................................................................................................................................................................... 4\nClaims Transfers: ................................................................................................................................................................................................................................. 5\nResolutions: ............................................................................................................................................................................................................................................ 5\nSuitability Transfers: ......................................................................................................................................................................................................................... 5\nLife Policies: ............................................................................................................................................................................................................................................ 5\nFAST – FlexShield 10 ......................................................................................................................................................................................................................... 6\nRevision History:.................................................................................................................................................................................................................................. 6\t1\nConsiderations\n• Always verify the caller following standard Verification Requirements before\ntransferring.\n• For a comprehensive list of phone numbers, reference the Quick Contact Reference\nGuide.\n• For email addresses and further details, reference the Quick Contact Email List.\n• Refer to the Genesys Phone User Guide for Transfer directions.\n• For American National numbers and resources, reference the Contact List - ANICO",
+      "heading": "Transferring Calls to Another Area (transferring-calls-to-another-area.pdf)",
+      "content": "# Transferring Calls to Another Area\n\nBack to top 1\nTransferring Calls to Another Area\nDepartment: Customer Excellence - Operations\nContact(s): Manager or Training Team\nSee the end of the document for the revision history.\nIt is the responsibility of all employees to comply with all written procedures including the procedures documented\nherein. Printed copies or copies saved to personal drives are for reference only. Please refer to the electronic copy for the\nlatest version. Failure to comply may lead to disciplinary action, up to and including termination.\nPurpose: Customer Excellence works with internal employees as well as external\ncustomers on a daily basis. Please utilize these guidelines when transferring calls to your\ncoworkers in other departments and teams to make sure we are providing excellent\ncustomer service to everyone.\nTable of Contents\nConsiderations: ..................................................................................................................................................................................................................................... 1\nAgent Locator Program: ................................................................................................................................................................................................................... 2\nSales Transfers:..................................................................................................................................................................................................................................... 2\nAgency Transfers: ................................................................................................................................................................................................................................ 3\nCustomer Excellence Calls: ............................................................................................................................................................................................................. 4\nNew Business Transfers: ................................................................................................................................................................................................................. 4\nSolutions Transfers: ........................................................................................................................................................................................................................... 4\nClaims Transfers: ................................................................................................................................................................................................................................. 5\nResolutions: ............................................................................................................................................................................................................................................ 5\nSuitability Transfers: ......................................................................................................................................................................................................................... 5\nLife Policies: ............................................................................................................................................................................................................................................ 5\nFAST – FlexShield 10 ......................................................................................................................................................................................................................... 6\nRevision History:.................................................................................................................................................................................................................................. 6\t1\nConsiderations\n• Always verify the caller following standard Verification Requirements before\ntransferring.\n• For a comprehensive list of phone numbers, reference the Quick Contact Reference\nGuide.\n• For email addresses and further details, reference the Quick Contact Email List.\n• Refer to the Genesys Phone User Guide for Transfer directions.\n• For American National numbers and resources, reference the Contact List - ANICO",
+      "source": {
+        "filename": "transferring-calls-to-another-area.pdf",
+        "title": "Transferring Calls to Another Area",
+        "mediaType": "application/pdf",
+        "page": 1
+      },
       "headingTokens": [
         "transferring",
         "call",
@@ -3764,15 +3889,6 @@
         "call",
         "another",
         "area",
-        "source",
-        "transferring",
-        "call",
-        "another",
-        "area",
-        "pdf",
-        "page",
-        "1",
-        "7",
         "back",
         "top",
         "1",
@@ -3952,8 +4068,14 @@
       ]
     },
     {
-      "heading": "transferring calls to another area (transferring-calls-to-another-area.pdf)",
-      "content": "# transferring calls to another area\n\nSource: transferring-calls-to-another-area.pdf, page 2 of 7\n\n2\nBack to Top\nAgent Locator Program\nClient requesting a new agent, whether they have an active existing agent or not Reference\nthe Agent Locator Program Procedure to complete form.\nSales Transfers\nAgents calling on future/potential business or for reasons noted in the next bulleted\nsection can be transferred to AE Sales, AN Sales, EL Sales or AE of NY Sales queues.\nVerify agents following standard verification procedures, including but not limited to, agent\nnumber or social security number.\n• For agents not currently active, Customer Excellence should try to assist; however, if\nthe caller has questions regarding their license status, transfer them to the Agency\nTeam.\n• For calls regarding technical issues, including systems not performing, please\nsubmit a Solutions Portal ticket for IT review. Do not transfer to Sales.\nCalls regarding the following can be transferred to Sales:\n• Advertising Templates and Ad Slicks\n• Agents who are not currently appointed and would like to learn about our products\nwith the intent to sell.\n• MyPortal and other public facing website/software, including:\no Assistance in Navigation\no Assistance in completing an illustration\no Assistance in completing a ReadyApp application\no Requesting access to view commission statements\no Requesting access to see list of active clients in MyPortal\no Assistance finding Marketing or Sales materials\n• Agents who want to discuss an email received from Marketing@american-\nequity.com\n• Agent questions regarding their year-to-date production statistics\n• Agent supply requests\n• Business who wants to become an IMO (direct contract) with American Equity\n• General questions regarding American Equity\n• General Commission questions\no Contract specific commission questions should be transferred to the Agency\nTeam. See below for Agency Team Transfers.\n• Historical credit rates, interest rates, or earnings information that is not contract\nspecific",
+      "heading": "Transferring Calls to Another Area (transferring-calls-to-another-area.pdf)",
+      "content": "# Transferring Calls to Another Area\n\n2\nBack to Top\nAgent Locator Program\nClient requesting a new agent, whether they have an active existing agent or not Reference\nthe Agent Locator Program Procedure to complete form.\nSales Transfers\nAgents calling on future/potential business or for reasons noted in the next bulleted\nsection can be transferred to AE Sales, AN Sales, EL Sales or AE of NY Sales queues.\nVerify agents following standard verification procedures, including but not limited to, agent\nnumber or social security number.\n• For agents not currently active, Customer Excellence should try to assist; however, if\nthe caller has questions regarding their license status, transfer them to the Agency\nTeam.\n• For calls regarding technical issues, including systems not performing, please\nsubmit a Solutions Portal ticket for IT review. Do not transfer to Sales.\nCalls regarding the following can be transferred to Sales:\n• Advertising Templates and Ad Slicks\n• Agents who are not currently appointed and would like to learn about our products\nwith the intent to sell.\n• MyPortal and other public facing website/software, including:\no Assistance in Navigation\no Assistance in completing an illustration\no Assistance in completing a ReadyApp application\no Requesting access to view commission statements\no Requesting access to see list of active clients in MyPortal\no Assistance finding Marketing or Sales materials\n• Agents who want to discuss an email received from Marketing@american-\nequity.com\n• Agent questions regarding their year-to-date production statistics\n• Agent supply requests\n• Business who wants to become an IMO (direct contract) with American Equity\n• General questions regarding American Equity\n• General Commission questions\no Contract specific commission questions should be transferred to the Agency\nTeam. See below for Agency Team Transfers.\n• Historical credit rates, interest rates, or earnings information that is not contract\nspecific",
+      "source": {
+        "filename": "transferring-calls-to-another-area.pdf",
+        "title": "Transferring Calls to Another Area",
+        "mediaType": "application/pdf",
+        "page": 2
+      },
       "headingTokens": [
         "transferring",
         "call",
@@ -3970,15 +4092,6 @@
         "call",
         "another",
         "area",
-        "source",
-        "transferring",
-        "call",
-        "another",
-        "area",
-        "pdf",
-        "page",
-        "2",
-        "7",
         "2",
         "back",
         "top",
@@ -4215,8 +4328,14 @@
       ]
     },
     {
-      "heading": "transferring calls to another area (transferring-calls-to-another-area.pdf)",
-      "content": "# transferring calls to another area\n\nSource: transferring-calls-to-another-area.pdf, page 3 of 7\n\n3\nBack to Top\no Contract specific questions regarding annual statements, rates, or earnings\nshould be researched and handled by Customer Excellence\n• Illustrations for contracts not yet issued\no Illustrations for in-force contracts will be handled by Customer Excellence\n• Loyalty Rewards Program (formerly Gold Eagle Program), Partner Conference,\nagent events, contests, incentives, gifts received, etc.\n• New product information\n• Product training\n• Questions regarding the Client Appreciation Luncheon\n• Review of sales materials\nIn addition to calls from Agents, contract holders may call regarding sales materials. This is\nbecause the introductory letter for new contract holders includes the below paragraph:\nIf a client calls in requesting the sales materials because their agent did not provide them\nduring the sales process, transfer the call to marketing or if the request was written, email\nsales@american-equity.com. In the email, let them know that the client is requesting sales\nmaterial for their contract. Include the product that the contract was issued with and\ncontract number.\nMarketing will send all requested sales brochures to the client.\nAgency Transfers\nCalls regarding the following requests go to the applicable Agency queue:\n• Agents or uplines asking about debit balances, charge backs, or commissions.\n• Agents or uplines asking about transfers, contract changes, or licensing information\n• Eagle Life block transfers from one broker dealer to another\n• Agent unable to see their book of business on the agent website\no Confirm if contract is issued or not. If not issued, it will not display. Reference\nthe Pending Business not Showing on Agent Website procedure.\n• Requests to remove an agent\n• Agent change request in OPUS",
+      "heading": "Transferring Calls to Another Area (transferring-calls-to-another-area.pdf)",
+      "content": "# Transferring Calls to Another Area\n\n3\nBack to Top\no Contract specific questions regarding annual statements, rates, or earnings\nshould be researched and handled by Customer Excellence\n• Illustrations for contracts not yet issued\no Illustrations for in-force contracts will be handled by Customer Excellence\n• Loyalty Rewards Program (formerly Gold Eagle Program), Partner Conference,\nagent events, contests, incentives, gifts received, etc.\n• New product information\n• Product training\n• Questions regarding the Client Appreciation Luncheon\n• Review of sales materials\nIn addition to calls from Agents, contract holders may call regarding sales materials. This is\nbecause the introductory letter for new contract holders includes the below paragraph:\nIf a client calls in requesting the sales materials because their agent did not provide them\nduring the sales process, transfer the call to marketing or if the request was written, email\nsales@american-equity.com. In the email, let them know that the client is requesting sales\nmaterial for their contract. Include the product that the contract was issued with and\ncontract number.\nMarketing will send all requested sales brochures to the client.\nAgency Transfers\nCalls regarding the following requests go to the applicable Agency queue:\n• Agents or uplines asking about debit balances, charge backs, or commissions.\n• Agents or uplines asking about transfers, contract changes, or licensing information\n• Eagle Life block transfers from one broker dealer to another\n• Agent unable to see their book of business on the agent website\no Confirm if contract is issued or not. If not issued, it will not display. Reference\nthe Pending Business not Showing on Agent Website procedure.\n• Requests to remove an agent\n• Agent change request in OPUS",
+      "source": {
+        "filename": "transferring-calls-to-another-area.pdf",
+        "title": "Transferring Calls to Another Area",
+        "mediaType": "application/pdf",
+        "page": 3
+      },
       "headingTokens": [
         "transferring",
         "call",
@@ -4233,15 +4352,6 @@
         "call",
         "another",
         "area",
-        "source",
-        "transferring",
-        "call",
-        "another",
-        "area",
-        "pdf",
-        "page",
-        "3",
-        "7",
         "3",
         "back",
         "top",
@@ -4462,8 +4572,14 @@
       ]
     },
     {
-      "heading": "transferring calls to another area (transferring-calls-to-another-area.pdf)",
-      "content": "# transferring calls to another area\n\nSource: transferring-calls-to-another-area.pdf, page 4 of 7\n\n4\nBack to Top\nCustomer Excellence Calls\nCalls regarding the following requests can be handled by Post Production Client team\nmembers (Post Issue queue):\n• Most servicing tasks and questions unless otherwise noted\n• Potential client looking to open a contract\n• Annuitization quotes\n• Concierge Agents\no Are provided a 5 digit access code to use when calling into the Concierge\nphone line. If the incoming phone number or code is not recognized, the\ninteraction will be routed to the main agent phone line.\no If a call is received from a Concierge agent or assistant, assist them by\nfollowing standard procedures, do not transfer them to the Concierge line.\no Send an email to the Concierge Manager, with the policy number, agent\nname, a brief recap of the call, and if a follow-up is needed.\n• Multi-factor Authentication (MFA) Calls, transfer to the Password Reset queue.\no Select the applicable Skill from the drop-down list for the Password Reset\nqueue.\n▪ AEL Password Reset\n▪ Eagle Life Password Reset\n▪ AEL of NY Password Reset\nNew Business Transfers\nCalls regarding the following requests go to the New Business Team (Agent-Pre Issue\nqueue):\n• Questions on pending/incomplete cases\n• Free look cancels and delivery receipts\n• Request for paperwork regarding transfers into American Equity\n• Adding additional funds\n• Internal rollover paperwork\nCompany Code 06\n• The contract number begin with Y or NY\n• Calls regarding NY cases should be transferred to NY Post Issue queue.\nSolutions Transfers",
+      "heading": "Transferring Calls to Another Area (transferring-calls-to-another-area.pdf)",
+      "content": "# Transferring Calls to Another Area\n\n4\nBack to Top\nCustomer Excellence Calls\nCalls regarding the following requests can be handled by Post Production Client team\nmembers (Post Issue queue):\n• Most servicing tasks and questions unless otherwise noted\n• Potential client looking to open a contract\n• Annuitization quotes\n• Concierge Agents\no Are provided a 5 digit access code to use when calling into the Concierge\nphone line. If the incoming phone number or code is not recognized, the\ninteraction will be routed to the main agent phone line.\no If a call is received from a Concierge agent or assistant, assist them by\nfollowing standard procedures, do not transfer them to the Concierge line.\no Send an email to the Concierge Manager, with the policy number, agent\nname, a brief recap of the call, and if a follow-up is needed.\n• Multi-factor Authentication (MFA) Calls, transfer to the Password Reset queue.\no Select the applicable Skill from the drop-down list for the Password Reset\nqueue.\n▪ AEL Password Reset\n▪ Eagle Life Password Reset\n▪ AEL of NY Password Reset\nNew Business Transfers\nCalls regarding the following requests go to the New Business Team (Agent-Pre Issue\nqueue):\n• Questions on pending/incomplete cases\n• Free look cancels and delivery receipts\n• Request for paperwork regarding transfers into American Equity\n• Adding additional funds\n• Internal rollover paperwork\nCompany Code 06\n• The contract number begin with Y or NY\n• Calls regarding NY cases should be transferred to NY Post Issue queue.\nSolutions Transfers",
+      "source": {
+        "filename": "transferring-calls-to-another-area.pdf",
+        "title": "Transferring Calls to Another Area",
+        "mediaType": "application/pdf",
+        "page": 4
+      },
       "headingTokens": [
         "transferring",
         "call",
@@ -4480,15 +4596,6 @@
         "call",
         "another",
         "area",
-        "source",
-        "transferring",
-        "call",
-        "another",
-        "area",
-        "pdf",
-        "page",
-        "4",
-        "7",
         "4",
         "back",
         "top",
@@ -4682,8 +4789,14 @@
       ]
     },
     {
-      "heading": "transferring calls to another area (transferring-calls-to-another-area.pdf)",
-      "content": "# transferring calls to another area\n\nSource: transferring-calls-to-another-area.pdf, page 5 of 7\n\n5\nBack to Top\nCalls regarding the following requests go to the Solutions queue or email them at\nsolutionsrequests@american-equity.com:\n• Premium refunds/over-contributions\no We need a signed and dated Letter of Instruction (LOI) from the customer. If\nan LOI is on file, then Solutions will be able to assist. If not, please advise the\ncaller to submit an LOI.\n• Reissue requests\n• Cost basis corrections\nClaims Transfers\nCalls regarding the following requests go to the Claims queue:\n• All pending death claim questions.\n• Contracts ending in a “S” (Stretch) and “D” (Deferred)\nResolutions\n• If the caller wants to file a complaint about an agent or product:\no The complaint must be in writing. The complaint may be faxed, mailed, or\nemailed.\no Once the complaint is received, it will be handled in the Resolution Team.\no Once a caller has notified you that a complaint is going to be filed, email your\nManager.\n▪ The Manager will forward the email to a leader on the Resolution\nTeam as a heads-up that a complaint is being filed.\n• If a caller mentions that an attorney will be getting involved, try to transfer the call\nto Resolutions. If you are unable to get someone on the phone, please send an email\nto your Manager right away regarding the phone call.\nSuitability Transfers\nCalls from agents or uplines regarding the following should be transferred to the Suitability\nqueue.\n• Questions on files that are pending Suitability review.\n• Reasons for Suitability decisions on declines or approvals that were modified\nLife Policies\n• Please transfer all Life and Cancer policies to the Life Group/Entrada.",
+      "heading": "Transferring Calls to Another Area (transferring-calls-to-another-area.pdf)",
+      "content": "# Transferring Calls to Another Area\n\n5\nBack to Top\nCalls regarding the following requests go to the Solutions queue or email them at\nsolutionsrequests@american-equity.com:\n• Premium refunds/over-contributions\no We need a signed and dated Letter of Instruction (LOI) from the customer. If\nan LOI is on file, then Solutions will be able to assist. If not, please advise the\ncaller to submit an LOI.\n• Reissue requests\n• Cost basis corrections\nClaims Transfers\nCalls regarding the following requests go to the Claims queue:\n• All pending death claim questions.\n• Contracts ending in a “S” (Stretch) and “D” (Deferred)\nResolutions\n• If the caller wants to file a complaint about an agent or product:\no The complaint must be in writing. The complaint may be faxed, mailed, or\nemailed.\no Once the complaint is received, it will be handled in the Resolution Team.\no Once a caller has notified you that a complaint is going to be filed, email your\nManager.\n▪ The Manager will forward the email to a leader on the Resolution\nTeam as a heads-up that a complaint is being filed.\n• If a caller mentions that an attorney will be getting involved, try to transfer the call\nto Resolutions. If you are unable to get someone on the phone, please send an email\nto your Manager right away regarding the phone call.\nSuitability Transfers\nCalls from agents or uplines regarding the following should be transferred to the Suitability\nqueue.\n• Questions on files that are pending Suitability review.\n• Reasons for Suitability decisions on declines or approvals that were modified\nLife Policies\n• Please transfer all Life and Cancer policies to the Life Group/Entrada.",
+      "source": {
+        "filename": "transferring-calls-to-another-area.pdf",
+        "title": "Transferring Calls to Another Area",
+        "mediaType": "application/pdf",
+        "page": 5
+      },
       "headingTokens": [
         "transferring",
         "call",
@@ -4700,15 +4813,6 @@
         "call",
         "another",
         "area",
-        "source",
-        "transferring",
-        "call",
-        "another",
-        "area",
-        "pdf",
-        "page",
-        "5",
-        "7",
         "5",
         "back",
         "top",
@@ -4908,8 +5012,14 @@
       ]
     },
     {
-      "heading": "transferring calls to another area (transferring-calls-to-another-area.pdf)",
-      "content": "# transferring calls to another area\n\nSource: transferring-calls-to-another-area.pdf, page 6 of 7\n\n6\nBack to Top\no Life insurance hours are Monday thru Thursday, 8:00am-5:00pm, Fridays\n8:00am-1:00pm via 888-647-1373.\n▪ If the Life group cannot be reached due to outside of business hours,\ntake a detailed message and email the life group.\n▪ Inform the caller a return phone call is generally returned between\n24-48 business hours. Do not reach out to the Life Group team\nmembers directly.\no During office hours, incoming calls to the Life Entrada line which are not\nanswered within 1 minute will route to a Life voicemail.\n• Life policies can be Company 01, Company 02, or Company 17.\no Life policies on Company 01 begin with a “L00.”\no Policies that begin with “L9” are Fidelity Investment policies, and clients\nshould call Fidelity at 800-343-3548 for assistance.\no Life Policies on Company 02 can be any different policy number type.\n▪ All Cancer policies will be Company 02.\n▪ All policies for Company 02 should be forwarded to the Life Group.\no Life policies on Company 17, also known as Entrada, can be a long series of\nnumbers.\n▪ All policies for Company 17 should be forwarded to the Life Group.\n• Life policies can be National Guard or Fire Fighter policies. Any mention of National\nGuard or Fire Fighters can be transferred to the Life Group.\n• All processing tasks for Life policies (individual or group) as well as Cancer policies.\nTheir group email is life@american-equity.com.\nFAST – FlexShield 10\n• Contract number includes an F\n• Pre-Production queue: FAST Pre Issue\n• Post-Production queue: FAST Post Issue\nRevision History\n05/13/2026 (added American National to the Considerations section on pg 1 with a link to the Contact List - ANICO)\n04/07/2026 (reformat)\n03/04/2025 (updated pg 4, Concierge agents have an access code if not recognized by Genesys the interaction will route\nto the main agent phone line)\n01/23/2025 (updated Agent Locator section)\n06/12/2024 (merged Sales Material Request for New Contracts and archived)\n06/05/2024 (merged Handling Life Policies document)\n04/22/2024 (added skill options for MFA transfers)\n04/08/2024 (added MFA calls transfer to Password Reset queue)\n02/20/2024 (added under Cust Excellence to assist concierge callers then send email to manager)\n10/19/2023 (replaced extension numbers with the Genesys queue name, added link to Genesys Phone Transfers\nprocedures)\n10/19/2023 (replaced agent website guidelines with MyPortal guidelines in the Sales & Agency sections; added that calls\nregarding missing policies in MyPortal should be transferred to Agency)\n03/22/2023 (removed note to transfer Stephens Lawsuit claims to New Business.)\n01/18/2023 (added additional Sales topics)",
+      "heading": "Transferring Calls to Another Area (transferring-calls-to-another-area.pdf)",
+      "content": "# Transferring Calls to Another Area\n\n6\nBack to Top\no Life insurance hours are Monday thru Thursday, 8:00am-5:00pm, Fridays\n8:00am-1:00pm via 888-647-1373.\n▪ If the Life group cannot be reached due to outside of business hours,\ntake a detailed message and email the life group.\n▪ Inform the caller a return phone call is generally returned between\n24-48 business hours. Do not reach out to the Life Group team\nmembers directly.\no During office hours, incoming calls to the Life Entrada line which are not\nanswered within 1 minute will route to a Life voicemail.\n• Life policies can be Company 01, Company 02, or Company 17.\no Life policies on Company 01 begin with a “L00.”\no Policies that begin with “L9” are Fidelity Investment policies, and clients\nshould call Fidelity at 800-343-3548 for assistance.\no Life Policies on Company 02 can be any different policy number type.\n▪ All Cancer policies will be Company 02.\n▪ All policies for Company 02 should be forwarded to the Life Group.\no Life policies on Company 17, also known as Entrada, can be a long series of\nnumbers.\n▪ All policies for Company 17 should be forwarded to the Life Group.\n• Life policies can be National Guard or Fire Fighter policies. Any mention of National\nGuard or Fire Fighters can be transferred to the Life Group.\n• All processing tasks for Life policies (individual or group) as well as Cancer policies.\nTheir group email is life@american-equity.com.\nFAST – FlexShield 10\n• Contract number includes an F\n• Pre-Production queue: FAST Pre Issue\n• Post-Production queue: FAST Post Issue\nRevision History\n05/13/2026 (added American National to the Considerations section on pg 1 with a link to the Contact List - ANICO)\n04/07/2026 (reformat)\n03/04/2025 (updated pg 4, Concierge agents have an access code if not recognized by Genesys the interaction will route\nto the main agent phone line)\n01/23/2025 (updated Agent Locator section)\n06/12/2024 (merged Sales Material Request for New Contracts and archived)\n06/05/2024 (merged Handling Life Policies document)\n04/22/2024 (added skill options for MFA transfers)\n04/08/2024 (added MFA calls transfer to Password Reset queue)\n02/20/2024 (added under Cust Excellence to assist concierge callers then send email to manager)\n10/19/2023 (replaced extension numbers with the Genesys queue name, added link to Genesys Phone Transfers\nprocedures)\n10/19/2023 (replaced agent website guidelines with MyPortal guidelines in the Sales & Agency sections; added that calls\nregarding missing policies in MyPortal should be transferred to Agency)\n03/22/2023 (removed note to transfer Stephens Lawsuit claims to New Business.)\n01/18/2023 (added additional Sales topics)",
+      "source": {
+        "filename": "transferring-calls-to-another-area.pdf",
+        "title": "Transferring Calls to Another Area",
+        "mediaType": "application/pdf",
+        "page": 6
+      },
       "headingTokens": [
         "transferring",
         "call",
@@ -4926,15 +5036,6 @@
         "call",
         "another",
         "area",
-        "source",
-        "transferring",
-        "call",
-        "another",
-        "area",
-        "pdf",
-        "page",
-        "6",
-        "7",
         "6",
         "back",
         "top",
@@ -5314,8 +5415,14 @@
       ]
     },
     {
-      "heading": "transferring calls to another area (transferring-calls-to-another-area.pdf)",
-      "content": "# transferring calls to another area\n\nSource: transferring-calls-to-another-area.pdf, page 7 of 7\n\n7\nBack to Top\n01/12/2023 (updated department to team, added reference to related resources)\n01/11/2023 (update Marketing to Sales, added clarification to calls ok to transfer to Sales)\n01/04/2023 (added FAST and note to reference the Quick Contact Reference Guide)\n10/24/2022 (updated guidelines for transferring agents to Marketing, added guidelines for transferring agents or uplines\nto Agency and Suitability; updated New Business guidelines; updated “Special Services” heading to “Operations Calls;”\nupdated group to contact for AE of NY calls)\n10/10/2022 (updated that all calls on “S” and “D” contracts should be transferred to Claims)\n06/28/2022 (added that Service phone reps can handle calls on “S” and “D” contracts and do not need to transfer them to\nClaims as these contracts are not pending death claims; removed “Client Relations Transfers” section)\n03/08/2022 (renamed to “Transferring Calls to Another Area,” updated to current format, removed instructions to\ntransfer EL and NY calls as phone reps are trained to take those calls, and removed Pell City; outdated)\n02/04/2019 (Created)",
+      "heading": "Transferring Calls to Another Area (transferring-calls-to-another-area.pdf)",
+      "content": "# Transferring Calls to Another Area\n\n7\nBack to Top\n01/12/2023 (updated department to team, added reference to related resources)\n01/11/2023 (update Marketing to Sales, added clarification to calls ok to transfer to Sales)\n01/04/2023 (added FAST and note to reference the Quick Contact Reference Guide)\n10/24/2022 (updated guidelines for transferring agents to Marketing, added guidelines for transferring agents or uplines\nto Agency and Suitability; updated New Business guidelines; updated “Special Services” heading to “Operations Calls;”\nupdated group to contact for AE of NY calls)\n10/10/2022 (updated that all calls on “S” and “D” contracts should be transferred to Claims)\n06/28/2022 (added that Service phone reps can handle calls on “S” and “D” contracts and do not need to transfer them to\nClaims as these contracts are not pending death claims; removed “Client Relations Transfers” section)\n03/08/2022 (renamed to “Transferring Calls to Another Area,” updated to current format, removed instructions to\ntransfer EL and NY calls as phone reps are trained to take those calls, and removed Pell City; outdated)\n02/04/2019 (Created)",
+      "source": {
+        "filename": "transferring-calls-to-another-area.pdf",
+        "title": "Transferring Calls to Another Area",
+        "mediaType": "application/pdf",
+        "page": 7
+      },
       "headingTokens": [
         "transferring",
         "call",
@@ -5332,15 +5439,6 @@
         "call",
         "another",
         "area",
-        "source",
-        "transferring",
-        "call",
-        "another",
-        "area",
-        "pdf",
-        "page",
-        "7",
-        "7",
         "7",
         "back",
         "top",

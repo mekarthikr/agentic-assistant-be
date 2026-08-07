@@ -1,3 +1,9 @@
 export { ApiDocumentationRag } from "./api-documentation-rag";
-export type { RetrievedDocumentationSection } from "./api-documentation-rag";
-export { INSURANCE_AGENT_SYSTEM_PROMPT } from "./insurance-agent.prompt";
+export type {
+  RetrievedDocumentationSection,
+  RetrievedDocumentationSource,
+} from "./api-documentation-rag";
+export {
+  INSURANCE_AGENT_SYSTEM_PROMPT,
+  NO_DOCUMENTED_SOLUTION_RESPONSE,
+} from "./insurance-agent.prompt";

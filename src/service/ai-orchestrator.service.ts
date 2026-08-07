@@ -1,5 +1,7 @@
 import {
   type ChatOptions,
+  type ChatCompletion,
+  type ChatSource,
   EmptyPromptError,
   type LLMProvider,
   type LLMResponse,
@@ -10,6 +12,8 @@ import {
 import {
   ApiDocumentationRag,
   INSURANCE_AGENT_SYSTEM_PROMPT,
+  NO_DOCUMENTED_SOLUTION_RESPONSE,
+  type RetrievedDocumentationSource,
 } from "@app/knowledge";
 import { ConversationService } from "./conversation.service";
 import { ToolRegistry } from "./tool-registry.service";
@@ -39,6 +43,8 @@ const POLICY_DOCUMENT_PATTERN = /\bpolicy\s+documents?\b/i;
 // `premium`) so they never force a live enterprise tool call.
 const KNOWLEDGE_BASE_SELF_SERVICE_PATTERN =
   /\b(?:policy\s+documents?|(?:premium\s+)?grace\s+period|missed\s+premium|premium\s+payment\s+(?:methods?|options?|frequency)|auto\s*pay|beneficiar(?:y|ies)|file\s+(?:a\s+)?claim|claim\s+(?:documents?|processing|status)|customer\s+support|support\s+(?:channels?|hours?)|portal\s+login)\b/i;
+const DOCUMENTED_PROCEDURE_PATTERN =
+  /\b(?:over\s+(?:the\s+)?(?:phone|chat)|spousal\s+consent|joint\s+owners?|beneficiary\s+changes?|electronic\s+fund\s+transfers?|EFTs?|annuitization|index\s+lock|lifetime\s+income\s+benefit|LIBR|maturity\s+date|outstanding\s+checks?|partial\s+withdrawals?|pre-authorized\s+credits?|PACs?|required\s+minimum\s+distributions?|RMDs?|rush\s+reviews?|surrenders?|systematic\s+withdrawals?|transfer\s+of\s+values?|TOVs?|72T|72Q|pending\s+suitability|transfer\s+(?:the\s+)?call|which\s+(?:team|queue|department))\b/i;
 
 export class AIOrchestrator {
   public constructor(
@@ -65,7 +71,11 @@ export class AIOrchestrator {
     conversationId: string,
     userMessage: string,
     options: ChatOptions,
-  ): Promise<{ text: string; usage: ModelTokenUsage }> {
+  ): Promise<{
+    text: string;
+    usage: ModelTokenUsage;
+    sources: readonly ChatSource[];
+  }> {
     const prompt = this.validatePrompt(userMessage);
     const conversation = this.conversationService.addUserMessage(
       conversationId,
@@ -73,13 +83,16 @@ export class AIOrchestrator {
     );
 
     let response: LLMResponse;
+    let retrievedSources: readonly RetrievedDocumentationSource[];
     try {
       const retrievalQuery = conversation.messages
         .slice(-RETRIEVAL_MESSAGE_LIMIT)
         .map(({ content }) => content)
         .join("\n");
+      const retrievedSections = this.apiDocumentation.retrieve(retrievalQuery);
       const retrievedContext =
-        this.apiDocumentation.retrieveContext(retrievalQuery);
+        this.apiDocumentation.formatContext(retrievedSections);
+      retrievedSources = retrievedSections.map(({ source }) => source);
       response = await this.generateWithTools(
         this.buildSystemPrompt(retrievedContext, options.userType),
         conversation.messages
@@ -114,6 +127,10 @@ export class AIOrchestrator {
         contextTokensRemaining: Math.max(contextWindow - contextTokensUsed, 0),
         rateLimitRemainingTokens: response.remainingTokens,
       },
+      sources:
+        response.text.trim() === NO_DOCUMENTED_SOLUTION_RESPONSE
+          ? []
+          : this.toChatSources(retrievedSources),
     };
   }
 
@@ -121,14 +138,29 @@ export class AIOrchestrator {
     conversationId: string,
     userMessage: string,
     options: ChatOptions = {},
-  ): AsyncGenerator<string, ModelTokenUsage> {
+  ): AsyncGenerator<string, ChatCompletion> {
     const prompt = this.validatePrompt(userMessage);
     // Tool calls require a complete model turn before their result can be
     // supplied. Reuse the tool-aware path so streaming conversations preserve
     // the same semantics; transports still receive the final response chunk.
     const response = await this.chatWithUsage(conversationId, prompt, options);
     yield response.text;
-    return response.usage;
+    return { tokenUsage: response.usage, sources: response.sources };
+  }
+
+  private toChatSources(
+    sources: readonly RetrievedDocumentationSource[],
+  ): readonly ChatSource[] {
+    const uniqueSources = new Map<string, ChatSource>();
+
+    for (const source of sources) {
+      const id = `${source.filename}${
+        source.page === undefined ? "" : `#page=${source.page}`
+      }`;
+      uniqueSources.set(id, { id, ...source });
+    }
+
+    return [...uniqueSources.values()];
   }
 
   private async generateWithTools(
@@ -225,6 +257,8 @@ export class AIOrchestrator {
       if (needsApplications && !needsContracts) return ["getApplication"];
       return ["getContract", "getApplication"];
     }
+
+    if (DOCUMENTED_PROCEDURE_PATTERN.test(query)) return [];
 
     if (needsContracts && !needsApplications) return ["searchContracts"];
     if (

@@ -58,6 +58,20 @@ const tokenize = (value) =>
 const sectionHeading = (content) =>
   content.match(/^#{1,3}\s+(.+)$/m)?.[1]?.trim() || "Enterprise API overview";
 
+const humanizeFilename = (filename) => {
+  const minorWords = new Set(["a", "an", "and", "of", "the", "to"]);
+  return filename
+    .replace(/\.[^.]+$/, "")
+    .replaceAll("-", " ")
+    .split(" ")
+    .map((word, index) =>
+      index > 0 && minorWords.has(word)
+        ? word
+        : `${word.charAt(0).toUpperCase()}${word.slice(1)}`,
+    )
+    .join(" ");
+};
+
 const readKnowledgeDocument = async (url) => {
   const filename = decodeURIComponent(url.pathname.split("/").at(-1));
   const source = await readFile(url);
@@ -66,21 +80,21 @@ const readKnowledgeDocument = async (url) => {
     return {
       filename,
       source,
-      sections: [source.toString("utf8")],
+      sections: [{ content: source.toString("utf8") }],
     };
   }
 
   const parser = new PDFParse({ data: source });
   try {
     const result = await parser.getText({ pageJoiner: "" });
-    const title = filename.replace(/\.pdf$/i, "").replaceAll("-", " ");
+    const title = humanizeFilename(filename);
     return {
       filename,
       source,
-      sections: result.pages.map(
-        ({ num, text }) =>
-          `# ${title}\n\nSource: ${filename}, page ${num} of ${result.total}\n\n${text.trim()}`,
-      ),
+      sections: result.pages.map(({ num, text }) => ({
+        content: `# ${title}\n\n${text.trim()}`,
+        page: num,
+      })),
     };
   } finally {
     await parser.destroy();
@@ -105,7 +119,7 @@ const documents = await Promise.all(
 );
 const sections = documents.flatMap(
   ({ filename, sections: documentSections, isEnterpriseReference }) =>
-    documentSections.flatMap((document) => {
+    documentSections.flatMap(({ content: document, page }) => {
       const documentTitle = sectionHeading(document);
       return document
         .split(/(?=^#{2,3}\s+)/m)
@@ -120,6 +134,15 @@ const sections = documents.flatMap(
                 ? `${heading} (${filename})`
                 : `${documentTitle} — ${heading} (${filename})`,
             content,
+            source: {
+              filename,
+              title: documentTitle,
+              mediaType:
+                extname(filename).toLowerCase() === ".pdf"
+                  ? "application/pdf"
+                  : "text/markdown",
+              ...(page === undefined ? {} : { page }),
+            },
             headingTokens: tokenize(
               isEnterpriseReference
                 ? heading
@@ -134,7 +157,7 @@ const sections = documents.flatMap(
 );
 
 const index = {
-  version: 2,
+  version: 3,
   sources: documents.map(({ filename }) => filename),
   sourceHash: createHash("sha256")
     .update(Buffer.concat(documents.map(({ source }) => source)))

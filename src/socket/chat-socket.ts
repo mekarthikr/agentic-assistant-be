@@ -268,11 +268,11 @@ export class ChatSocketServer {
             : undefined,
       });
 
-      let tokenUsage;
+      let completion;
       while (true) {
         const next = await result.next();
         if (next.done) {
-          tokenUsage = next.value;
+          completion = next.value;
           break;
         }
 
@@ -290,7 +290,8 @@ export class ChatSocketServer {
           requestId,
           conversationId,
           createdAt: new Date().toISOString(),
-          tokenUsage,
+          tokenUsage: completion.tokenUsage,
+          sources: completion.sources,
         });
       }
     } catch (error) {
