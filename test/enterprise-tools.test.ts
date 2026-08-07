@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { AIOrchestrator } from "../src/service/ai-orchestrator.service";
 import { createEnterpriseTools } from "../src/tools/enterprise-tools";
 import type { ApiResponse, Contract } from "../src/types";
 
@@ -106,4 +107,20 @@ test("searches all client contracts by the trusted client name", async () => {
 
   assert.equal(receivedFilters?.clientName, "SMITH ROBERT");
   assert.deepEqual(result.data, response.data);
+});
+
+test("routes client contract questions to the contract list only", () => {
+  const orchestrator = new AIOrchestrator({} as never, {} as never, {} as never);
+  const selectToolNames = (
+    orchestrator as unknown as {
+      selectToolNames(query: string, userType: "client"): readonly string[];
+    }
+  ).selectToolNames.bind(orchestrator);
+
+  assert.deepEqual(selectToolNames("What is my contract number?", "client"), [
+    "searchContracts",
+  ]);
+  assert.deepEqual(selectToolNames("What are my contract details?", "client"), [
+    "searchContracts",
+  ]);
 });
