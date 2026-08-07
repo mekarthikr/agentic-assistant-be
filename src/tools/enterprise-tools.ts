@@ -220,21 +220,6 @@ export const createEnterpriseTools = (
     inputSchema: jsonSchema(contractSearchSchema),
     execute: async (input, context) => {
       const anniversary = anniversaryFiltersFrom(input);
-      if (
-        context.userType === "client" &&
-        context.clientApplicationContractNumber
-      ) {
-        const response = await enterpriseApi.getContract(
-          context.clientApplicationContractNumber,
-          context.signal,
-        );
-        assertClientOwnsRecord(response.data, context);
-        return filterContractsByAnniversary(
-          { ...response, data: [response.data] },
-          anniversary,
-        );
-      }
-
       return filterContractsByAnniversary(
         await enterpriseApi.getContracts(
           scopedContractFilters(input as ContractSearchInput, context),

@@ -78,3 +78,32 @@ test("filters contract anniversaries by exact date, month, or year", async () =>
     ["1561094"],
   );
 });
+
+test("searches all client contracts by the trusted client name", async () => {
+  let receivedFilters: Record<string, string | undefined> | undefined;
+  const response: ApiResponse<Contract[]> = {
+    success: true,
+    message: "Request successful",
+    data: [contracts[0], contracts[1]],
+    timestamp: "2026-08-04T00:00:00.000Z",
+  };
+  const searchContracts = createEnterpriseTools({
+    getContracts: async (filters: Record<string, string | undefined>) => {
+      receivedFilters = filters;
+      return response;
+    },
+    getContract: async () => {
+      throw new Error("Client contract searches must use the contracts list API.");
+    },
+  } as never).find(({ name }) => name === "searchContracts");
+
+  const result = (await searchContracts?.execute({}, {
+    toolCallId: "client-contracts-test",
+    userType: "client",
+    clientName: "SMITH ROBERT",
+    clientApplicationContractNumber: "1561440",
+  })) as ApiResponse<Contract[]>;
+
+  assert.equal(receivedFilters?.clientName, "SMITH ROBERT");
+  assert.deepEqual(result.data, response.data);
+});

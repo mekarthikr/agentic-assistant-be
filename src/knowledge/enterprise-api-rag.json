@@ -9,12 +9,16 @@
     "premium-payments.md",
     "product-guide.md"
   ],
-  "sourceHash": "5c90c2bb84c4d5869376733de053af3a6f9d8302248d23cb008a8e5af600baad",
+  "sourceHash": "43bade2395a8b9accba0b39531a6e375fe3f6f0896a1aace9063ad872f039400",
   "sections": [
     {
       "heading": "Enterprise API Documentation",
       "content": "# Enterprise API Documentation\r\n\r\nBase URL: `https://mock-api-server-seven.vercel.app/api/v1`\r\n\r\n---",
-      "headingTokens": ["enterprise", "api", "documentation"],
+      "headingTokens": [
+        "enterprise",
+        "api",
+        "documentation"
+      ],
       "contentTokens": [
         "enterprise",
         "api",
@@ -25,7 +29,7 @@
         "mock",
         "api",
         "server",
-        "zeta",
+        "seven",
         "vercel",
         "app",
         "api",
@@ -35,13 +39,22 @@
     {
       "heading": "Contracts API",
       "content": "## Contracts API",
-      "headingTokens": ["contract", "api"],
-      "contentTokens": ["contract", "api"]
+      "headingTokens": [
+        "contract",
+        "api"
+      ],
+      "contentTokens": [
+        "contract",
+        "api"
+      ]
     },
     {
       "heading": "Get All Contracts",
       "content": "### Get All Contracts\r\n\r\n**Endpoint:** `GET /contracts`\r\n\r\n**Description:** Returns a list of all contracts. Supports filtering by query parameters.\r\n\r\n**Filterable Fields:**\r\n\r\n- `contractNumber` — Filter by contract number\r\n- `clientName` — Filter by client name (partial match, case-insensitive)\r\n- `productName` — Filter by product name (partial match, case-insensitive)\r\n- `contractStatus` — Filter by status: `Active`, `Inactive`, `Surrendered`\r\n- `taxType` — Filter by tax type: `Qualified`, `Non-Qualified`\r\n- `taxQualification` — Filter by qualification: `IRA`, `ROTH IRA`, `NON-QUAL`\r\n- `distributionCompany` — Filter by distribution company\r\n\r\n**Example Requests:**\r\n\r\n```\r\nGET /contracts\r\nGET /contracts?contractStatus=Active\r\nGET /contracts?taxType=Qualified\r\nGET /contracts?productName=ASSETSHIELD 5\r\nGET /contracts?contractStatus=Active&taxType=Qualified\r\n```\r\n\r\n**Response:**\r\n\r\n```json\r\n{\r\n  \"success\": true,\r\n  \"message\": \"Request successful\",\r\n  \"data\": [\r\n    {\r\n      \"contractNumber\": \"1561091\",\r\n      \"clientName\": \"NETTING AETEST\",\r\n      \"productName\": \"AMERICAN EQUITY ASSETSHIELD 5 FIXED INDEX ANNUITY\",\r\n      \"issuedDate\": \"2026-06-17T05:00:00+00:00\",\r\n      \"currentValue\": 0,\r\n      \"anniversaryDate\": \"2027-06-17T05:00:00+00:00\",\r\n      \"taxType\": \"Qualified\",\r\n      \"contractStatus\": \"Active\",\r\n      \"taxQualification\": \"IRA\",\r\n      \"distributionCompany\": \"AELife\"\r\n    }\r\n  ],\r\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\r\n}\r\n```\r\n\r\n---",
-      "headingTokens": ["all", "contract"],
+      "headingTokens": [
+        "all",
+        "contract"
+      ],
       "contentTokens": [
         "all",
         "contract",
@@ -188,7 +201,11 @@
     {
       "heading": "Get Contract by Number",
       "content": "### Get Contract by Number\r\n\r\n**Endpoint:** `GET /contracts/:contractNumber`\r\n\r\n**Description:** Returns a single contract by its contract number.\r\n\r\n**Path Parameters:**\r\n\r\n- `contractNumber` (string, required) — The contract number\r\n\r\n**Example Request:**\r\n\r\n```\r\nGET /contracts/1561091\r\n```\r\n\r\n**Success Response:**\r\n\r\n```json\r\n{\r\n  \"success\": true,\r\n  \"message\": \"Request successful\",\r\n  \"data\": {\r\n    \"contractNumber\": \"1561091\",\r\n    \"clientName\": \"NETTING AETEST\",\r\n    \"productName\": \"AMERICAN EQUITY ASSETSHIELD 5 FIXED INDEX ANNUITY\",\r\n    \"issuedDate\": \"2026-06-17T05:00:00+00:00\",\r\n    \"currentValue\": 0,\r\n    \"anniversaryDate\": \"2027-06-17T05:00:00+00:00\",\r\n    \"taxType\": \"Qualified\",\r\n    \"contractStatus\": \"Active\",\r\n    \"taxQualification\": \"IRA\",\r\n    \"distributionCompany\": \"AELife\"\r\n  },\r\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\r\n}\r\n```\r\n\r\n**Not Found Response (404):**\r\n\r\n```json\r\n{\r\n  \"success\": false,\r\n  \"message\": \"Contract 9999999 not found\",\r\n  \"data\": null,\r\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\r\n}\r\n```\r\n\r\n---",
-      "headingTokens": ["contract", "by", "number"],
+      "headingTokens": [
+        "contract",
+        "by",
+        "number"
+      ],
       "contentTokens": [
         "contract",
         "by",
@@ -296,13 +313,22 @@
     {
       "heading": "Applications API",
       "content": "## Applications API",
-      "headingTokens": ["application", "api"],
-      "contentTokens": ["application", "api"]
+      "headingTokens": [
+        "application",
+        "api"
+      ],
+      "contentTokens": [
+        "application",
+        "api"
+      ]
     },
     {
       "heading": "Get All Applications",
       "content": "### Get All Applications\r\n\r\n**Endpoint:** `GET /applications`\r\n\r\n**Description:** Returns a list of all applications. Supports filtering by query parameters.\r\n\r\n**Filterable Fields:**\r\n\r\n- `clientName` — Filter by client name (partial match, case-insensitive)\r\n- `product` — Filter by product name (partial match, case-insensitive)\r\n- `taxType` — Filter by tax type: `Qualified`, `Non-Qualified`\r\n- `status` — Filter by status: `In Progress`, `Submitted`, `Approved`, `Rejected`\r\n- `contractNumber` — Filter by contract number\r\n- `productId` — Filter by product ID\r\n- `agentNumber` — Filter by agent number\r\n- `contactId` — Filter by contact ID\r\n- `applicationName` — Filter by application name (partial match, case-insensitive)\r\n- `startDate` — Filter by start date (partial match, e.g., `2026-07-15`)\r\n\r\n**Example Requests:**\r\n\r\n```\r\nGET /applications\r\nGET /applications?status=In Progress\r\nGET /applications?product=ESTATESHIELD\r\nGET /applications?agentNumber=2026\r\nGET /applications?applicationName=JOHNSON\r\nGET /applications?startDate=2026-07\r\nGET /applications?status=Approved&taxType=Qualified\r\n```\r\n\r\n**Response:**\r\n\r\n```json\r\n{\r\n  \"success\": true,\r\n  \"message\": \"Request successful\",\r\n  \"data\": [\r\n    {\r\n      \"clientName\": \"sdf sdf\",\r\n      \"product\": \"AMERICAN EQUITY ESTATESHIELD 10 FIXED INDEX ANNUITY\",\r\n      \"anticipatedPremium\": 99999,\r\n      \"startDate\": \"2026-07-15T13:27:11.782+00:00\",\r\n      \"taxType\": \"Non-Qualified\",\r\n      \"status\": \"In Progress\",\r\n      \"contractNumber\": \"1561438\",\r\n      \"productId\": \"I-ESTATE24\",\r\n      \"agentNumber\": \"2026\",\r\n      \"applicationLink\": \"https://american-equity-uatx.unqork.io/app/application#/display/application?id=6a5789ec1ce36757d331b5b8\",\r\n      \"contactId\": \"482354\",\r\n      \"applicationName\": \"sdf sdf Application\"\r\n    }\r\n  ],\r\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\r\n}\r\n```\r\n\r\n---",
-      "headingTokens": ["all", "application"],
+      "headingTokens": [
+        "all",
+        "application"
+      ],
       "contentTokens": [
         "all",
         "application",
@@ -491,7 +517,12 @@
     {
       "heading": "Get Application by Contract Number",
       "content": "### Get Application by Contract Number\r\n\r\n**Endpoint:** `GET /applications/:contractNumber`\r\n\r\n**Description:** Returns a single application by its contract number.\r\n\r\n**Path Parameters:**\r\n\r\n- `contractNumber` (string, required) — The contract number\r\n\r\n**Example Request:**\r\n\r\n```\r\nGET /applications/1561438\r\n```\r\n\r\n**Success Response:**\r\n\r\n```json\r\n{\r\n  \"success\": true,\r\n  \"message\": \"Request successful\",\r\n  \"data\": {\r\n    \"clientName\": \"sdf sdf\",\r\n    \"product\": \"AMERICAN EQUITY ESTATESHIELD 10 FIXED INDEX ANNUITY\",\r\n    \"anticipatedPremium\": 99999,\r\n    \"startDate\": \"2026-07-15T13:27:11.782+00:00\",\r\n    \"taxType\": \"Non-Qualified\",\r\n    \"status\": \"In Progress\",\r\n    \"contractNumber\": \"1561438\",\r\n    \"productId\": \"I-ESTATE24\",\r\n    \"agentNumber\": \"2026\",\r\n    \"applicationLink\": \"https://american-equity-uatx.unqork.io/app/application#/display/application?id=6a5789ec1ce36757d331b5b8\",\r\n    \"contactId\": \"482354\",\r\n    \"applicationName\": \"sdf sdf Application\"\r\n  },\r\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\r\n}\r\n```\r\n\r\n**Not Found Response (404):**\r\n\r\n```json\r\n{\r\n  \"success\": false,\r\n  \"message\": \"Application with contract number 9999999 not found\",\r\n  \"data\": null,\r\n  \"timestamp\": \"2026-07-27T12:00:00.000Z\"\r\n}\r\n```\r\n\r\n---",
-      "headingTokens": ["application", "by", "contract", "number"],
+      "headingTokens": [
+        "application",
+        "by",
+        "contract",
+        "number"
+      ],
       "contentTokens": [
         "application",
         "by",
@@ -615,7 +646,11 @@
     {
       "heading": "Common Response Structure",
       "content": "## Common Response Structure\r\n\r\nAll API responses follow this consistent format:\r\n\r\n```json\r\n{\r\n  \"success\": true | false,\r\n  \"message\": \"string\",\r\n  \"data\": object | array | null,\r\n  \"timestamp\": \"ISO 8601 string\"\r\n}\r\n```",
-      "headingTokens": ["common", "response", "structure"],
+      "headingTokens": [
+        "common",
+        "response",
+        "structure"
+      ],
       "contentTokens": [
         "common",
         "response",
@@ -646,7 +681,10 @@
     {
       "heading": "Error Responses",
       "content": "## Error Responses\r\n\r\n| Status Code | Meaning               |\r\n| ----------- | --------------------- |\r\n| 200         | Success               |\r\n| 404         | Resource not found    |\r\n| 400         | Bad request           |\r\n| 500         | Internal server error |\r\n\r\n---",
-      "headingTokens": ["error", "response"],
+      "headingTokens": [
+        "error",
+        "response"
+      ],
       "contentTokens": [
         "error",
         "response",
@@ -671,7 +709,10 @@
     {
       "heading": "Filtering Behavior",
       "content": "## Filtering Behavior\r\n\r\n- All filters use **AND** logic (all conditions must match)\r\n- Matching is **case-insensitive**\r\n- Matching supports **partial match** (contains)\r\n- Empty or undefined filter values are **ignored**\r\n- Multiple filters can be combined: `?status=Active&taxType=Qualified`",
-      "headingTokens": ["filtering", "behavior"],
+      "headingTokens": [
+        "filtering",
+        "behavior"
+      ],
       "contentTokens": [
         "filtering",
         "behavior",
@@ -748,8 +789,17 @@
     {
       "heading": "Claims Guide (claims-guide.md)",
       "content": "# Claims Guide",
-      "headingTokens": ["claim", "guide", "claim", "guide", "md"],
-      "contentTokens": ["claim", "guide"]
+      "headingTokens": [
+        "claim",
+        "guide",
+        "claim",
+        "guide",
+        "md"
+      ],
+      "contentTokens": [
+        "claim",
+        "guide"
+      ]
     },
     {
       "heading": "Claims Guide — Filing a Claim (claims-guide.md)",
@@ -846,8 +896,17 @@
     {
       "heading": "Customer Support (customer-support.md)",
       "content": "# Customer Support",
-      "headingTokens": ["customer", "support", "customer", "support", "md"],
-      "contentTokens": ["customer", "support"]
+      "headingTokens": [
+        "customer",
+        "support",
+        "customer",
+        "support",
+        "md"
+      ],
+      "contentTokens": [
+        "customer",
+        "support"
+      ]
     },
     {
       "heading": "Customer Support — Support Channels (customer-support.md)",
@@ -861,7 +920,14 @@
         "support",
         "md"
       ],
-      "contentTokens": ["support", "channel", "phone", "email", "live", "chat"]
+      "contentTokens": [
+        "support",
+        "channel",
+        "phone",
+        "email",
+        "live",
+        "chat"
+      ]
     },
     {
       "heading": "Customer Support — Business Hours (customer-support.md)",
@@ -929,7 +995,11 @@
         "faq",
         "md"
       ],
-      "contentTokens": ["frequently", "asked", "question"]
+      "contentTokens": [
+        "frequently",
+        "asked",
+        "question"
+      ]
     },
     {
       "heading": "Frequently Asked Questions — How do I update my beneficiary? (policy-faq.md)",
@@ -1055,7 +1125,13 @@
     {
       "heading": "Premium Payments (premium-payments.md)",
       "content": "# Premium Payments\n\nPremiums can be paid using:\n\n- Bank Transfer\n- Credit Card\n- Debit Card\n- Auto Pay\n\n---",
-      "headingTokens": ["premium", "payment", "premium", "payment", "md"],
+      "headingTokens": [
+        "premium",
+        "payment",
+        "premium",
+        "payment",
+        "md"
+      ],
       "contentTokens": [
         "premium",
         "payment",
