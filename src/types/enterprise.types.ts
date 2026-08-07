@@ -28,7 +28,6 @@ export interface Application {
   contractNumber: string;
   productId: string;
   agentNumber: string;
-  applicationLink: string;
   contactId: string;
   applicationName: string;
 }
