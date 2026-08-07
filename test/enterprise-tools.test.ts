@@ -102,7 +102,6 @@ test("searches all client contracts by the trusted client name", async () => {
     toolCallId: "client-contracts-test",
     userType: "client",
     clientName: "SMITH ROBERT",
-    clientApplicationContractNumber: "1561440",
   })) as ApiResponse<Contract[]>;
 
   assert.equal(receivedFilters?.clientName, "SMITH ROBERT");
@@ -124,4 +123,10 @@ test("routes client contract questions to the contract list only", () => {
     "searchContracts",
   ]);
   assert.deepEqual(selectToolNames("1561507", "client"), ["getContract"]);
+  assert.deepEqual(selectToolNames("What is my application status?", "client"), [
+    "searchApplications",
+  ]);
+  assert.deepEqual(selectToolNames("What is my product name?", "client"), [
+    "searchContracts",
+  ]);
 });

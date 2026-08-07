@@ -169,8 +169,6 @@ export class AIOrchestrator {
           signal: options.signal,
           userType: options.userType,
           clientName: options.clientName,
-          clientApplicationContractNumber:
-            options.clientApplicationContractNumber,
         }),
       ];
     }
@@ -206,8 +204,8 @@ export class AIOrchestrator {
       if (hasIdentifier) {
         return needsApplications ? ["getApplication"] : ["getContract"];
       }
-      if (PRODUCT_DETAIL_PATTERN.test(query)) {
-        return ["searchContracts", "searchApplications"];
+      if (needsApplications || CLIENT_APPLICATION_DETAIL_PATTERN.test(query)) {
+        return ["searchApplications"];
       }
       if (
         needsContracts ||
@@ -215,8 +213,8 @@ export class AIOrchestrator {
       ) {
         return ["searchContracts"];
       }
-      if (needsApplications || CLIENT_APPLICATION_DETAIL_PATTERN.test(query)) {
-        return ["searchApplications"];
+      if (PRODUCT_DETAIL_PATTERN.test(query)) {
+        return ["searchContracts"];
       }
       if (needsAmbiguousRecord && RECORD_LOOKUP_INTENT_PATTERN.test(query)) {
         return ["searchContracts", "searchApplications"];
