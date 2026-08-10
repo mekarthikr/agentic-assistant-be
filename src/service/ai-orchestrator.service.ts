@@ -18,6 +18,7 @@ import {
 import { ConversationService } from "./conversation.service";
 import { ToolRegistry } from "./tool-registry.service";
 import { logError } from "@app/utils/error-logger";
+import { normalizeAssistantResponse } from "@app/utils/assistant-response";
 
 const DEFAULT_MAX_TOOL_ROUNDS = 3;
 const HISTORY_MESSAGE_LIMIT = 6;
@@ -113,12 +114,13 @@ export class AIOrchestrator {
       );
     }
 
-    this.validateResponse(response.text);
-    this.conversationService.addAssistantMessage(conversationId, response.text);
+    const assistantText = normalizeAssistantResponse(response.text);
+    this.validateResponse(assistantText);
+    this.conversationService.addAssistantMessage(conversationId, assistantText);
     const { model, contextWindow } = this.provider.modelInfo;
     const contextTokensUsed = response.usage.inputTokens;
     return {
-      text: response.text,
+      text: assistantText,
       usage: {
         ...response.usage,
         model,
@@ -128,7 +130,7 @@ export class AIOrchestrator {
         rateLimitRemainingTokens: response.remainingTokens,
       },
       sources:
-        response.text.trim() === NO_DOCUMENTED_SOLUTION_RESPONSE
+        assistantText === NO_DOCUMENTED_SOLUTION_RESPONSE
           ? []
           : this.toChatSources(retrievedSources),
     };
