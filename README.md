@@ -19,8 +19,10 @@ The production build uses webpack to bundle the Vercel Function and resolve
 the `@app` TypeScript alias. Import this repository in Vercel, keep the project
 root at the repository root, and configure:
 
-- `GROQ_API_KEY` (required)
-- `GROQ_MODEL` (optional; defaults to `openai/gpt-oss-20b`)
+- `LLAMA_API_KEY` (required; created in the Meta Llama developer portal)
+- `LLAMA_MODEL` (optional; defaults to `Llama-4-Maverick-17B-128E-Instruct-FP8`)
+- `LLAMA_MODEL_CONTEXT_WINDOW` (optional; defaults to `1048576`)
+- `LLAMA_API_BASE_URL` (optional; defaults to `https://api.llama.com/v1`)
 - `ENTERPRISE_API_BASE_URL` (optional)
 
 Vercel runs `npm run build` and serves the generated Build Output API artifact
@@ -35,7 +37,7 @@ must reconnect with backoff when a connection closes.
 ## Enterprise tools
 
 The assistant can use the documented Contracts and Applications APIs through
-four Groq tools: `searchContracts`, `getContract`, `searchApplications`, and
+four model tools: `searchContracts`, `getContract`, `searchApplications`, and
 `getApplication`. Tool schemas and implementations are in
 `src/tools/enterprise-tools.ts`.
 
@@ -133,10 +135,11 @@ Tool calling follows a ports-and-adapters boundary:
 AIOrchestrator -> ToolRegistry -> application tool implementations
        |                 |
        v                 v
- LLMProvider        AI SDK tool schemas -> GroqProvider
+ LLMProvider        AI SDK tool schemas -> MetaProvider
 ```
 
-`GroqProvider` receives only declarative AI SDK schemas. It returns structured
+`MetaProvider` converts declarative AI SDK schemas into Meta Llama function
+definitions. It returns structured
 tool calls; `AIOrchestrator` executes them through the injected `ToolRegistry`,
 appends AI SDK assistant/tool-result messages, and asks the model to continue.
 The loop is bounded to eight tool rounds by default (`ChatOptions.maxToolRounds`).

@@ -209,7 +209,7 @@ const assertClientOwnsRecord = (
   }
 };
 
-/** Creates the enterprise capabilities that Groq can request during a chat turn. */
+/** Creates the enterprise capabilities that the language model can request. */
 export const createEnterpriseTools = (
   enterpriseApi = new EnterpriseApiProvider(),
 ): ApplicationTool[] => [

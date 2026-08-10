@@ -1,5 +1,5 @@
-import { env, groqConfiguration, serviceContainer } from "@app/config";
-import { GroqProvider } from "@app/providers";
+import { env, metaConfiguration, serviceContainer } from "@app/config";
+import { MetaProvider } from "@app/providers";
 import {
   AIOrchestrator,
   ConversationService,
@@ -13,7 +13,7 @@ import app from "./app";
 
 const httpServer = createServer(app);
 const conversationService = serviceContainer.get(ConversationService);
-const provider = new GroqProvider(groqConfiguration);
+const provider = new MetaProvider(metaConfiguration);
 const toolRegistry = new ToolRegistry(createEnterpriseTools());
 const orchestrator = new AIOrchestrator(
   conversationService,

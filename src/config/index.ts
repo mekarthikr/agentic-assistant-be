@@ -1,3 +1,3 @@
 export { env } from "./env";
-export { groqConfiguration } from "./groq";
+export { metaConfiguration } from "./meta";
 export { serviceContainer } from "./service.container";
