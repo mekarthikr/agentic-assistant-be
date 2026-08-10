@@ -5,11 +5,11 @@ import type { AppEnvironment } from "@app/types";
 dotenv.config();
 
 const requireEnvironmentVariable = (name: string): string => {
-  // const value = process.env[name]?.trim();
-  // if (!value) {
-  //   throw new Error(`${name} must be configured before the server starts.`);
-  // }
-  return 'LLM_1554582749549070_9f7JoWCbUenTEJbOyMZifbPIXOw'
+  const value = process.env[name]?.trim();
+  if (!value) {
+    throw new Error(`${name} must be configured before the server starts.`);
+  }
+  return value;
 };
 
 const socketAuthToken = process.env.SOCKET_AUTH_TOKEN;
