@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { AIOrchestrator } from "../src/service/ai-orchestrator.service";
 import { createEnterpriseTools } from "../src/tools/enterprise-tools";
-import type { ApiResponse, Contract } from "../src/types";
+import type { ApiResponse, Application, Contract } from "../src/types";
 
 const contracts: Contract[] = [
   {
@@ -77,4 +78,80 @@ test("filters contract anniversaries by exact date, month, or year", async () =>
     ),
     ["1561094"],
   );
+});
+
+test("searches all client contracts by the trusted client name", async () => {
+  let receivedFilters: Record<string, string | undefined> | undefined;
+  const response: ApiResponse<Contract[]> = {
+    success: true,
+    message: "Request successful",
+    data: [contracts[0], contracts[1]],
+    timestamp: "2026-08-04T00:00:00.000Z",
+  };
+  const searchContracts = createEnterpriseTools({
+    getContracts: async (filters: Record<string, string | undefined>) => {
+      receivedFilters = filters;
+      return response;
+    },
+    getContract: async () => {
+      throw new Error("Client contract searches must use the contracts list API.");
+    },
+  } as never).find(({ name }) => name === "searchContracts");
+
+  const result = (await searchContracts?.execute({}, {
+    toolCallId: "client-contracts-test",
+    userType: "client",
+    clientName: "SMITH ROBERT",
+  })) as ApiResponse<Contract[]>;
+
+  assert.equal(receivedFilters?.clientName, "SMITH ROBERT");
+  assert.deepEqual(result.data, response.data);
+});
+
+test("searches client applications by the trusted client name", async () => {
+  let receivedFilters: Record<string, string | undefined> | undefined;
+  const response: ApiResponse<Application[]> = {
+    success: true,
+    message: "Request successful",
+    data: [],
+    timestamp: "2026-08-04T00:00:00.000Z",
+  };
+  const searchApplications = createEnterpriseTools({
+    getApplications: async (filters: Record<string, string | undefined>) => {
+      receivedFilters = filters;
+      return response;
+    },
+  } as never).find(({ name }) => name === "searchApplications");
+
+  await searchApplications?.execute({}, {
+    toolCallId: "client-applications-test",
+    userType: "client",
+    clientName: "SMITH ROBERT",
+  });
+
+  assert.equal(receivedFilters?.clientName, "SMITH ROBERT");
+});
+
+test("routes client contract questions to the contract list only", () => {
+  const orchestrator = new AIOrchestrator({} as never, {} as never, {} as never);
+  const selectToolNames = (
+    orchestrator as unknown as {
+      selectToolNames(query: string, userType: "client"): readonly string[];
+    }
+  ).selectToolNames.bind(orchestrator);
+
+  assert.deepEqual(selectToolNames("What is my contract number?", "client"), [
+    "searchContracts",
+  ]);
+  assert.deepEqual(selectToolNames("What are my contract details?", "client"), [
+    "searchContracts",
+  ]);
+  assert.deepEqual(selectToolNames("1561507", "client"), ["getContract"]);
+  assert.deepEqual(selectToolNames("What is my application status?", "client"), [
+    "searchApplications",
+  ]);
+  assert.deepEqual(selectToolNames("What is my product name?", "client"), [
+    "searchContracts",
+  ]);
+  assert.deepEqual(selectToolNames("What is my name?", "client"), []);
 });
