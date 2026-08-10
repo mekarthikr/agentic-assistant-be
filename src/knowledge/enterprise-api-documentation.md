@@ -159,7 +159,6 @@ GET /applications?status=Approved&taxType=Qualified
       "contractNumber": "1561438",
       "productId": "I-ESTATE24",
       "agentNumber": "2026",
-      "applicationLink": "https://american-equity-uatx.unqork.io/app/application#/display/application?id=6a5789ec1ce36757d331b5b8",
       "contactId": "482354",
       "applicationName": "sdf sdf Application"
     }
@@ -202,7 +201,6 @@ GET /applications/1561438
     "contractNumber": "1561438",
     "productId": "I-ESTATE24",
     "agentNumber": "2026",
-    "applicationLink": "https://american-equity-uatx.unqork.io/app/application#/display/application?id=6a5789ec1ce36757d331b5b8",
     "contactId": "482354",
     "applicationName": "sdf sdf Application"
   },
