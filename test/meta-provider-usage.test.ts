@@ -36,8 +36,8 @@ test("uses exact Meta usage metrics and remaining-token header values", async ()
   const provider = new MetaProvider(
     {
       apiKey: "test-key",
-      model: "Llama-4-Maverick-17B-128E-Instruct-FP8",
-      contextWindow: 1_048_576,
+      model: "Llama-3.3-70B-Instruct",
+      contextWindow: 131_072,
     },
     client,
   );
@@ -105,8 +105,8 @@ test("converts AI SDK tools and tool-result messages for Meta", async () => {
   const provider = new MetaProvider(
     {
       apiKey: "test-key",
-      model: "Llama-4-Maverick-17B-128E-Instruct-FP8",
-      contextWindow: 1_048_576,
+      model: "Llama-3.3-70B-Instruct",
+      contextWindow: 131_072,
     },
     client,
   );

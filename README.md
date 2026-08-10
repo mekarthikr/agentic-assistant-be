@@ -20,8 +20,8 @@ the `@app` TypeScript alias. Import this repository in Vercel, keep the project
 root at the repository root, and configure:
 
 - `LLAMA_API_KEY` (required; created in the Meta Llama developer portal)
-- `LLAMA_MODEL` (optional; defaults to `Llama-4-Maverick-17B-128E-Instruct-FP8`)
-- `LLAMA_MODEL_CONTEXT_WINDOW` (optional; defaults to `1048576`)
+- `LLAMA_MODEL` (optional; defaults to `Llama-3.3-70B-Instruct`)
+- `LLAMA_MODEL_CONTEXT_WINDOW` (optional; defaults to `131072`)
 - `LLAMA_API_BASE_URL` (optional; defaults to `https://api.llama.com/v1`)
 - `ENTERPRISE_API_BASE_URL` (optional)
 
