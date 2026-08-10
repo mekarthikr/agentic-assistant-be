@@ -104,12 +104,13 @@ export class AIOrchestrator {
       );
     }
 
-    this.validateResponse(response.text);
-    this.conversationService.addAssistantMessage(conversationId, response.text);
+    const responseText = this.normalizeDisplayCasing(response.text);
+    this.validateResponse(responseText);
+    this.conversationService.addAssistantMessage(conversationId, responseText);
     const { model, contextWindow } = this.provider.modelInfo;
     const contextTokensUsed = response.usage.inputTokens;
     return {
-      text: response.text,
+      text: responseText,
       usage: {
         ...response.usage,
         model,
@@ -251,6 +252,25 @@ export class AIOrchestrator {
     if (!response.trim()) {
       throw new ProviderError("The AI provider returned an empty response.");
     }
+  }
+
+  private normalizeDisplayCasing(response: string): string {
+    // Tax qualifications are display values, not identifiers. Normalize these
+    // known API values after generation so the presentation stays consistent
+    // even when the model echoes the API's all-caps text.
+    return response
+      .replace(
+        /(tax qualification(?:\s+is|\s*[:=-])\s*)ROTH IRA\b/gi,
+        "$1Roth Ira",
+      )
+      .replace(
+        /(tax qualification(?:\s+is|\s*[:=-])\s*)NON-QUAL\b/gi,
+        "$1Non-Qual",
+      )
+      .replace(
+        /(tax qualification(?:\s+is|\s*[:=-])\s*)IRA\b/gi,
+        "$1Ira",
+      );
   }
 
   private buildSystemPrompt(
