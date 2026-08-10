@@ -72,6 +72,28 @@ export class AIOrchestrator {
       prompt,
     );
 
+    const portalNavigation = this.apiDocumentation.resolvePortalNavigation(prompt);
+    if (portalNavigation) {
+      const text = portalNavigation.missingParameter
+        ? "Could you please provide the contract ID?"
+        : `${portalNavigation.message}\n\n[${portalNavigation.linkText}](${portalNavigation.url})`;
+      this.conversationService.addAssistantMessage(conversationId, text);
+      const { model, contextWindow } = this.provider.modelInfo;
+      return {
+        text,
+        usage: {
+          model,
+          contextWindow,
+          inputTokens: 0,
+          outputTokens: 0,
+          totalTokens: 0,
+          contextTokensUsed: 0,
+          contextTokensRemaining: contextWindow,
+          rateLimitRemainingTokens: null,
+        },
+      };
+    }
+
     let response: LLMResponse;
     try {
       const retrievalQuery = conversation.messages

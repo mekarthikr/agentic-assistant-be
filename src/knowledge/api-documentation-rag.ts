@@ -233,14 +233,14 @@ export class ApiDocumentationRag {
     const contractId = contractIdFrom(query);
     if (parameters.includes("contractId") && !contractId) {
       return {
-        linkText: navigationSection.heading,
+        linkText: sectionHeading(navigationSection.content),
         message,
         missingParameter: "contractId",
       };
     }
 
     return {
-      linkText: navigationSection.heading,
+      linkText: sectionHeading(navigationSection.content),
       message,
       url: template.replaceAll("{contractId}", encodeURIComponent(contractId ?? "")),
     };
