@@ -14,11 +14,13 @@ import {
 import { ConversationService } from "./conversation.service";
 import { ToolRegistry } from "./tool-registry.service";
 import { logError } from "@app/utils/error-logger";
+import type { ApiResponse, Contract } from "@app/types";
 
 const DEFAULT_MAX_TOOL_ROUNDS = 3;
 const HISTORY_MESSAGE_LIMIT = 6;
-const RETRIEVAL_MESSAGE_LIMIT = 2;
 const RECORD_IDENTIFIER_PATTERN = /\b\d{5,}\b/;
+const RECORD_IDENTIFIER_ONLY_PATTERN = /^\d{5,}$/;
+const CONTRACT_ID_REQUEST_MESSAGE = "Could you please provide the contract ID?";
 const CONTRACT_PATTERN = /\b(?:annuit(?:y|ies)|contracts?|contrats?)\b/i;
 const APPLICATION_PATTERN = /\b(?:applications?|approvals?|cases?)\b/i;
 const AMBIGUOUS_RECORD_PATTERN = /\b(?:clients?|customers?|records?)\b/i;
@@ -72,36 +74,37 @@ export class AIOrchestrator {
       prompt,
     );
 
-    const portalNavigation = this.apiDocumentation.resolvePortalNavigation(prompt);
-    if (portalNavigation) {
-      const text = portalNavigation.missingParameter
-        ? "Could you please provide the contract ID?"
-        : `${portalNavigation.message}\n\n[${portalNavigation.linkText}](${portalNavigation.url})`;
+    const pendingPortalNavigation = this.resolvePendingPortalNavigation(
+      conversation,
+      prompt,
+    );
+    if (pendingPortalNavigation?.url) {
+      const text = `${pendingPortalNavigation.message}\n\n[${pendingPortalNavigation.linkText}](${pendingPortalNavigation.url})`;
       this.conversationService.addAssistantMessage(conversationId, text);
-      const { model, contextWindow } = this.provider.modelInfo;
-      return {
-        text,
-        usage: {
-          model,
-          contextWindow,
-          inputTokens: 0,
-          outputTokens: 0,
-          totalTokens: 0,
-          contextTokensUsed: 0,
-          contextTokensRemaining: contextWindow,
-          rateLimitRemainingTokens: null,
-        },
-      };
+      return this.directResponse(text);
     }
 
-    let response: LLMResponse;
+    const portalNavigation =
+      this.apiDocumentation.resolvePortalNavigation(prompt);
+    if (portalNavigation) {
+      const text = portalNavigation.missingParameter
+        ? CONTRACT_ID_REQUEST_MESSAGE
+        : `${portalNavigation.message}\n\n[${portalNavigation.linkText}](${portalNavigation.url})`;
+      this.conversationService.addAssistantMessage(conversationId, text);
+      return this.directResponse(text);
+    }
+
+    const knowledgeAnswer =
+      this.apiDocumentation.resolveKnowledgeAnswer(prompt);
+    if (knowledgeAnswer) {
+      const text = knowledgeAnswer.answer;
+      this.conversationService.addAssistantMessage(conversationId, text);
+      return this.directResponse(text);
+    }
+
+    let response: LLMResponse & { readonly toolResults: readonly unknown[] };
     try {
-      const retrievalQuery = conversation.messages
-        .slice(-RETRIEVAL_MESSAGE_LIMIT)
-        .map(({ content }) => content)
-        .join("\n");
-      const retrievedContext =
-        this.apiDocumentation.retrieveContext(retrievalQuery);
+      const retrievedContext = this.apiDocumentation.retrieveContext(prompt);
       response = await this.generateWithTools(
         this.buildSystemPrompt(
           retrievedContext,
@@ -126,7 +129,14 @@ export class AIOrchestrator {
       );
     }
 
-    const responseText = this.normalizeDisplayCasing(response.text);
+    const responseText = this.normalizeDisplayCasing(
+      this.formatClientProductSelection(
+        prompt,
+        response.text,
+        options.userType,
+        response.toolResults,
+      ),
+    );
     this.validateResponse(responseText);
     this.conversationService.addAssistantMessage(conversationId, responseText);
     const { model, contextWindow } = this.provider.modelInfo;
@@ -163,9 +173,10 @@ export class AIOrchestrator {
     messages: Parameters<LLMProvider["generate"]>[0]["messages"],
     toolNames: readonly string[],
     options: ChatOptions,
-  ): Promise<LLMResponse> {
+  ): Promise<LLMResponse & { toolResults: readonly unknown[] }> {
     const maxToolRounds = options.maxToolRounds ?? DEFAULT_MAX_TOOL_ROUNDS;
     let history = [...messages];
+    const toolResults: unknown[] = [];
 
     for (let round = 0; round <= maxToolRounds; round += 1) {
       const toolChoice =
@@ -182,22 +193,23 @@ export class AIOrchestrator {
         signal: options.signal,
       });
 
-      if (response.toolCalls.length === 0) return response;
+      if (response.toolCalls.length === 0) return { ...response, toolResults };
       if (round === maxToolRounds) {
         throw new ProviderError(
           "The AI provider exceeded the tool-call limit.",
         );
       }
 
-      history = [
-        ...history,
-        response.assistantMessage,
-        await this.toolRegistry.executeAll(response.toolCalls, {
+      const executedTools = await this.toolRegistry.executeAllWithResults(
+        response.toolCalls,
+        {
           signal: options.signal,
           userType: options.userType,
           clientName: options.clientName,
-        }),
-      ];
+        },
+      );
+      toolResults.push(...executedTools.values);
+      history = [...history, response.assistantMessage, executedTools.message];
     }
 
     throw new ProviderError("The AI provider exceeded the tool-call limit.");
@@ -207,6 +219,47 @@ export class AIOrchestrator {
     const prompt = userMessage.trim();
     if (!prompt) throw new EmptyPromptError();
     return prompt;
+  }
+
+  private resolvePendingPortalNavigation(
+    conversation: ReturnType<ConversationService["addUserMessage"]>,
+    prompt: string,
+  ) {
+    if (!RECORD_IDENTIFIER_ONLY_PATTERN.test(prompt)) return undefined;
+
+    const previousAssistant = conversation.messages.at(-2);
+    const previousUser = conversation.messages.at(-3);
+    if (
+      previousAssistant?.role !== "assistant" ||
+      previousAssistant.content.trim() !== CONTRACT_ID_REQUEST_MESSAGE ||
+      previousUser?.role !== "user"
+    ) {
+      return undefined;
+    }
+
+    return this.apiDocumentation.resolvePortalNavigation(
+      `${previousUser.content} ${prompt}`,
+    );
+  }
+
+  private directResponse(text: string): {
+    text: string;
+    usage: ModelTokenUsage;
+  } {
+    const { model, contextWindow } = this.provider.modelInfo;
+    return {
+      text,
+      usage: {
+        model,
+        contextWindow,
+        inputTokens: 0,
+        outputTokens: 0,
+        totalTokens: 0,
+        contextTokensUsed: 0,
+        contextTokensRemaining: contextWindow,
+        rateLimitRemainingTokens: null,
+      },
+    };
   }
 
   private selectToolNames(
@@ -231,13 +284,13 @@ export class AIOrchestrator {
       if (hasIdentifier) {
         return needsApplications ? ["getApplication"] : ["getContract"];
       }
-      if (needsApplications || CLIENT_APPLICATION_DETAIL_PATTERN.test(query)) {
+      if (
+        needsApplications ||
+        (!needsContracts && CLIENT_APPLICATION_DETAIL_PATTERN.test(query))
+      ) {
         return ["searchApplications"];
       }
-      if (
-        needsContracts ||
-        CLIENT_CONTRACT_DETAIL_PATTERN.test(query)
-      ) {
+      if (needsContracts || CLIENT_CONTRACT_DETAIL_PATTERN.test(query)) {
         return ["searchContracts"];
       }
       if (PRODUCT_DETAIL_PATTERN.test(query)) {
@@ -289,10 +342,78 @@ export class AIOrchestrator {
         /(tax qualification(?:\s+is|\s*[:=-])\s*)NON-QUAL\b/gi,
         "$1Non-Qual",
       )
-      .replace(
-        /(tax qualification(?:\s+is|\s*[:=-])\s*)IRA\b/gi,
-        "$1Ira",
-      );
+      .replace(/(tax qualification(?:\s+is|\s*[:=-])\s*)IRA\b/gi, "$1Ira");
+  }
+
+  private formatClientProductSelection(
+    query: string,
+    response: string,
+    userType: ChatOptions["userType"],
+    toolResults: readonly unknown[],
+  ): string {
+    if (userType !== "client" || !PRODUCT_DETAIL_PATTERN.test(query)) {
+      return response;
+    }
+
+    const contracts = toolResults.flatMap((result) => {
+      if (!this.isContractListResponse(result)) return [];
+      return result.data;
+    });
+    if (contracts.length < 2) return response;
+
+    const count = this.contractCountLabel(contracts.length);
+    const products = contracts.map(({ productName }) =>
+      productName
+        .toLowerCase()
+        .replace(/\b[a-z]/g, (letter) => letter.toUpperCase()),
+    );
+
+    return `You have ${count} contracts. Here are the product names for each contract:\n\n${products.map((product) => `- ${product}`).join("\n")}\n\nPlease select a contract number or product name to view more details.`;
+  }
+
+  private isContractListResponse(
+    value: unknown,
+  ): value is ApiResponse<Contract[]> {
+    if (!value || typeof value !== "object") return false;
+    const data = (value as { data?: unknown }).data;
+    return (
+      Array.isArray(data) &&
+      data.every(
+        (item) =>
+          Boolean(item) &&
+          typeof item === "object" &&
+          typeof (item as { productName?: unknown }).productName === "string" &&
+          typeof (item as { contractNumber?: unknown }).contractNumber ===
+            "string",
+      )
+    );
+  }
+
+  private contractCountLabel(count: number): string {
+    const labels = [
+      "zero",
+      "one",
+      "two",
+      "three",
+      "four",
+      "five",
+      "six",
+      "seven",
+      "eight",
+      "nine",
+      "ten",
+      "eleven",
+      "twelve",
+      "thirteen",
+      "fourteen",
+      "fifteen",
+      "sixteen",
+      "seventeen",
+      "eighteen",
+      "nineteen",
+      "twenty",
+    ];
+    return labels[count] ?? String(count);
   }
 
   private buildSystemPrompt(

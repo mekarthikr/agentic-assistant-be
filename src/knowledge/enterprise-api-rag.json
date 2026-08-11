@@ -10,7 +10,7 @@
     "product-guide.md",
     "portal-navigation.md"
   ],
-  "sourceHash": "40955f9b35eb16d86091021f980148fb2bb73f2594a7cca04ad34fa8eb288d65",
+  "sourceHash": "777066349dde18b24464ad23915e5b3c78fd979404f15c0d7af8e3b0c71f22e6",
   "sections": [
     {
       "heading": "Enterprise API Documentation",
@@ -1306,7 +1306,7 @@
     },
     {
       "heading": "Portal Navigation — Profile (portal-navigation.md)",
-      "content": "## Profile\n\nKeywords:\n- profile\n- personal info\n- personal information\n\nMessage:\nYou can access this page using the link below.\n\nURL:\nhttps://dev-myportal.american-equity.com/agent/user/profile?activeTab=personalInfo",
+      "content": "## Profile\r\n\r\nKeywords:\r\n- profile\r\n- personal info\r\n- personal information\r\n\r\nMessage:\r\nYou can access this page using the link below.\r\n\r\nURL:\r\nhttps://dev-myportal.american-equity.com/agent/user/profile?activeTab=personalInfo",
       "headingTokens": [
         "portal",
         "navigation",
@@ -1347,7 +1347,7 @@
     },
     {
       "heading": "Portal Navigation — Banking (portal-navigation.md)",
-      "content": "## Banking\n\nKeywords:\n- banking\n- bank details\n\nMessage:\nYou can access this page using the link below.\n\nURL:\nhttps://dev-myportal.american-equity.com/agent/user/profile?activeTab=banking",
+      "content": "## Banking\r\n\r\nKeywords:\r\n- banking\r\n- bank details\r\n\r\nMessage:\r\nYou can access this page using the link below.\r\n\r\nURL:\r\nhttps://dev-myportal.american-equity.com/agent/user/profile?activeTab=banking",
       "headingTokens": [
         "portal",
         "navigation",
@@ -1386,7 +1386,7 @@
     },
     {
       "heading": "Portal Navigation — Documents (portal-navigation.md)",
-      "content": "## Documents\n\nKeywords:\n- documents\n- uploads\n\nMessage:\nYou can access this page using the link below.\n\nURL:\nhttps://dev-myportal.american-equity.com/agent/user/profile?activeTab=documents",
+      "content": "## Documents\r\n\r\nKeywords:\r\n- documents\r\n- uploads\r\n\r\nMessage:\r\nYou can access this page using the link below.\r\n\r\nURL:\r\nhttps://dev-myportal.american-equity.com/agent/user/profile?activeTab=documents",
       "headingTokens": [
         "portal",
         "navigation",
@@ -1424,7 +1424,7 @@
     },
     {
       "heading": "Portal Navigation — Contract Details (portal-navigation.md)",
-      "content": "## Contract Details\n\nKeywords:\n- contract\n- contract details\n- policy details\n\nMessage:\nYou can access this page using the link below.\n\nURL:\nhttps://dev-myportal.american-equity.com/agent/book-business/contract-details/{contractId}?activeTab=info\n\nRequired Parameters:\n- contractId",
+      "content": "## Contract Details\r\n\r\nKeywords:\r\n- contract details\r\n- policy details\r\n\r\nMessage:\r\nYou can access this page using the link below.\r\n\r\nURL:\r\nhttps://dev-myportal.american-equity.com/agent/book-business/contract-details/{contractId}?activeTab=info\r\n\r\nRequired Parameters:\r\n- contractId",
       "headingTokens": [
         "portal",
         "navigation",
@@ -1438,7 +1438,6 @@
         "contract",
         "detail",
         "keyword",
-        "contract",
         "contract",
         "detail",
         "policy",
@@ -1473,7 +1472,7 @@
     },
     {
       "heading": "Portal Navigation — Beneficiaries (portal-navigation.md)",
-      "content": "## Beneficiaries\n\nKeywords:\n- beneficiaries\n- beneficiary\n\nMessage:\nYou can access this page using the link below.\n\nURL:\nhttps://dev-myportal.american-equity.com/agent/book-business/contract-details/{contractId}?activeTab=beneficiaries\n\nRequired Parameters:\n- contractId",
+      "content": "## Beneficiaries\r\n\r\nKeywords:\n- beneficiaries\n- beneficiary\n- beneficiary details\n\nMessage:\nYou can access this page using the link below.\n\r\nURL:\r\nhttps://dev-myportal.american-equity.com/agent/book-business/contract-details/{contractId}?activeTab=beneficiaries\r\n\r\nRequired Parameters:\r\n- contractId",
       "headingTokens": [
         "portal",
         "navigation",
@@ -1487,6 +1486,8 @@
         "keyword",
         "beneficiary",
         "beneficiary",
+        "beneficiary",
+        "detail",
         "message",
         "you",
         "acces",
@@ -1517,7 +1518,7 @@
     },
     {
       "heading": "Portal Navigation — Pending Contract (portal-navigation.md)",
-      "content": "## Pending Contract\n\nKeywords:\n- pending contract\n\nMessage:\nYou can access this page using the link below.\n\nURL:\nhttps://dev-myportal.american-equity.com/agent/book-business/pending-contract/{contractId}?activeTab=info\n\nRequired Parameters:\n- contractId",
+      "content": "## Pending Contract\r\n\r\nKeywords:\r\n- pending contract\r\n\r\nMessage:\r\nYou can access this page using the link below.\r\n\r\nURL:\r\nhttps://dev-myportal.american-equity.com/agent/book-business/pending-contract/{contractId}?activeTab=info\r\n\r\nRequired Parameters:\r\n- contractId",
       "headingTokens": [
         "portal",
         "navigation",

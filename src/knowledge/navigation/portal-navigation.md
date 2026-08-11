@@ -3,6 +3,7 @@
 ## Profile
 
 Keywords:
+
 - profile
 - personal info
 - personal information
@@ -16,6 +17,7 @@ https://dev-myportal.american-equity.com/agent/user/profile?activeTab=personalIn
 ## Banking
 
 Keywords:
+
 - banking
 - bank details
 
@@ -28,6 +30,7 @@ https://dev-myportal.american-equity.com/agent/user/profile?activeTab=banking
 ## Documents
 
 Keywords:
+
 - documents
 - uploads
 
@@ -40,7 +43,7 @@ https://dev-myportal.american-equity.com/agent/user/profile?activeTab=documents
 ## Contract Details
 
 Keywords:
-- contract
+
 - contract details
 - policy details
 
@@ -51,13 +54,16 @@ URL:
 https://dev-myportal.american-equity.com/agent/book-business/contract-details/{contractId}?activeTab=info
 
 Required Parameters:
+
 - contractId
 
 ## Beneficiaries
 
 Keywords:
+
 - beneficiaries
 - beneficiary
+- beneficiary details
 
 Message:
 You can access this page using the link below.
@@ -66,11 +72,13 @@ URL:
 https://dev-myportal.american-equity.com/agent/book-business/contract-details/{contractId}?activeTab=beneficiaries
 
 Required Parameters:
+
 - contractId
 
 ## Pending Contract
 
 Keywords:
+
 - pending contract
 
 Message:
@@ -80,4 +88,5 @@ URL:
 https://dev-myportal.american-equity.com/agent/book-business/pending-contract/{contractId}?activeTab=info
 
 Required Parameters:
+
 - contractId
