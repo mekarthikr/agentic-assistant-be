@@ -161,7 +161,7 @@ const isContractListRequest = (query: string): boolean =>
 
 const isPortalNavigationRequest = (
   query: string,
-  navigationSection: DocumentationSection,
+  navigationSection: Pick<DocumentationSection, "content">,
 ): boolean => {
   if (PORTAL_NAVIGATION_ACTION_PATTERN.test(query)) return true;
   return (
