@@ -10,7 +10,7 @@
     "product-guide.md",
     "portal-navigation.md"
   ],
-  "sourceHash": "86247d5694c72950fcca6f79bc7116be791629d90a3e7da813216a0a1b1a9d0d",
+  "sourceHash": "777066349dde18b24464ad23915e5b3c78fd979404f15c0d7af8e3b0c71f22e6",
   "sections": [
     {
       "heading": "Enterprise API Documentation",
@@ -725,7 +725,7 @@
     },
     {
       "heading": "Beneficiary Management (beneficiary-guide.md)",
-      "content": "# Beneficiary Management\n\nPolicy owners may add, remove or update beneficiaries.\n\nRequired information:\n\n- Full Name\n- Relationship\n- Date of Birth\n- Percentage Allocation\n\nChanges become effective after successful verification.",
+      "content": "# Beneficiary Management\r\n\r\nPolicy owners may add, remove or update beneficiaries.\r\n\r\nRequired information:\r\n\r\n- Full Name\r\n- Relationship\r\n- Date of Birth\r\n- Percentage Allocation\r\n\r\nChanges become effective after successful verification.",
       "headingTokens": [
         "beneficiary",
         "management",
@@ -778,7 +778,7 @@
     },
     {
       "heading": "Claims Guide — Filing a Claim (claims-guide.md)",
-      "content": "## Filing a Claim\n\nTo submit a claim:\n\n1. Login to the portal.\n2. Open Claims.\n3. Select Create New Claim.\n4. Upload supporting documents.\n5. Submit the claim.\n\n---",
+      "content": "## Filing a Claim\r\n\r\nTo submit a claim:\r\n\r\n1. Login to the portal.\r\n2. Open Claims.\r\n3. Select Create New Claim.\r\n4. Upload supporting documents.\r\n5. Submit the claim.\r\n\r\n---",
       "headingTokens": [
         "claim",
         "guide",
@@ -815,7 +815,7 @@
     },
     {
       "heading": "Claims Guide — Required Documents (claims-guide.md)",
-      "content": "## Required Documents\n\n- Death Certificate\n- Government ID\n- Policy Number\n- Claim Form\n\n---",
+      "content": "## Required Documents\r\n\r\n- Death Certificate\r\n- Government ID\r\n- Policy Number\r\n- Claim Form\r\n\r\n---",
       "headingTokens": [
         "claim",
         "guide",
@@ -840,7 +840,7 @@
     },
     {
       "heading": "Claims Guide — Processing Time (claims-guide.md)",
-      "content": "## Processing Time\n\nMost claims are processed within 7–10 business days after all required documents are received.",
+      "content": "## Processing Time\r\n\r\nMost claims are processed within 7–10 business days after all required documents are received.",
       "headingTokens": [
         "claim",
         "guide",
@@ -885,7 +885,7 @@
     },
     {
       "heading": "Customer Support — Support Channels (customer-support.md)",
-      "content": "## Support Channels\n\n- Phone\n- Email\n- Live Chat",
+      "content": "## Support Channels\r\n\r\n- Phone\r\n- Email\r\n- Live Chat",
       "headingTokens": [
         "customer",
         "support",
@@ -906,7 +906,7 @@
     },
     {
       "heading": "Customer Support — Business Hours (customer-support.md)",
-      "content": "## Business Hours\n\nMonday to Friday\n\n8:00 AM – 6:00 PM",
+      "content": "## Business Hours\r\n\r\nMonday to Friday\r\n\r\n8:00 AM – 6:00 PM",
       "headingTokens": [
         "customer",
         "support",
@@ -931,7 +931,7 @@
     },
     {
       "heading": "Customer Support — Common Support Topics (customer-support.md)",
-      "content": "## Common Support Topics\n\n- Policy Information\n- Premium Payments\n- Claims Status\n- Beneficiary Updates\n- Portal Login Issues",
+      "content": "## Common Support Topics\r\n\r\n- Policy Information\r\n- Premium Payments\r\n- Claims Status\r\n- Beneficiary Updates\r\n- Portal Login Issues",
       "headingTokens": [
         "customer",
         "support",
@@ -978,7 +978,7 @@
     },
     {
       "heading": "Frequently Asked Questions — How do I update my beneficiary? (policy-faq.md)",
-      "content": "## How do I update my beneficiary?\n\nNavigate to Profile > Beneficiary Details and submit the required information.\n\n---",
+      "content": "## How do I update my beneficiary?\r\n\r\nNavigate to Profile > Beneficiary Details and submit the required information.\r\n\r\n---",
       "headingTokens": [
         "frequently",
         "asked",
@@ -1005,7 +1005,7 @@
     },
     {
       "heading": "Frequently Asked Questions — How can I download my policy document? (policy-faq.md)",
-      "content": "## How can I download my policy document?\n\nOpen the Policies page and select Download Policy Document.\n\n---",
+      "content": "## How can I download my policy document?\r\n\r\nOpen the Policies page and select Download Policy Document.\r\n\r\n---",
       "headingTokens": [
         "frequently",
         "asked",
@@ -1034,7 +1034,7 @@
     },
     {
       "heading": "Frequently Asked Questions — Can I change my premium payment frequency? (policy-faq.md)",
-      "content": "## Can I change my premium payment frequency?\n\nYes.\n\nMonthly, quarterly, semi-annual and annual payment options are available.\n\n---",
+      "content": "## Can I change my premium payment frequency?\r\n\r\nYes.\r\n\r\nMonthly, quarterly, semi-annual and annual payment options are available.\r\n\r\n---",
       "headingTokens": [
         "frequently",
         "asked",
@@ -1065,7 +1065,7 @@
     },
     {
       "heading": "Frequently Asked Questions — How do I contact customer support? (policy-faq.md)",
-      "content": "## How do I contact customer support?\n\nCustomer support is available Monday through Friday from 8:00 AM to 6:00 PM.",
+      "content": "## How do I contact customer support?\r\n\r\nCustomer support is available Monday through Friday from 8:00 AM to 6:00 PM.",
       "headingTokens": [
         "frequently",
         "asked",
@@ -1099,7 +1099,7 @@
     },
     {
       "heading": "Premium Payments (premium-payments.md)",
-      "content": "# Premium Payments\n\nPremiums can be paid using:\n\n- Bank Transfer\n- Credit Card\n- Debit Card\n- Auto Pay\n\n---",
+      "content": "# Premium Payments\r\n\r\nPremiums can be paid using:\r\n\r\n- Bank Transfer\r\n- Credit Card\r\n- Debit Card\r\n- Auto Pay\r\n\r\n---",
       "headingTokens": [
         "premium",
         "payment",
@@ -1126,7 +1126,7 @@
     },
     {
       "heading": "Premium Payments — Grace Period (premium-payments.md)",
-      "content": "## Grace Period\n\nA 30-day grace period applies after the premium due date.\n\n---",
+      "content": "## Grace Period\r\n\r\nA 30-day grace period applies after the premium due date.\r\n\r\n---",
       "headingTokens": [
         "premium",
         "payment",
@@ -1152,7 +1152,7 @@
     },
     {
       "heading": "Premium Payments — Missed Payment (premium-payments.md)",
-      "content": "## Missed Payment\n\nIf payment is not received within the grace period, the policy may lapse.",
+      "content": "## Missed Payment\r\n\r\nIf payment is not received within the grace period, the policy may lapse.",
       "headingTokens": [
         "premium",
         "payment",
@@ -1179,7 +1179,7 @@
     },
     {
       "heading": "SecureLife Plus Insurance (product-guide.md)",
-      "content": "# SecureLife Plus Insurance\n\nSecureLife Plus is a flexible life insurance product designed to provide long-term financial protection.",
+      "content": "# SecureLife Plus Insurance\r\n\r\nSecureLife Plus is a flexible life insurance product designed to provide long-term financial protection.",
       "headingTokens": [
         "securelife",
         "plu",
@@ -1208,7 +1208,7 @@
     },
     {
       "heading": "SecureLife Plus Insurance — Features (product-guide.md)",
-      "content": "## Features\n\n- Flexible premium payment options\n- Lifetime death benefit\n- Optional accidental death rider\n- Cash value accumulation\n- Online policy management",
+      "content": "## Features\r\n\r\n- Flexible premium payment options\r\n- Lifetime death benefit\r\n- Optional accidental death rider\r\n- Cash value accumulation\r\n- Online policy management",
       "headingTokens": [
         "securelife",
         "plu",
@@ -1241,7 +1241,7 @@
     },
     {
       "heading": "SecureLife Plus Insurance — Eligibility (product-guide.md)",
-      "content": "## Eligibility\n\n- Minimum age: 18 years\n- Maximum age: 65 years",
+      "content": "## Eligibility\r\n\r\n- Minimum age: 18 years\r\n- Maximum age: 65 years",
       "headingTokens": [
         "securelife",
         "plu",
@@ -1265,7 +1265,7 @@
     },
     {
       "heading": "SecureLife Plus Insurance — Policy Term (product-guide.md)",
-      "content": "## Policy Term\n\nCoverage continues until age 99 provided premiums are paid.",
+      "content": "## Policy Term\r\n\r\nCoverage continues until age 99 provided premiums are paid.",
       "headingTokens": [
         "securelife",
         "plu",
@@ -1472,7 +1472,7 @@
     },
     {
       "heading": "Portal Navigation — Beneficiaries (portal-navigation.md)",
-      "content": "## Beneficiaries\r\n\r\nKeywords:\r\n- beneficiaries\r\n- beneficiary\r\n\r\nMessage:\r\nYou can access this page using the link below.\r\n\r\nURL:\r\nhttps://dev-myportal.american-equity.com/agent/book-business/contract-details/{contractId}?activeTab=beneficiaries\r\n\r\nRequired Parameters:\r\n- contractId",
+      "content": "## Beneficiaries\r\n\r\nKeywords:\n- beneficiaries\n- beneficiary\n- beneficiary details\n\nMessage:\nYou can access this page using the link below.\n\r\nURL:\r\nhttps://dev-myportal.american-equity.com/agent/book-business/contract-details/{contractId}?activeTab=beneficiaries\r\n\r\nRequired Parameters:\r\n- contractId",
       "headingTokens": [
         "portal",
         "navigation",
@@ -1486,6 +1486,8 @@
         "keyword",
         "beneficiary",
         "beneficiary",
+        "beneficiary",
+        "detail",
         "message",
         "you",
         "acces",
