@@ -34,6 +34,8 @@ const CONTRACT_DETAILS_NAVIGATION_PATTERN =
   /\b(?:contract|policy)\s+details?\b|\bdetails?\s+(?:page|screen|link|navigation)\b|\b(?:open|navigate|go|take)\b[^.?!\n]*\b(?:contract|policy)\b/i;
 const POLICY_DOCUMENT_REQUEST_PATTERN =
   /\bpolicy\s+documents?\b|\bdownload\b[^.?!\n]*\bpolicy\b|\bpolicy\b[^.?!\n]*\bdownload\b/i;
+const CUSTOMER_SUPPORT_REQUEST_PATTERN =
+  /\bcustomer\s+support\b|\bsupport\s+(?:channels?|hours?|topics?)\b|\bportal\s+login(?:\s+issues?)?\b|\blogin\s+issues?\b/i;
 const PORTAL_NAVIGATION_ACTION_PATTERN =
   /\b(?:navigate|navigation|open)\b|\bgo\s+to\b|\btake\s+me\s+to\b/i;
 const PORTAL_NAVIGATION_LINK_PATTERN = /\b(?:url|link|page|screen)\b/i;
@@ -165,6 +167,58 @@ const answerBodyFrom = (content: string): string =>
     .replace(/\r?\n---\s*$/, "")
     .trim();
 
+const isCustomerSupportSection = (
+  section: Pick<DocumentationSection, "heading" | "content">,
+): boolean =>
+  /\bcustomer-support\.md\)/i.test(section.heading) ||
+  /^# Customer Support\b/i.test(section.content) ||
+  /^## (?:Support Channels|Business Hours|Common Support Topics)\b/i.test(
+    section.content,
+  );
+
+const customerSupportAnswerFrom = (
+  sections: readonly Pick<DocumentationSection, "heading" | "content">[],
+): string | undefined => {
+  const customerSupportSections = sections.filter(isCustomerSupportSection);
+  if (customerSupportSections.length === 0) return undefined;
+
+  const listItemsFrom = (content: string): string[] =>
+    content
+      .split(/\r?\n/)
+      .map((line) => line.match(/^-\s+(.+)$/)?.[1]?.trim())
+      .filter((item): item is string => Boolean(item));
+
+  const supportChannels = customerSupportSections.find(({ content }) =>
+    /^## Support Channels\b/i.test(content),
+  );
+  const businessHours = customerSupportSections.find(({ content }) =>
+    /^## Business Hours\b/i.test(content),
+  );
+  const commonTopics = customerSupportSections.find(({ content }) =>
+    /^## Common Support Topics\b/i.test(content),
+  );
+
+  const answerParts = [
+    supportChannels
+      ? `Customer support is available through ${listItemsFrom(supportChannels.content).join(", ")}.`
+      : undefined,
+    businessHours
+      ? `Business hours: ${answerBodyFrom(businessHours.content)
+          .replace(/\s+/g, " ")
+          .replace(/\u2013/g, "-")}.`
+      : undefined,
+    commonTopics
+      ? `Common support topics: ${listItemsFrom(commonTopics.content).join(", ")}.`
+      : undefined,
+  ].filter((part): part is string => Boolean(part));
+
+  return (
+    answerParts.length > 0
+      ? answerParts.join("\n\n")
+      : answerBodyFrom(customerSupportSections[0].content)
+  ).trim();
+};
+
 const isContractListRequest = (query: string): boolean =>
   CONTRACT_LIST_REQUEST_PATTERN.test(query) &&
   !CONTRACT_DETAILS_NAVIGATION_PATTERN.test(query);
@@ -287,15 +341,22 @@ export class ApiDocumentationRag {
   public resolveKnowledgeAnswer(
     query: string,
   ): KnowledgeBaseAnswer | undefined {
+    const sections = this.retrieve(query, this.sections.length).filter(
+      ({ content }) => !isPortalNavigationSection(content),
+    );
+
+    if (CUSTOMER_SUPPORT_REQUEST_PATTERN.test(query)) {
+      const answer = customerSupportAnswerFrom(this.sections);
+      return answer ? { answer } : undefined;
+    }
+
     if (!POLICY_DOCUMENT_REQUEST_PATTERN.test(query)) return undefined;
 
-    const section = this.retrieve(query, this.sections.length)
-      .filter(({ content }) => !isPortalNavigationSection(content))
-      .find(({ content, heading }) =>
-        /download[\s\S]*policy\s+documents?|policy\s+documents?[\s\S]*download/i.test(
-          `${heading}\n${content}`,
-        ),
-      );
+    const section = sections.find(({ content, heading }) =>
+      /download[\s\S]*policy\s+documents?|policy\s+documents?[\s\S]*download/i.test(
+        `${heading}\n${content}`,
+      ),
+    );
     if (!section) return undefined;
 
     const answer = answerBodyFrom(section.content);

@@ -129,6 +129,38 @@ test("returns policy document FAQ answer without inventing a link", async () => 
   );
 });
 
+test("answers customer support requests from customer support knowledge", () => {
+  const rag = new ApiDocumentationRag();
+
+  assert.equal(
+    rag.resolveKnowledgeAnswer("Portal Login Issues")?.answer,
+    "Customer support is available through Phone, Email, Live Chat.\n\nBusiness hours: Monday to Friday 8:00 AM - 6:00 PM.\n\nCommon support topics: Policy Information, Premium Payments, Claims Status, Beneficiary Updates, Portal Login Issues.",
+  );
+});
+
+test("returns customer support answer without inventing a link", async () => {
+  const provider: LLMProvider = {
+    modelInfo: { model: "test", contextWindow: 1_024 },
+    generate: async () => {
+      throw new Error("The model must not be called for direct KB answers.");
+    },
+    async *stream() {
+      throw new Error("The model must not be called for direct KB answers.");
+    },
+  };
+  const orchestrator = new AIOrchestrator(
+    new ConversationService(),
+    provider,
+    new ToolRegistry(),
+    new ApiDocumentationRag(),
+  );
+
+  assert.equal(
+    await orchestrator.chat("customer-support-test", "Portal Login Issues"),
+    "Customer support is available through Phone, Email, Live Chat.\n\nBusiness hours: Monday to Friday 8:00 AM - 6:00 PM.\n\nCommon support topics: Policy Information, Premium Payments, Claims Status, Beneficiary Updates, Portal Login Issues.",
+  );
+});
+
 test("returns a labeled Markdown link without invoking the model", async () => {
   const provider: LLMProvider = {
     modelInfo: { model: "test", contextWindow: 1_024 },
