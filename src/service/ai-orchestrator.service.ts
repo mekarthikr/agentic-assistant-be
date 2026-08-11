@@ -14,6 +14,7 @@ import {
 import { ConversationService } from "./conversation.service";
 import { ToolRegistry } from "./tool-registry.service";
 import { logError } from "@app/utils/error-logger";
+import type { ApiResponse, Contract } from "@app/types";
 
 const DEFAULT_MAX_TOOL_ROUNDS = 3;
 const HISTORY_MESSAGE_LIMIT = 6;
@@ -72,7 +73,8 @@ export class AIOrchestrator {
       prompt,
     );
 
-    const portalNavigation = this.apiDocumentation.resolvePortalNavigation(prompt);
+    const portalNavigation =
+      this.apiDocumentation.resolvePortalNavigation(prompt);
     if (portalNavigation) {
       const text = portalNavigation.missingParameter
         ? "Could you please provide the contract ID?"
@@ -94,7 +96,7 @@ export class AIOrchestrator {
       };
     }
 
-    let response: LLMResponse;
+    let response: LLMResponse & { readonly toolResults: readonly unknown[] };
     try {
       const retrievalQuery = conversation.messages
         .slice(-RETRIEVAL_MESSAGE_LIMIT)
@@ -126,7 +128,14 @@ export class AIOrchestrator {
       );
     }
 
-    const responseText = this.normalizeDisplayCasing(response.text);
+    const responseText = this.normalizeDisplayCasing(
+      this.formatClientProductSelection(
+        prompt,
+        response.text,
+        options.userType,
+        response.toolResults,
+      ),
+    );
     this.validateResponse(responseText);
     this.conversationService.addAssistantMessage(conversationId, responseText);
     const { model, contextWindow } = this.provider.modelInfo;
@@ -163,9 +172,10 @@ export class AIOrchestrator {
     messages: Parameters<LLMProvider["generate"]>[0]["messages"],
     toolNames: readonly string[],
     options: ChatOptions,
-  ): Promise<LLMResponse> {
+  ): Promise<LLMResponse & { toolResults: readonly unknown[] }> {
     const maxToolRounds = options.maxToolRounds ?? DEFAULT_MAX_TOOL_ROUNDS;
     let history = [...messages];
+    const toolResults: unknown[] = [];
 
     for (let round = 0; round <= maxToolRounds; round += 1) {
       const toolChoice =
@@ -182,22 +192,23 @@ export class AIOrchestrator {
         signal: options.signal,
       });
 
-      if (response.toolCalls.length === 0) return response;
+      if (response.toolCalls.length === 0) return { ...response, toolResults };
       if (round === maxToolRounds) {
         throw new ProviderError(
           "The AI provider exceeded the tool-call limit.",
         );
       }
 
-      history = [
-        ...history,
-        response.assistantMessage,
-        await this.toolRegistry.executeAll(response.toolCalls, {
+      const executedTools = await this.toolRegistry.executeAllWithResults(
+        response.toolCalls,
+        {
           signal: options.signal,
           userType: options.userType,
           clientName: options.clientName,
-        }),
-      ];
+        },
+      );
+      toolResults.push(...executedTools.values);
+      history = [...history, response.assistantMessage, executedTools.message];
     }
 
     throw new ProviderError("The AI provider exceeded the tool-call limit.");
@@ -234,10 +245,7 @@ export class AIOrchestrator {
       if (needsApplications || CLIENT_APPLICATION_DETAIL_PATTERN.test(query)) {
         return ["searchApplications"];
       }
-      if (
-        needsContracts ||
-        CLIENT_CONTRACT_DETAIL_PATTERN.test(query)
-      ) {
+      if (needsContracts || CLIENT_CONTRACT_DETAIL_PATTERN.test(query)) {
         return ["searchContracts"];
       }
       if (PRODUCT_DETAIL_PATTERN.test(query)) {
@@ -289,10 +297,78 @@ export class AIOrchestrator {
         /(tax qualification(?:\s+is|\s*[:=-])\s*)NON-QUAL\b/gi,
         "$1Non-Qual",
       )
-      .replace(
-        /(tax qualification(?:\s+is|\s*[:=-])\s*)IRA\b/gi,
-        "$1Ira",
-      );
+      .replace(/(tax qualification(?:\s+is|\s*[:=-])\s*)IRA\b/gi, "$1Ira");
+  }
+
+  private formatClientProductSelection(
+    query: string,
+    response: string,
+    userType: ChatOptions["userType"],
+    toolResults: readonly unknown[],
+  ): string {
+    if (userType !== "client" || !PRODUCT_DETAIL_PATTERN.test(query)) {
+      return response;
+    }
+
+    const contracts = toolResults.flatMap((result) => {
+      if (!this.isContractListResponse(result)) return [];
+      return result.data;
+    });
+    if (contracts.length < 2) return response;
+
+    const count = this.contractCountLabel(contracts.length);
+    const products = contracts.map(({ productName }) =>
+      productName
+        .toLowerCase()
+        .replace(/\b[a-z]/g, (letter) => letter.toUpperCase()),
+    );
+
+    return `You have ${count} contracts. Here are the product names for each contract:\n\n${products.map((product) => `- ${product}`).join("\n")}\n\nPlease select a contract number or product name to view more details.`;
+  }
+
+  private isContractListResponse(
+    value: unknown,
+  ): value is ApiResponse<Contract[]> {
+    if (!value || typeof value !== "object") return false;
+    const data = (value as { data?: unknown }).data;
+    return (
+      Array.isArray(data) &&
+      data.every(
+        (item) =>
+          Boolean(item) &&
+          typeof item === "object" &&
+          typeof (item as { productName?: unknown }).productName === "string" &&
+          typeof (item as { contractNumber?: unknown }).contractNumber ===
+            "string",
+      )
+    );
+  }
+
+  private contractCountLabel(count: number): string {
+    const labels = [
+      "zero",
+      "one",
+      "two",
+      "three",
+      "four",
+      "five",
+      "six",
+      "seven",
+      "eight",
+      "nine",
+      "ten",
+      "eleven",
+      "twelve",
+      "thirteen",
+      "fourteen",
+      "fifteen",
+      "sixteen",
+      "seventeen",
+      "eighteen",
+      "nineteen",
+      "twenty",
+    ];
+    return labels[count] ?? String(count);
   }
 
   private buildSystemPrompt(

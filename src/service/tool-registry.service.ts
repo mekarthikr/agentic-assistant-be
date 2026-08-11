@@ -29,6 +29,12 @@ export interface ApplicationTool {
   ): Promise<unknown> | unknown;
 }
 
+export interface ToolExecutionResults {
+  readonly message: ToolModelMessage;
+  /** Raw successful results, retained server-side for deterministic presentation. */
+  readonly values: readonly unknown[];
+}
+
 export class ToolRegistry {
   private readonly tools = new Map<string, ApplicationTool>();
 
@@ -59,6 +65,14 @@ export class ToolRegistry {
     calls: readonly LLMToolCall[],
     context: Omit<ToolExecutionContext, "toolCallId"> = {},
   ): Promise<ToolModelMessage> {
+    return (await this.executeAllWithResults(calls, context)).message;
+  }
+
+  public async executeAllWithResults(
+    calls: readonly LLMToolCall[],
+    context: Omit<ToolExecutionContext, "toolCallId"> = {},
+  ): Promise<ToolExecutionResults> {
+    const values: unknown[] = [];
     const content = await Promise.all(
       calls.map(async (call) => {
         context.signal?.throwIfAborted();
@@ -82,6 +96,7 @@ export class ToolRegistry {
             ...context,
           });
           context.signal?.throwIfAborted();
+          values.push(value);
           return {
             type: "tool-result" as const,
             toolCallId: call.toolCallId,
@@ -111,7 +126,7 @@ export class ToolRegistry {
       }),
     );
 
-    return { role: "tool", content };
+    return { message: { role: "tool", content }, values };
   }
 
   private serialize(value: unknown): string {
