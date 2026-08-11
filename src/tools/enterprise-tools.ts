@@ -2,7 +2,7 @@ import { jsonSchema } from "ai";
 
 import { EnterpriseApiProvider } from "@app/providers";
 import type { ApplicationTool, ToolExecutionContext } from "@app/service";
-import type { ApiResponse, Contract } from "@app/types";
+import type { ApiResponse, Application, Contract } from "@app/types";
 
 const contractFilters = [
   "contractNumber",
@@ -52,6 +52,53 @@ type AnniversaryFilters = {
 
 const isRecord = (value: unknown): value is ToolInput =>
   typeof value === "object" && value !== null && !Array.isArray(value);
+
+/**
+ * Enterprise APIs store several display fields in upper case. Convert only
+ * human-readable values here, before they are supplied to the model. IDs and
+ * links are deliberately not passed to this function.
+ */
+const toDisplayCase = (value: string): string => {
+  if (!/^[A-Z0-9]+(?: [A-Z0-9]+)*$/.test(value)) return value;
+
+  return value
+    .toLowerCase()
+    .replace(/\b[a-z]/g, (letter) => letter.toUpperCase());
+};
+
+const normalizeContractDisplayFields = (contract: Contract): Contract => ({
+  ...contract,
+  clientName: toDisplayCase(contract.clientName),
+  productName: toDisplayCase(contract.productName),
+  taxType: toDisplayCase(contract.taxType),
+  contractStatus: toDisplayCase(contract.contractStatus),
+  taxQualification: toDisplayCase(contract.taxQualification),
+  distributionCompany: toDisplayCase(contract.distributionCompany),
+});
+
+const normalizeApplicationDisplayFields = (
+  application: Application,
+): Application => ({
+  ...application,
+  clientName: toDisplayCase(application.clientName),
+  product: toDisplayCase(application.product),
+  taxType: toDisplayCase(application.taxType),
+  status: toDisplayCase(application.status),
+  applicationName: toDisplayCase(application.applicationName),
+});
+
+const normalizeRecordResponse = <T>(
+  response: ApiResponse<T>,
+  normalize: (record: T) => T,
+): ApiResponse<T> => ({ ...response, data: normalize(response.data) });
+
+const normalizeListResponse = <T>(
+  response: ApiResponse<T[]>,
+  normalize: (record: T) => T,
+): ApiResponse<T[]> => ({
+  ...response,
+  data: response.data.map(normalize),
+});
 
 const requiredString = (input: unknown, field: string): string => {
   if (
@@ -169,6 +216,12 @@ const contractSearchSchema = {
   ...filterSchema(contractFilters),
   properties: {
     ...filterSchema(contractFilters).properties,
+    contractStatus: {
+      type: "string" as const,
+      enum: ["Active", "Inactive", "Surrendered"],
+      description:
+        'Optional contract status. For surrendered contracts, use "Surrendered".',
+    },
     [anniversaryDateFilter]: {
       type: "string" as const,
       description: "Exact anniversary date in YYYY-MM-DD format.",
@@ -216,16 +269,19 @@ export const createEnterpriseTools = (
   {
     name: "searchContracts",
     description:
-      'Search insurance contracts using one or more known filters. Anniversary data can be filtered by exact anniversaryDate (YYYY-MM-DD), anniversaryMonth ("current" or MM), or anniversaryYear (YYYY). Use anniversaryMonth: "current" for anniversaries this month.',
+      'Search insurance contracts using one or more known filters. Use contractStatus for contract-status requests, with one of: Active, Inactive, or Surrendered. To show all contracts with a status, pass only {"contractStatus":"<status>"}; do not add an "all" argument. Anniversary data can be filtered by exact anniversaryDate (YYYY-MM-DD), anniversaryMonth ("current" or MM), or anniversaryYear (YYYY). Use anniversaryMonth: "current" for anniversaries this month.',
     inputSchema: jsonSchema(contractSearchSchema),
     execute: async (input, context) => {
       const anniversary = anniversaryFiltersFrom(input);
-      return filterContractsByAnniversary(
-        await enterpriseApi.getContracts(
-          scopedContractFilters(input as ContractSearchInput, context),
-          context.signal,
+      return normalizeListResponse(
+        filterContractsByAnniversary(
+          await enterpriseApi.getContracts(
+            scopedContractFilters(input as ContractSearchInput, context),
+            context.signal,
+          ),
+          anniversary,
         ),
-        anniversary,
+        normalizeContractDisplayFields,
       );
     },
   },
@@ -240,9 +296,12 @@ export const createEnterpriseTools = (
       additionalProperties: false,
     }),
     execute: async (input, context) => {
-      const response = await enterpriseApi.getContract(
-        requiredString(input, "contractNumber"),
-        context.signal,
+      const response = normalizeRecordResponse(
+        await enterpriseApi.getContract(
+          requiredString(input, "contractNumber"),
+          context.signal,
+        ),
+        normalizeContractDisplayFields,
       );
       assertClientOwnsRecord(response.data, context);
       return response;
@@ -254,9 +313,12 @@ export const createEnterpriseTools = (
       "Search insurance applications using one or more known filters, including application status, client name, product, agent number, or contract number.",
     inputSchema: jsonSchema(filterSchema(applicationFilters)),
     execute: async (input, context) =>
-      enterpriseApi.getApplications(
-        scopedApplicationFilters(input, context),
-        context.signal,
+      normalizeListResponse(
+        await enterpriseApi.getApplications(
+          scopedApplicationFilters(input, context),
+          context.signal,
+        ),
+        normalizeApplicationDisplayFields,
       ),
   },
   {
@@ -270,9 +332,12 @@ export const createEnterpriseTools = (
       additionalProperties: false,
     }),
     execute: async (input, context) => {
-      const response = await enterpriseApi.getApplication(
-        requiredString(input, "contractNumber"),
-        context.signal,
+      const response = normalizeRecordResponse(
+        await enterpriseApi.getApplication(
+          requiredString(input, "contractNumber"),
+          context.signal,
+        ),
+        normalizeApplicationDisplayFields,
       );
       assertClientOwnsRecord(response.data, context);
       return response;
