@@ -1,5 +1,6 @@
 export { ApiDocumentationRag } from "./api-documentation-rag";
 export type {
+  PortalNavigationKnowledgeResult,
   RetrievedDocumentationSection,
   RetrievedDocumentationSource,
 } from "./api-documentation-rag";

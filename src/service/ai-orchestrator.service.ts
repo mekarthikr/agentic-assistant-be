@@ -19,11 +19,14 @@ import { ConversationService } from "./conversation.service";
 import { ToolRegistry } from "./tool-registry.service";
 import { logError } from "@app/utils/error-logger";
 import { normalizeAssistantResponse } from "@app/utils/assistant-response";
+import type { ApiResponse, Contract } from "@app/types";
 
 const DEFAULT_MAX_TOOL_ROUNDS = 3;
 const HISTORY_MESSAGE_LIMIT = 6;
 const RETRIEVAL_MESSAGE_LIMIT = 2;
 const RECORD_IDENTIFIER_PATTERN = /\b\d{5,}\b/;
+const RECORD_IDENTIFIER_ONLY_PATTERN = /^\d{5,}$/;
+const CONTRACT_ID_REQUEST_MESSAGE = "Could you please provide the contract ID?";
 const CONTRACT_PATTERN = /\b(?:annuit(?:y|ies)|contracts?|contrats?)\b/i;
 const APPLICATION_PATTERN = /\b(?:applications?|approvals?|cases?)\b/i;
 const AMBIGUOUS_RECORD_PATTERN = /\b(?:clients?|customers?|records?)\b/i;
@@ -31,7 +34,7 @@ const RECORD_LOOKUP_INTENT_PATTERN =
   /\b(?:find|search|show|list|look\s*up|retrieve|get)\b/i;
 const LIST_RECORDS_PATTERN = /\b(?:show|list|display|retrieve)\b/i;
 const CLIENT_CONTRACT_DETAIL_PATTERN =
-  /\b(?:my|product|policy|account|current value|anniversary|premium|beneficiar(?:y|ies)|contract details?)\b/i;
+  /\b(?:product|policy|account|current value|anniversary|premium|beneficiar(?:y|ies)|contract details?)\b/i;
 const CLIENT_APPLICATION_DETAIL_PATTERN =
   /\b(?:application|approval|case|status|anticipated premium|start date|agent number|application link|contract number|product id|contact id|application name|tax type)\b/i;
 const PRODUCT_DETAIL_PATTERN = /\bproduct(?:\s+name)?\b/i;
@@ -83,19 +86,52 @@ export class AIOrchestrator {
       prompt,
     );
 
-    let response: LLMResponse;
-    let retrievedSources: readonly RetrievedDocumentationSource[];
+    const pendingPortalNavigation = this.resolvePendingPortalNavigation(
+      conversation,
+      prompt,
+    );
+    if (pendingPortalNavigation?.url) {
+      const text = `${pendingPortalNavigation.message}\n\n[${pendingPortalNavigation.linkText}](${pendingPortalNavigation.url})`;
+      this.conversationService.addAssistantMessage(conversationId, text);
+      return this.directResponse(text);
+    }
+
+    const portalNavigation =
+      this.apiDocumentation.resolvePortalNavigation(prompt);
+    if (portalNavigation) {
+      const text = portalNavigation.missingParameter
+        ? CONTRACT_ID_REQUEST_MESSAGE
+        : `${portalNavigation.message}\n\n[${portalNavigation.linkText}](${portalNavigation.url})`;
+      this.conversationService.addAssistantMessage(conversationId, text);
+      return this.directResponse(text);
+    }
+
+    const knowledgeAnswer =
+      this.apiDocumentation.resolveKnowledgeAnswer(prompt);
+    if (knowledgeAnswer) {
+      const text = knowledgeAnswer.answer;
+      this.conversationService.addAssistantMessage(conversationId, text);
+      return this.directResponse(text);
+    }
+
+    const retrievalQuery = conversation.messages
+      .slice(-RETRIEVAL_MESSAGE_LIMIT)
+      .map(({ content }) => content)
+      .join("\n");
+    const retrievedSections =
+      this.apiDocumentation.retrieveKnowledge(retrievalQuery);
+    const retrievedContext =
+      this.apiDocumentation.formatContext(retrievedSections);
+    const retrievedSources = retrievedSections.map(({ source }) => source);
+
+    let response: LLMResponse & { readonly toolResults: readonly unknown[] };
     try {
-      const retrievalQuery = conversation.messages
-        .slice(-RETRIEVAL_MESSAGE_LIMIT)
-        .map(({ content }) => content)
-        .join("\n");
-      const retrievedSections = this.apiDocumentation.retrieve(retrievalQuery);
-      const retrievedContext =
-        this.apiDocumentation.formatContext(retrievedSections);
-      retrievedSources = retrievedSections.map(({ source }) => source);
       response = await this.generateWithTools(
-        this.buildSystemPrompt(retrievedContext, options.userType),
+        this.buildSystemPrompt(
+          retrievedContext,
+          options.userType,
+          options.clientName,
+        ),
         conversation.messages
           .slice(-HISTORY_MESSAGE_LIMIT)
           .map(({ role, content }) => ({ role, content })),
@@ -114,7 +150,16 @@ export class AIOrchestrator {
       );
     }
 
-    const assistantText = normalizeAssistantResponse(response.text);
+    const assistantText = normalizeAssistantResponse(
+      this.normalizeDisplayCasing(
+        this.formatClientProductSelection(
+          prompt,
+          response.text,
+          options.userType,
+          response.toolResults,
+        ),
+      ),
+    );
     this.validateResponse(assistantText);
     this.conversationService.addAssistantMessage(conversationId, assistantText);
     const { model, contextWindow } = this.provider.modelInfo;
@@ -170,9 +215,10 @@ export class AIOrchestrator {
     messages: Parameters<LLMProvider["generate"]>[0]["messages"],
     toolNames: readonly string[],
     options: ChatOptions,
-  ): Promise<LLMResponse> {
+  ): Promise<LLMResponse & { toolResults: readonly unknown[] }> {
     const maxToolRounds = options.maxToolRounds ?? DEFAULT_MAX_TOOL_ROUNDS;
     let history = [...messages];
+    const toolResults: unknown[] = [];
 
     for (let round = 0; round <= maxToolRounds; round += 1) {
       const toolChoice =
@@ -189,24 +235,23 @@ export class AIOrchestrator {
         signal: options.signal,
       });
 
-      if (response.toolCalls.length === 0) return response;
+      if (response.toolCalls.length === 0) return { ...response, toolResults };
       if (round === maxToolRounds) {
         throw new ProviderError(
           "The AI provider exceeded the tool-call limit.",
         );
       }
 
-      history = [
-        ...history,
-        response.assistantMessage,
-        await this.toolRegistry.executeAll(response.toolCalls, {
+      const executedTools = await this.toolRegistry.executeAllWithResults(
+        response.toolCalls,
+        {
           signal: options.signal,
           userType: options.userType,
           clientName: options.clientName,
-          clientApplicationContractNumber:
-            options.clientApplicationContractNumber,
-        }),
-      ];
+        },
+      );
+      toolResults.push(...executedTools.values);
+      history = [...history, response.assistantMessage, executedTools.message];
     }
 
     throw new ProviderError("The AI provider exceeded the tool-call limit.");
@@ -216,6 +261,49 @@ export class AIOrchestrator {
     const prompt = userMessage.trim();
     if (!prompt) throw new EmptyPromptError();
     return prompt;
+  }
+
+  private resolvePendingPortalNavigation(
+    conversation: ReturnType<ConversationService["addUserMessage"]>,
+    prompt: string,
+  ) {
+    if (!RECORD_IDENTIFIER_ONLY_PATTERN.test(prompt)) return undefined;
+
+    const previousAssistant = conversation.messages.at(-2);
+    const previousUser = conversation.messages.at(-3);
+    if (
+      previousAssistant?.role !== "assistant" ||
+      previousAssistant.content.trim() !== CONTRACT_ID_REQUEST_MESSAGE ||
+      previousUser?.role !== "user"
+    ) {
+      return undefined;
+    }
+
+    return this.apiDocumentation.resolvePortalNavigation(
+      `${previousUser.content} ${prompt}`,
+    );
+  }
+
+  private directResponse(text: string): {
+    text: string;
+    usage: ModelTokenUsage;
+    sources: readonly ChatSource[];
+  } {
+    const { model, contextWindow } = this.provider.modelInfo;
+    return {
+      text,
+      usage: {
+        model,
+        contextWindow,
+        inputTokens: 0,
+        outputTokens: 0,
+        totalTokens: 0,
+        contextTokensUsed: 0,
+        contextTokensRemaining: contextWindow,
+        rateLimitRemainingTokens: null,
+      },
+      sources: [],
+    };
   }
 
   private selectToolNames(
@@ -237,18 +325,22 @@ export class AIOrchestrator {
       if (CLIENT_LIST_REQUEST_PATTERN.test(query)) {
         return [];
       }
-      if (hasIdentifier) return ["getContract", "getApplication"];
-      if (PRODUCT_DETAIL_PATTERN.test(query)) {
-        return ["searchContracts", "searchApplications"];
-      }
-      if (needsApplications || CLIENT_APPLICATION_DETAIL_PATTERN.test(query)) {
-        return ["searchApplications"];
+      if (hasIdentifier) {
+        return needsApplications ? ["getApplication"] : ["getContract"];
       }
       if (
-        needsContracts ||
-        CLIENT_CONTRACT_DETAIL_PATTERN.test(query) ||
-        (needsAmbiguousRecord && RECORD_LOOKUP_INTENT_PATTERN.test(query))
+        needsApplications ||
+        (!needsContracts && CLIENT_APPLICATION_DETAIL_PATTERN.test(query))
       ) {
+        return ["searchApplications"];
+      }
+      if (needsContracts || CLIENT_CONTRACT_DETAIL_PATTERN.test(query)) {
+        return ["searchContracts"];
+      }
+      if (PRODUCT_DETAIL_PATTERN.test(query)) {
+        return ["searchContracts"];
+      }
+      if (needsAmbiguousRecord && RECORD_LOOKUP_INTENT_PATTERN.test(query)) {
         return ["searchContracts", "searchApplications"];
       }
       return [];
@@ -283,14 +375,102 @@ export class AIOrchestrator {
     }
   }
 
+  private normalizeDisplayCasing(response: string): string {
+    // Tax qualifications are display values, not identifiers. Normalize these
+    // known API values after generation so the presentation stays consistent
+    // even when the model echoes the API's all-caps text.
+    return response
+      .replace(
+        /(tax qualification(?:\s+is|\s*[:=-])\s*)ROTH IRA\b/gi,
+        "$1Roth Ira",
+      )
+      .replace(
+        /(tax qualification(?:\s+is|\s*[:=-])\s*)NON-QUAL\b/gi,
+        "$1Non-Qual",
+      )
+      .replace(/(tax qualification(?:\s+is|\s*[:=-])\s*)IRA\b/gi, "$1Ira");
+  }
+
+  private formatClientProductSelection(
+    query: string,
+    response: string,
+    userType: ChatOptions["userType"],
+    toolResults: readonly unknown[],
+  ): string {
+    if (userType !== "client" || !PRODUCT_DETAIL_PATTERN.test(query)) {
+      return response;
+    }
+
+    const contracts = toolResults.flatMap((result) => {
+      if (!this.isContractListResponse(result)) return [];
+      return result.data;
+    });
+    if (contracts.length < 2) return response;
+
+    const count = this.contractCountLabel(contracts.length);
+    const products = contracts.map(({ productName }) =>
+      productName
+        .toLowerCase()
+        .replace(/\b[a-z]/g, (letter) => letter.toUpperCase()),
+    );
+
+    return `You have ${count} contracts. Here are the product names for each contract:\n\n${products.map((product) => `- ${product}`).join("\n")}\n\nPlease select a contract number or product name to view more details.`;
+  }
+
+  private isContractListResponse(
+    value: unknown,
+  ): value is ApiResponse<Contract[]> {
+    if (!value || typeof value !== "object") return false;
+    const data = (value as { data?: unknown }).data;
+    return (
+      Array.isArray(data) &&
+      data.every(
+        (item) =>
+          Boolean(item) &&
+          typeof item === "object" &&
+          typeof (item as { productName?: unknown }).productName === "string" &&
+          typeof (item as { contractNumber?: unknown }).contractNumber ===
+            "string",
+      )
+    );
+  }
+
+  private contractCountLabel(count: number): string {
+    const labels = [
+      "zero",
+      "one",
+      "two",
+      "three",
+      "four",
+      "five",
+      "six",
+      "seven",
+      "eight",
+      "nine",
+      "ten",
+      "eleven",
+      "twelve",
+      "thirteen",
+      "fourteen",
+      "fifteen",
+      "sixteen",
+      "seventeen",
+      "eighteen",
+      "nineteen",
+      "twenty",
+    ];
+    return labels[count] ?? String(count);
+  }
+
   private buildSystemPrompt(
     retrievedContext: string,
     userType?: "agent" | "client",
+    clientName?: string,
   ): string {
     const audienceInstructions =
       userType === "client"
-        ? "The current user is a client. Discuss only this client's contract and application information. Retrieve client records only when the client explicitly asks about their own records, such as 'my contracts', 'my product', or 'my application status'. The client's own application fields, including status, agent number, application link, product, premium, start date, contract number, product ID, contact ID, application name, and tax type, may be provided. Do not reply with only a raw field value. For a question about one application field, state the requested value in a complete sentence and add the application product and current status when returned. When answering an application-status question, provide the returned status, product, and contract number; also include the anticipated premium and start date when returned. For an application-details question, give a concise labeled summary of the returned product, status, contract number, anticipated premium, start date, tax type, agent number, application name, product ID, contact ID, and application link. For contract questions, provide the contract number from the client's application and any issued-contract details returned by the contract lookup. For a contract-details question, give a concise labeled summary of the returned product, contract status, tax type, tax qualification, issued date, anniversary date, current value, and distribution company. Never retrieve or summarize all contracts, all applications, or information about other clients. If the client's own record lookup returns no results, say 'No contract record is currently available.' Do not mention the lookup identifier, contract number, or application number, and do not ask the client for extra identifiers."
-        : "The current user is an agent. You may assist with agent workflows, applications, and contracts. When the agent asks to show or list contracts or applications, retrieve the list and present every available returned record with its identifying number and key details; do not ask the agent to choose a specific record. For a single-record question, such as application status or contract details, ask for a contract number, application number, client name, or another identifying filter when the request does not include one.";
+        ? `The current user is a client${clientName ? ` signed in as ${clientName}` : ""}. If they ask for their name, state their signed-in name and do not retrieve contracts or applications. Discuss only this client's contract and application information. Retrieve client records only when the client explicitly asks about their own records, such as 'my contracts', 'my product', or 'my application status'. The client's own application fields, including status, agent number, application link, product, premium, start date, contract number, product ID, contact ID, application name, and tax type, may be provided. When any application-related question returns exactly one application, always begin the response with exactly: 'You have only one application.' Then answer the client's question using that application's returned details. This rule includes questions about product ID, contact ID, status, agent number, contract number, application name, product, premium, start date, tax type, and application link. Never answer any of these fields with only its raw value when exactly one application was returned. For a question about one application field, state the requested value in a complete sentence and add the application product and current status when returned. When answering an application-status or agent-number question, use the returned application record and state the requested value, product, status, and contract number. Do not claim that application data is unavailable when the application tool returned a record. When a contract lookup returns more than one contract, never select one or give the details for just one. State how many contracts were found, list each contract number with its product and status, and ask the client to select a contract number or product before providing contract-specific details. For a question asking for contract numbers, list every returned contract number with its product and status, then ask which contract they want to discuss. For contract details without a selected contract, apply the same selection prompt rather than giving detailed information. Once the client selects a contract number or product, provide a concise labeled contract-details summary containing product, contract status, tax type, tax qualification, issued date, anniversary date, current value, and distribution company. Do not omit these returned fields. For an application-details question, give a concise labeled summary of the returned product, status, contract number, anticipated premium, start date, tax type, agent number, application name, product ID, contact ID, and application link. Never retrieve or summarize contracts, applications, or information about other clients. If a contract lookup returns no results, say 'No contract record is currently available.' If an application lookup returns no results, say 'No application record is currently available.' Do not mention the lookup identifier or application number, and do not ask the client for extra identifiers other than selecting one of multiple returned contracts. Present every human-readable name, label, and value in natural title or sentence case, even if the API returns it in all capitals. This includes tax types and tax qualifications: display NON-QUAL as 'Non-Qual', ROTH IRA as 'Roth Ira', and IRA as 'Ira'. Preserve exact identifiers, contract and application numbers, product IDs, URLs, monetary amounts, and dates.`
+        : "The current user is an agent. You may assist with agent workflows, applications, and contracts. When the agent asks to show or list contracts or applications, retrieve the list and present every available returned record with its identifying number and key details; do not ask the agent to choose a specific record. For a single-record question, such as application status or contract details, ask for a contract number, application number, client name, or another identifying filter when the request does not include one. Present every human-readable name, label, and value in natural title or sentence case, even if the API returns it in all capitals. This includes tax types and tax qualifications: display NON-QUAL as 'Non-Qual', ROTH IRA as 'Roth Ira', and IRA as 'Ira'. Preserve exact identifiers, contract and application numbers, product IDs, URLs, monetary amounts, and dates.";
     const basePrompt = `${INSURANCE_AGENT_SYSTEM_PROMPT}\n\n${audienceInstructions}`;
 
     if (!retrievedContext) return basePrompt;

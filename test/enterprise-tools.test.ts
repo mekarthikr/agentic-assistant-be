@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { AIOrchestrator } from "../src/service/ai-orchestrator.service";
 import { createEnterpriseTools } from "../src/tools/enterprise-tools";
-import type { ApiResponse, Contract } from "../src/types";
+import type { ApiResponse, Application, Contract } from "../src/types";
 
 const contracts: Contract[] = [
   {
@@ -77,4 +78,191 @@ test("filters contract anniversaries by exact date, month, or year", async () =>
     ),
     ["1561094"],
   );
+});
+
+test("searches all client contracts by the trusted client name", async () => {
+  let receivedFilters: Record<string, string | undefined> | undefined;
+  const response: ApiResponse<Contract[]> = {
+    success: true,
+    message: "Request successful",
+    data: [contracts[0], contracts[1]],
+    timestamp: "2026-08-04T00:00:00.000Z",
+  };
+  const searchContracts = createEnterpriseTools({
+    getContracts: async (filters: Record<string, string | undefined>) => {
+      receivedFilters = filters;
+      return response;
+    },
+    getContract: async () => {
+      throw new Error(
+        "Client contract searches must use the contracts list API.",
+      );
+    },
+  } as never).find(({ name }) => name === "searchContracts");
+
+  const result = (await searchContracts?.execute(
+    {},
+    {
+      toolCallId: "client-contracts-test",
+      userType: "client",
+      clientName: "SMITH ROBERT",
+    },
+  )) as ApiResponse<Contract[]>;
+
+  assert.equal(receivedFilters?.clientName, "SMITH ROBERT");
+  assert.deepEqual(
+    result.data.map(({ contractNumber, clientName, taxQualification }) => ({
+      contractNumber,
+      clientName,
+      taxQualification,
+    })),
+    [
+      {
+        contractNumber: "1561092",
+        clientName: "Smith John",
+        taxQualification: "Ira",
+      },
+      {
+        contractNumber: "1561094",
+        clientName: "Williams Robert",
+        taxQualification: "Ira",
+      },
+    ],
+  );
+});
+
+test("searches client applications by the trusted client name", async () => {
+  let receivedFilters: Record<string, string | undefined> | undefined;
+  const response: ApiResponse<Application[]> = {
+    success: true,
+    message: "Request successful",
+    data: [],
+    timestamp: "2026-08-04T00:00:00.000Z",
+  };
+  const searchApplications = createEnterpriseTools({
+    getApplications: async (filters: Record<string, string | undefined>) => {
+      receivedFilters = filters;
+      return response;
+    },
+  } as never).find(({ name }) => name === "searchApplications");
+
+  await searchApplications?.execute(
+    {},
+    {
+      toolCallId: "client-applications-test",
+      userType: "client",
+      clientName: "SMITH ROBERT",
+    },
+  );
+
+  assert.equal(receivedFilters?.clientName, "SMITH ROBERT");
+});
+
+test("normalizes upper-case application display fields without changing IDs", async () => {
+  const response: ApiResponse<Application[]> = {
+    success: true,
+    message: "Request successful",
+    data: [
+      {
+        clientName: "SDF SDF",
+        product: "AMERICAN EQUITY ESTATESHIELD 10 FIXED INDEX ANNUITY",
+        anticipatedPremium: 99999,
+        startDate: "2026-07-15T13:27:11.782+00:00",
+        taxType: "NON QUALIFIED",
+        status: "IN PROGRESS",
+        contractNumber: "1561438",
+        productId: "I-ESTATE24",
+        agentNumber: "2026",
+        contactId: "482354",
+        applicationName: "SDF SDF APPLICATION",
+      },
+    ],
+    timestamp: "2026-08-04T00:00:00.000Z",
+  };
+  const searchApplications = createEnterpriseTools({
+    getApplications: async () => response,
+  } as never).find(({ name }) => name === "searchApplications");
+
+  const result = (await searchApplications?.execute(
+    {},
+    { toolCallId: "display-casing-test" },
+  )) as ApiResponse<Application[]>;
+
+  assert.equal(
+    result.data[0].product,
+    "American Equity Estateshield 10 Fixed Index Annuity",
+  );
+  assert.equal(result.data[0].status, "In Progress");
+  assert.equal(result.data[0].productId, "I-ESTATE24");
+  assert.equal(result.data[0].contractNumber, "1561438");
+});
+
+test("routes client contract questions to the contract list only", () => {
+  const orchestrator = new AIOrchestrator(
+    {} as never,
+    {} as never,
+    {} as never,
+  );
+  const selectToolNames = (
+    orchestrator as unknown as {
+      selectToolNames(query: string, userType: "client"): readonly string[];
+    }
+  ).selectToolNames.bind(orchestrator);
+
+  assert.deepEqual(selectToolNames("What is my contract number?", "client"), [
+    "searchContracts",
+  ]);
+  assert.deepEqual(selectToolNames("What are my contract details?", "client"), [
+    "searchContracts",
+  ]);
+  assert.deepEqual(selectToolNames("1561507", "client"), ["getContract"]);
+  assert.deepEqual(
+    selectToolNames("What is my application status?", "client"),
+    ["searchApplications"],
+  );
+  assert.deepEqual(selectToolNames("What is my product name?", "client"), [
+    "searchContracts",
+  ]);
+  assert.deepEqual(selectToolNames("What is my name?", "client"), []);
+});
+
+test("formats a client multi-contract product answer from the returned records", () => {
+  const orchestrator = new AIOrchestrator(
+    {} as never,
+    {} as never,
+    {} as never,
+  );
+  const format = (
+    orchestrator as unknown as {
+      formatClientProductSelection(
+        query: string,
+        response: string,
+        userType: "client",
+        results: readonly unknown[],
+      ): string;
+    }
+  ).formatClientProductSelection.bind(orchestrator);
+
+  const result = format(
+    "What is my product name?",
+    "You have two contracts.",
+    "client",
+    [
+      {
+        success: true,
+        message: "Request successful",
+        data: contracts.map((contract) => ({
+          ...contract,
+          productName: contract.productName.toUpperCase(),
+        })),
+        timestamp: "2026-08-04T00:00:00.000Z",
+      },
+    ],
+  );
+
+  assert.match(result, /^You have three contracts\./);
+  assert.match(result, /- Product A/);
+  assert.match(result, /- Product B/);
+  assert.match(result, /- Product C/);
+  assert.doesNotMatch(result, /PRODUCT A/);
 });

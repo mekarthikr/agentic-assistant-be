@@ -11,6 +11,10 @@ const documentsDirectoryUrl = new URL(
   "../src/knowledge/documents/",
   import.meta.url,
 );
+const navigationDirectoryUrl = new URL(
+  "../src/knowledge/navigation/",
+  import.meta.url,
+);
 const indexUrl = new URL(
   "../src/knowledge/enterprise-api-rag.json",
   import.meta.url,
@@ -101,15 +105,33 @@ const readKnowledgeDocument = async (url) => {
   }
 };
 
+/** Returns supported knowledge documents under a directory recursively. */
+const knowledgeDocumentUrls = async (directoryUrl, extensions) => {
+  const entries = await readdir(directoryUrl, { withFileTypes: true });
+  const urls = await Promise.all(
+    entries.map(async (entry) => {
+      const entryUrl = new URL(entry.name, directoryUrl);
+      if (entry.isDirectory()) {
+        return knowledgeDocumentUrls(
+          new URL(`${entry.name}/`, directoryUrl),
+          extensions,
+        );
+      }
+      return entry.isFile() && extensions.has(extname(entry.name).toLowerCase())
+        ? [entryUrl]
+        : [];
+    }),
+  );
+  return urls.flat().sort((left, right) => left.href.localeCompare(right.href));
+};
+
 const documentUrls = [
   enterpriseDocumentationUrl,
-  ...(await readdir(documentsDirectoryUrl))
-    .filter((filename) => [".md", ".pdf"].includes(extname(filename)))
-    .sort()
-    .map(
-      (filename) =>
-        new URL(`../src/knowledge/documents/${filename}`, import.meta.url),
-    ),
+  ...(await knowledgeDocumentUrls(
+    documentsDirectoryUrl,
+    new Set([".md", ".pdf"]),
+  )),
+  ...(await knowledgeDocumentUrls(navigationDirectoryUrl, new Set([".md"]))),
 ];
 const documents = await Promise.all(
   documentUrls.map(async (url) => ({
