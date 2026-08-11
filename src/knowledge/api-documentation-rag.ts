@@ -28,6 +28,10 @@ const STOP_WORDS = new Set([
   "what",
   "with",
 ]);
+const CONTRACT_LIST_REQUEST_PATTERN =
+  /\b(?:list|all|every)\b[^.?!\n]*\b(?:contracts?|polic(?:y|ies))\b|\b(?:contracts?|polic(?:y|ies))\b[^.?!\n]*\b(?:list|all|every)\b|\b(?:show|display|retrieve|get)\b[^.?!\n]*\bcontracts?\b/i;
+const CONTRACT_DETAILS_NAVIGATION_PATTERN =
+  /\b(?:contract|policy)\s+details?\b|\bdetails?\s+(?:page|screen|link|navigation)\b|\b(?:open|navigate|go|take)\b[^.?!\n]*\b(?:contract|policy)\b/i;
 
 const QUERY_EXPANSIONS: Readonly<Record<string, readonly string[]>> = {
   approval: ["application", "status"],
@@ -122,6 +126,10 @@ const fieldValue = (content: string, field: string): string | undefined => {
 
 const contractIdFrom = (query: string): string | undefined =>
   query.match(/\b\d+\b/)?.[0];
+
+const isContractListRequest = (query: string): boolean =>
+  CONTRACT_LIST_REQUEST_PATTERN.test(query) &&
+  !CONTRACT_DETAILS_NAVIGATION_PATTERN.test(query);
 
 const loadGeneratedIndex = (): readonly DocumentationSection[] => {
   const index = generatedIndex as GeneratedDocumentationIndex;
@@ -232,6 +240,7 @@ export class ApiDocumentationRag {
     );
     const contractId = contractIdFrom(query);
     if (parameters.includes("contractId") && !contractId) {
+      if (isContractListRequest(query)) return undefined;
       return {
         linkText: sectionHeading(navigationSection.content),
         message,

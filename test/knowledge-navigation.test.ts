@@ -46,6 +46,16 @@ test("resolves contract URL parameters and reports missing values", () => {
   });
 });
 
+test("does not resolve contract list requests as contract details navigation", () => {
+  const rag = new ApiDocumentationRag(navigationMarkdown);
+
+  assert.equal(rag.resolvePortalNavigation("show contract list"), undefined);
+  assert.equal(
+    rag.retrieveContext("show contract list").includes("missingParameter"),
+    false,
+  );
+});
+
 test("returns a labeled Markdown link without invoking the model", async () => {
   const provider: LLMProvider = {
     modelInfo: { model: "test", contextWindow: 1_024 },

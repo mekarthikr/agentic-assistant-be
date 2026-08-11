@@ -231,7 +231,10 @@ export class AIOrchestrator {
       if (hasIdentifier) {
         return needsApplications ? ["getApplication"] : ["getContract"];
       }
-      if (needsApplications || CLIENT_APPLICATION_DETAIL_PATTERN.test(query)) {
+      if (
+        needsApplications ||
+        (!needsContracts && CLIENT_APPLICATION_DETAIL_PATTERN.test(query))
+      ) {
         return ["searchApplications"];
       }
       if (
