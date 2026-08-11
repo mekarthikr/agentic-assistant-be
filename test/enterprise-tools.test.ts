@@ -140,6 +140,45 @@ test("searches client applications by the trusted client name", async () => {
   assert.equal(receivedFilters?.clientName, "SMITH ROBERT");
 });
 
+test("normalizes upper-case application display fields without changing IDs", async () => {
+  const response: ApiResponse<Application[]> = {
+    success: true,
+    message: "Request successful",
+    data: [
+      {
+        clientName: "SDF SDF",
+        product: "AMERICAN EQUITY ESTATESHIELD 10 FIXED INDEX ANNUITY",
+        anticipatedPremium: 99999,
+        startDate: "2026-07-15T13:27:11.782+00:00",
+        taxType: "NON QUALIFIED",
+        status: "IN PROGRESS",
+        contractNumber: "1561438",
+        productId: "I-ESTATE24",
+        agentNumber: "2026",
+        contactId: "482354",
+        applicationName: "SDF SDF APPLICATION",
+      },
+    ],
+    timestamp: "2026-08-04T00:00:00.000Z",
+  };
+  const searchApplications = createEnterpriseTools({
+    getApplications: async () => response,
+  } as never).find(({ name }) => name === "searchApplications");
+
+  const result = (await searchApplications?.execute(
+    {},
+    { toolCallId: "display-casing-test" },
+  )) as ApiResponse<Application[]>;
+
+  assert.equal(
+    result.data[0].product,
+    "American Equity Estateshield 10 Fixed Index Annuity",
+  );
+  assert.equal(result.data[0].status, "In Progress");
+  assert.equal(result.data[0].productId, "I-ESTATE24");
+  assert.equal(result.data[0].contractNumber, "1561438");
+});
+
 test("routes client contract questions to the contract list only", () => {
   const orchestrator = new AIOrchestrator(
     {} as never,
