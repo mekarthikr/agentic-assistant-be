@@ -216,6 +216,12 @@ const contractSearchSchema = {
   ...filterSchema(contractFilters),
   properties: {
     ...filterSchema(contractFilters).properties,
+    contractStatus: {
+      type: "string" as const,
+      enum: ["Active", "Inactive", "Surrendered"],
+      description:
+        'Optional contract status. For surrendered contracts, use "Surrendered".',
+    },
     [anniversaryDateFilter]: {
       type: "string" as const,
       description: "Exact anniversary date in YYYY-MM-DD format.",
@@ -263,7 +269,7 @@ export const createEnterpriseTools = (
   {
     name: "searchContracts",
     description:
-      'Search insurance contracts using one or more known filters. Anniversary data can be filtered by exact anniversaryDate (YYYY-MM-DD), anniversaryMonth ("current" or MM), or anniversaryYear (YYYY). Use anniversaryMonth: "current" for anniversaries this month.',
+      'Search insurance contracts using one or more known filters. Use contractStatus for contract-status requests, with one of: Active, Inactive, or Surrendered. To show all contracts with a status, pass only {"contractStatus":"<status>"}; do not add an "all" argument. Anniversary data can be filtered by exact anniversaryDate (YYYY-MM-DD), anniversaryMonth ("current" or MM), or anniversaryYear (YYYY). Use anniversaryMonth: "current" for anniversaries this month.',
     inputSchema: jsonSchema(contractSearchSchema),
     execute: async (input, context) => {
       const anniversary = anniversaryFiltersFrom(input);
