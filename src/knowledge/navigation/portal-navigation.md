@@ -40,7 +40,6 @@ https://dev-myportal.american-equity.com/agent/user/profile?activeTab=documents
 ## Contract Details
 
 Keywords:
-- contract
 - contract details
 - policy details
 

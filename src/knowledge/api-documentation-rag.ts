@@ -32,6 +32,11 @@ const CONTRACT_LIST_REQUEST_PATTERN =
   /\b(?:list|all|every)\b[^.?!\n]*\b(?:contracts?|polic(?:y|ies))\b|\b(?:contracts?|polic(?:y|ies))\b[^.?!\n]*\b(?:list|all|every)\b|\b(?:show|display|retrieve|get)\b[^.?!\n]*\bcontracts?\b/i;
 const CONTRACT_DETAILS_NAVIGATION_PATTERN =
   /\b(?:contract|policy)\s+details?\b|\bdetails?\s+(?:page|screen|link|navigation)\b|\b(?:open|navigate|go|take)\b[^.?!\n]*\b(?:contract|policy)\b/i;
+const POLICY_DOCUMENT_REQUEST_PATTERN =
+  /\bpolicy\s+documents?\b|\bdownload\b[^.?!\n]*\bpolicy\b|\bpolicy\b[^.?!\n]*\bdownload\b/i;
+const PORTAL_NAVIGATION_ACTION_PATTERN =
+  /\b(?:navigate|navigation|open)\b|\bgo\s+to\b|\btake\s+me\s+to\b/i;
+const PORTAL_NAVIGATION_LINK_PATTERN = /\b(?:url|link|page|screen)\b/i;
 
 const QUERY_EXPANSIONS: Readonly<Record<string, readonly string[]>> = {
   approval: ["application", "status"],
@@ -124,12 +129,46 @@ const fieldValue = (content: string, field: string): string | undefined => {
   return match?.[1]?.trim();
 };
 
+const escapeRegExp = (value: string): string =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const keywordValuesFrom = (content: string): string[] =>
+  (fieldValue(content, "Keywords") ?? "")
+    .split(/\r?\n/)
+    .map((line) => line.replace(/^-\s*/, "").trim())
+    .filter(Boolean);
+
+const isPortalNavigationSection = (content: string): boolean =>
+  content.startsWith("## ") &&
+  fieldValue(content, "Keywords") !== undefined &&
+  fieldValue(content, "Message") !== undefined &&
+  fieldValue(content, "URL") !== undefined;
+
+const queryContainsKeyword = (
+  query: string,
+  keywords: readonly string[],
+): boolean =>
+  keywords.some((keyword) =>
+    new RegExp(`\\b${escapeRegExp(keyword)}\\b`, "i").test(query),
+  );
+
 const contractIdFrom = (query: string): string | undefined =>
   query.match(/\b\d+\b/)?.[0];
 
 const isContractListRequest = (query: string): boolean =>
   CONTRACT_LIST_REQUEST_PATTERN.test(query) &&
   !CONTRACT_DETAILS_NAVIGATION_PATTERN.test(query);
+
+const isPortalNavigationRequest = (
+  query: string,
+  navigationSection: DocumentationSection,
+): boolean => {
+  if (PORTAL_NAVIGATION_ACTION_PATTERN.test(query)) return true;
+  return (
+    PORTAL_NAVIGATION_LINK_PATTERN.test(query) &&
+    queryContainsKeyword(query, keywordValuesFrom(navigationSection.content))
+  );
+};
 
 const loadGeneratedIndex = (): readonly DocumentationSection[] => {
   const index = generatedIndex as GeneratedDocumentationIndex;
@@ -209,7 +248,9 @@ export class ApiDocumentationRag {
       return `Portal navigation result\nMessage:\n${portalNavigation.message}\n\nLink Text:\n${portalNavigation.linkText}\n\nURL:\n${portalNavigation.url}`;
     }
 
-    const sections = this.retrieve(query, limit);
+    const sections = this.retrieve(query, this.sections.length)
+      .filter(({ content }) => !isPortalNavigationSection(content))
+      .slice(0, limit);
     if (sections.length === 0) return "";
 
     return sections
@@ -222,14 +263,13 @@ export class ApiDocumentationRag {
   public resolvePortalNavigation(
     query: string,
   ): PortalNavigationKnowledgeResult | undefined {
+    if (POLICY_DOCUMENT_REQUEST_PATTERN.test(query)) return undefined;
+
     const navigationSection = this.retrieve(query, this.sections.length).find(
-      ({ content }) =>
-        content.startsWith("## ") &&
-        fieldValue(content, "Keywords") !== undefined &&
-        fieldValue(content, "Message") !== undefined &&
-        fieldValue(content, "URL") !== undefined,
+      ({ content }) => isPortalNavigationSection(content),
     );
     if (!navigationSection) return undefined;
+    if (!isPortalNavigationRequest(query, navigationSection)) return undefined;
 
     const message = fieldValue(navigationSection.content, "Message");
     const template = fieldValue(navigationSection.content, "URL");

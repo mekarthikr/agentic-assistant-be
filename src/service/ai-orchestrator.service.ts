@@ -17,7 +17,6 @@ import { logError } from "@app/utils/error-logger";
 
 const DEFAULT_MAX_TOOL_ROUNDS = 3;
 const HISTORY_MESSAGE_LIMIT = 6;
-const RETRIEVAL_MESSAGE_LIMIT = 2;
 const RECORD_IDENTIFIER_PATTERN = /\b\d{5,}\b/;
 const CONTRACT_PATTERN = /\b(?:annuit(?:y|ies)|contracts?|contrats?)\b/i;
 const APPLICATION_PATTERN = /\b(?:applications?|approvals?|cases?)\b/i;
@@ -96,12 +95,7 @@ export class AIOrchestrator {
 
     let response: LLMResponse;
     try {
-      const retrievalQuery = conversation.messages
-        .slice(-RETRIEVAL_MESSAGE_LIMIT)
-        .map(({ content }) => content)
-        .join("\n");
-      const retrievedContext =
-        this.apiDocumentation.retrieveContext(retrievalQuery);
+      const retrievedContext = this.apiDocumentation.retrieveContext(prompt);
       response = await this.generateWithTools(
         this.buildSystemPrompt(
           retrievedContext,
