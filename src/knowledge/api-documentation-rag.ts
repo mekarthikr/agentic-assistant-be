@@ -64,6 +64,10 @@ export interface PortalNavigationKnowledgeResult {
   readonly missingParameter?: string;
 }
 
+export interface KnowledgeBaseAnswer {
+  readonly answer: string;
+}
+
 interface DocumentationSection {
   readonly heading: string;
   readonly content: string;
@@ -155,6 +159,12 @@ const queryContainsKeyword = (
 const contractIdFrom = (query: string): string | undefined =>
   query.match(/\b\d+\b/)?.[0];
 
+const answerBodyFrom = (content: string): string =>
+  content
+    .replace(/^#{1,3}\s+.+\r?\n/, "")
+    .replace(/\r?\n---\s*$/, "")
+    .trim();
+
 const isContractListRequest = (query: string): boolean =>
   CONTRACT_LIST_REQUEST_PATTERN.test(query) &&
   !CONTRACT_DETAILS_NAVIGATION_PATTERN.test(query);
@@ -168,6 +178,20 @@ const isPortalNavigationRequest = (
     PORTAL_NAVIGATION_LINK_PATTERN.test(query) &&
     queryContainsKeyword(query, keywordValuesFrom(navigationSection.content))
   );
+};
+
+const bestPortalNavigationSection = (
+  query: string,
+  sections: readonly RetrievedDocumentationSection[],
+): RetrievedDocumentationSection | undefined => {
+  const navigationSections = sections
+    .filter(({ content }) => isPortalNavigationSection(content))
+    .filter((section) => isPortalNavigationRequest(query, section));
+  const keywordMatchedSection = navigationSections.find(({ content }) =>
+    queryContainsKeyword(query, keywordValuesFrom(content)),
+  );
+
+  return keywordMatchedSection ?? navigationSections[0];
 };
 
 const loadGeneratedIndex = (): readonly DocumentationSection[] => {
@@ -259,14 +283,34 @@ export class ApiDocumentationRag {
       .slice(0, MAX_CONTEXT_CHARACTERS);
   }
 
+  /** Resolves direct knowledge-base answers that must not be embellished. */
+  public resolveKnowledgeAnswer(
+    query: string,
+  ): KnowledgeBaseAnswer | undefined {
+    if (!POLICY_DOCUMENT_REQUEST_PATTERN.test(query)) return undefined;
+
+    const section = this.retrieve(query, this.sections.length)
+      .filter(({ content }) => !isPortalNavigationSection(content))
+      .find(({ content, heading }) =>
+        /download[\s\S]*policy\s+documents?|policy\s+documents?[\s\S]*download/i.test(
+          `${heading}\n${content}`,
+        ),
+      );
+    if (!section) return undefined;
+
+    const answer = answerBodyFrom(section.content);
+    return answer ? { answer } : undefined;
+  }
+
   /** Resolves a portal-navigation entry from the indexed Markdown knowledge. */
   public resolvePortalNavigation(
     query: string,
   ): PortalNavigationKnowledgeResult | undefined {
     if (POLICY_DOCUMENT_REQUEST_PATTERN.test(query)) return undefined;
 
-    const navigationSection = this.retrieve(query, this.sections.length).find(
-      ({ content }) => isPortalNavigationSection(content),
+    const navigationSection = bestPortalNavigationSection(
+      query,
+      this.retrieve(query, this.sections.length),
     );
     if (!navigationSection) return undefined;
     if (!isPortalNavigationRequest(query, navigationSection)) return undefined;
@@ -291,7 +335,10 @@ export class ApiDocumentationRag {
     return {
       linkText: sectionHeading(navigationSection.content),
       message,
-      url: template.replaceAll("{contractId}", encodeURIComponent(contractId ?? "")),
+      url: template.replaceAll(
+        "{contractId}",
+        encodeURIComponent(contractId ?? ""),
+      ),
     };
   }
 }

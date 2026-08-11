@@ -19,6 +19,8 @@ import type { ApiResponse, Contract } from "@app/types";
 const DEFAULT_MAX_TOOL_ROUNDS = 3;
 const HISTORY_MESSAGE_LIMIT = 6;
 const RECORD_IDENTIFIER_PATTERN = /\b\d{5,}\b/;
+const RECORD_IDENTIFIER_ONLY_PATTERN = /^\d{5,}$/;
+const CONTRACT_ID_REQUEST_MESSAGE = "Could you please provide the contract ID?";
 const CONTRACT_PATTERN = /\b(?:annuit(?:y|ies)|contracts?|contrats?)\b/i;
 const APPLICATION_PATTERN = /\b(?:applications?|approvals?|cases?)\b/i;
 const AMBIGUOUS_RECORD_PATTERN = /\b(?:clients?|customers?|records?)\b/i;
@@ -72,27 +74,32 @@ export class AIOrchestrator {
       prompt,
     );
 
+    const pendingPortalNavigation = this.resolvePendingPortalNavigation(
+      conversation,
+      prompt,
+    );
+    if (pendingPortalNavigation?.url) {
+      const text = `${pendingPortalNavigation.message}\n\n[${pendingPortalNavigation.linkText}](${pendingPortalNavigation.url})`;
+      this.conversationService.addAssistantMessage(conversationId, text);
+      return this.directResponse(text);
+    }
+
     const portalNavigation =
       this.apiDocumentation.resolvePortalNavigation(prompt);
     if (portalNavigation) {
       const text = portalNavigation.missingParameter
-        ? "Could you please provide the contract ID?"
+        ? CONTRACT_ID_REQUEST_MESSAGE
         : `${portalNavigation.message}\n\n[${portalNavigation.linkText}](${portalNavigation.url})`;
       this.conversationService.addAssistantMessage(conversationId, text);
-      const { model, contextWindow } = this.provider.modelInfo;
-      return {
-        text,
-        usage: {
-          model,
-          contextWindow,
-          inputTokens: 0,
-          outputTokens: 0,
-          totalTokens: 0,
-          contextTokensUsed: 0,
-          contextTokensRemaining: contextWindow,
-          rateLimitRemainingTokens: null,
-        },
-      };
+      return this.directResponse(text);
+    }
+
+    const knowledgeAnswer =
+      this.apiDocumentation.resolveKnowledgeAnswer(prompt);
+    if (knowledgeAnswer) {
+      const text = knowledgeAnswer.answer;
+      this.conversationService.addAssistantMessage(conversationId, text);
+      return this.directResponse(text);
     }
 
     let response: LLMResponse & { readonly toolResults: readonly unknown[] };
@@ -212,6 +219,47 @@ export class AIOrchestrator {
     const prompt = userMessage.trim();
     if (!prompt) throw new EmptyPromptError();
     return prompt;
+  }
+
+  private resolvePendingPortalNavigation(
+    conversation: ReturnType<ConversationService["addUserMessage"]>,
+    prompt: string,
+  ) {
+    if (!RECORD_IDENTIFIER_ONLY_PATTERN.test(prompt)) return undefined;
+
+    const previousAssistant = conversation.messages.at(-2);
+    const previousUser = conversation.messages.at(-3);
+    if (
+      previousAssistant?.role !== "assistant" ||
+      previousAssistant.content.trim() !== CONTRACT_ID_REQUEST_MESSAGE ||
+      previousUser?.role !== "user"
+    ) {
+      return undefined;
+    }
+
+    return this.apiDocumentation.resolvePortalNavigation(
+      `${previousUser.content} ${prompt}`,
+    );
+  }
+
+  private directResponse(text: string): {
+    text: string;
+    usage: ModelTokenUsage;
+  } {
+    const { model, contextWindow } = this.provider.modelInfo;
+    return {
+      text,
+      usage: {
+        model,
+        contextWindow,
+        inputTokens: 0,
+        outputTokens: 0,
+        totalTokens: 0,
+        contextTokensUsed: 0,
+        contextTokensRemaining: contextWindow,
+        rateLimitRemainingTokens: null,
+      },
+    };
   }
 
   private selectToolNames(
