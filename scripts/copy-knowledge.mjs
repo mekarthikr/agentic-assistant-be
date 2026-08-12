@@ -12,6 +12,8 @@ await cp(sourceDirectory, outputDirectory, {
     return (
       extension === "" ||
       extension === ".md" ||
+      extension === ".mjs" ||
+      extension === ".d.ts" ||
       extension === ".json" ||
       extension === ".pdf"
     );

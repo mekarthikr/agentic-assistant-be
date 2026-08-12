@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "sources": [
     "enterprise-api-documentation.md",
     "beneficiary-guide.md",
@@ -20,7 +20,9 @@
       "source": {
         "filename": "enterprise-api-documentation.md",
         "title": "Enterprise API Documentation",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 0,
+        "ragEligible": false
       },
       "headingTokens": [
         "enterprise",
@@ -50,7 +52,9 @@
       "source": {
         "filename": "enterprise-api-documentation.md",
         "title": "Enterprise API Documentation",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 1,
+        "ragEligible": false
       },
       "headingTokens": [
         "contract",
@@ -67,7 +71,9 @@
       "source": {
         "filename": "enterprise-api-documentation.md",
         "title": "Enterprise API Documentation",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 2,
+        "ragEligible": false
       },
       "headingTokens": [
         "all",
@@ -222,7 +228,9 @@
       "source": {
         "filename": "enterprise-api-documentation.md",
         "title": "Enterprise API Documentation",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 3,
+        "ragEligible": false
       },
       "headingTokens": [
         "contract",
@@ -339,7 +347,9 @@
       "source": {
         "filename": "enterprise-api-documentation.md",
         "title": "Enterprise API Documentation",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 4,
+        "ragEligible": false
       },
       "headingTokens": [
         "application",
@@ -356,7 +366,9 @@
       "source": {
         "filename": "enterprise-api-documentation.md",
         "title": "Enterprise API Documentation",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 5,
+        "ragEligible": false
       },
       "headingTokens": [
         "all",
@@ -540,7 +552,9 @@
       "source": {
         "filename": "enterprise-api-documentation.md",
         "title": "Enterprise API Documentation",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 6,
+        "ragEligible": false
       },
       "headingTokens": [
         "application",
@@ -661,7 +675,9 @@
       "source": {
         "filename": "enterprise-api-documentation.md",
         "title": "Enterprise API Documentation",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 7,
+        "ragEligible": false
       },
       "headingTokens": [
         "common",
@@ -701,7 +717,9 @@
       "source": {
         "filename": "enterprise-api-documentation.md",
         "title": "Enterprise API Documentation",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 8,
+        "ragEligible": false
       },
       "headingTokens": [
         "error",
@@ -734,7 +752,9 @@
       "source": {
         "filename": "enterprise-api-documentation.md",
         "title": "Enterprise API Documentation",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 9,
+        "ragEligible": false
       },
       "headingTokens": [
         "filtering",
@@ -781,7 +801,9 @@
       "source": {
         "filename": "beneficiary-guide.md",
         "title": "Beneficiary Management",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 0,
+        "ragEligible": true
       },
       "headingTokens": [
         "beneficiary",
@@ -824,7 +846,9 @@
       "source": {
         "filename": "claims-guide.md",
         "title": "Claims Guide",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 0,
+        "ragEligible": true
       },
       "headingTokens": [
         "claim",
@@ -844,7 +868,9 @@
       "source": {
         "filename": "claims-guide.md",
         "title": "Claims Guide",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 1,
+        "ragEligible": true
       },
       "headingTokens": [
         "claim",
@@ -886,7 +912,9 @@
       "source": {
         "filename": "claims-guide.md",
         "title": "Claims Guide",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 2,
+        "ragEligible": true
       },
       "headingTokens": [
         "claim",
@@ -916,7 +944,9 @@
       "source": {
         "filename": "claims-guide.md",
         "title": "Claims Guide",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 3,
+        "ragEligible": true
       },
       "headingTokens": [
         "claim",
@@ -951,7 +981,9 @@
       "source": {
         "filename": "customer-support.md",
         "title": "Customer Support",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 0,
+        "ragEligible": true
       },
       "headingTokens": [
         "customer",
@@ -971,7 +1003,9 @@
       "source": {
         "filename": "customer-support.md",
         "title": "Customer Support",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 1,
+        "ragEligible": true
       },
       "headingTokens": [
         "customer",
@@ -997,7 +1031,9 @@
       "source": {
         "filename": "customer-support.md",
         "title": "Customer Support",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 2,
+        "ragEligible": true
       },
       "headingTokens": [
         "customer",
@@ -1027,7 +1063,9 @@
       "source": {
         "filename": "customer-support.md",
         "title": "Customer Support",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 3,
+        "ragEligible": true
       },
       "headingTokens": [
         "customer",
@@ -1058,12 +1096,15 @@
     },
     {
       "heading": "Items to Take Over the Phone (items-to-take-over-the-phone.pdf)",
-      "content": "# Items to Take Over the Phone\n\n1\nBack to Top\nItems to Take Over The Phone\nDepartment: Customer Excellence- Post Production\nContacts: Manager or Training Team\nSee the end of the document for the revision history.\nIt is the responsibility of all employees to comply with all written procedures including the procedures documented herein. Printed copies\nor copies saved to personal drives are for reference only. Please refer to the electronic copy for the latest version. Failure to comply may lead\nto disciplinary action, up to and including termination.\nPurpose: To provide guidance on what information is acceptable to take over the phone with verified\ncallers.\nReference: Call Verification Requirements l Types of Callers l Call Scripting l Transferring Calls To\nAnother Area l Bene Req Talking Points l Community Property States Reference Guide l New Business\nItems to Take Over the Phone vs Corrections l Forms & Calculators\nTable of Contents\nConsiderations: .........................................................................................................................................................................................................................................2\nJoint Ownership: .................................................................................................................................................................................................................................2\nSpousal Consent:.................................................................................................................................................................................................................................2\nNIGO Items: ...........................................................................................................................................................................................................................................2\nRequests to Cancel a Processing Request: .............................................................................................................................................................................2\nService Only Agents: .........................................................................................................................................................................................................................2\nAddress Changes ......................................................................................................................................................................................................................2\nAgent Authorization (Form 8053) ....................................................................................................................................................................................3\nAgent Requests .........................................................................................................................................................................................................................................3\nAnnuitization (SCs) ...................................................................................................................................................................................................................3\nBeneficiary Changes ..................................................................................................................................................................................................................3\nElectronic Fund Transfers (EFTs) ....................................................................................................................................................................................4\nLetter of Instruction (LOIs) .................................................................................................................................................................................................................4\nLifetime Income Benefit Rider (LIBR) .............................................................................................................................................................................5\nMaturity Dates/ Matured Contracts ...............................................................................................................................................................................................6\nMiscellaneous: All Forms .....................................................................................................................................................................................................................6\nOutstanding Checks ................................................................................................................................................................................................................................7\nOvernight Requests.................................................................................................................................................................................................................................7\nPartial Withdrawals .................................................................................................................................................................................................................7\nPre-Authorized Credits (PACs) .........................................................................................................................................................................................8\nRefund Requests.......................................................................................................................................................................................................................................9\nRequired Minimum Distributions (RMD) ...................................................................................................................................................................9\nRush Reviews.......................................................................................................................................................................................................................................... 10\nSurrenders ........................................................................................................................................................................................................................... 10\nSystematic Withdrawals .................................................................................................................................................................................................... 10\nTransfer of Values (TOVs) ................................................................................................................................................................................................ 11\n72T / 72Q Payments .............................................................................................................................................................................................................. 11\nRevision History .................................................................................................................................................................................................................................... 12",
+      "content": "# Items to Take Over the Phone",
       "source": {
         "filename": "items-to-take-over-the-phone.pdf",
         "title": "Items to Take Over the Phone",
         "mediaType": "application/pdf",
-        "page": 1
+        "page": 1,
+        "chunkIndex": 0,
+        "isContentsPage": true,
+        "ragEligible": true
       },
       "headingTokens": [
         "item",
@@ -1080,7 +1121,33 @@
         "item",
         "take",
         "over",
+        "phone"
+      ]
+    },
+    {
+      "heading": "Items to Take Over the Phone (items-to-take-over-the-phone.pdf)",
+      "content": "1\nBack to Top\nItems to Take Over The Phone\nDepartment: Customer Excellence- Post Production\nContacts: Manager or Training Team\nSee the end of the document for the revision history.\nIt is the responsibility of all employees to comply with all written procedures including the procedures documented herein. Printed copies\nor copies saved to personal drives are for reference only. Please refer to the electronic copy for the latest version. Failure to comply may lead\nto disciplinary action, up to and including termination.\nPurpose: To provide guidance on what information is acceptable to take over the phone with verified\ncallers.\nReference: Call Verification Requirements l Types of Callers l Call Scripting l Transferring Calls To\nAnother Area l Bene Req Talking Points l Community Property States Reference Guide l New Business\nItems to Take Over the Phone vs Corrections l Forms & Calculators\nTable of Contents\nConsiderations: .........................................................................................................................................................................................................................................2\nJoint Ownership: .................................................................................................................................................................................................................................2\nSpousal Consent:.................................................................................................................................................................................................................................2\nNIGO Items: ...........................................................................................................................................................................................................................................2\nRequests to Cancel a Processing Request: .............................................................................................................................................................................2\nService Only Agents: .........................................................................................................................................................................................................................2",
+      "source": {
+        "filename": "items-to-take-over-the-phone.pdf",
+        "title": "Items to Take Over the Phone",
+        "mediaType": "application/pdf",
+        "page": 1,
+        "chunkIndex": 1,
+        "isContentsPage": true,
+        "ragEligible": true
+      },
+      "headingTokens": [
+        "item",
+        "take",
+        "over",
         "phone",
+        "item",
+        "take",
+        "over",
+        "phone",
+        "pdf"
+      ],
+      "contentTokens": [
         "1",
         "back",
         "top",
@@ -1207,6 +1274,36 @@
         "service",
         "only",
         "agent",
+        "2"
+      ]
+    },
+    {
+      "heading": "Items to Take Over the Phone (items-to-take-over-the-phone.pdf)",
+      "content": "Service Only Agents: .........................................................................................................................................................................................................................2\nAddress Changes ......................................................................................................................................................................................................................2\nAgent Authorization (Form 8053) ....................................................................................................................................................................................3\nAgent Requests .........................................................................................................................................................................................................................................3\nAnnuitization (SCs) ...................................................................................................................................................................................................................3\nBeneficiary Changes ..................................................................................................................................................................................................................3\nElectronic Fund Transfers (EFTs) ....................................................................................................................................................................................4\nLetter of Instruction (LOIs) .................................................................................................................................................................................................................4\nLifetime Income Benefit Rider (LIBR) .............................................................................................................................................................................5\nMaturity Dates/ Matured Contracts ...............................................................................................................................................................................................6",
+      "source": {
+        "filename": "items-to-take-over-the-phone.pdf",
+        "title": "Items to Take Over the Phone",
+        "mediaType": "application/pdf",
+        "page": 1,
+        "chunkIndex": 2,
+        "isContentsPage": true,
+        "ragEligible": true
+      },
+      "headingTokens": [
+        "item",
+        "take",
+        "over",
+        "phone",
+        "item",
+        "take",
+        "over",
+        "phone",
+        "pdf"
+      ],
+      "contentTokens": [
+        "service",
+        "only",
+        "agent",
         "2",
         "addres",
         "change",
@@ -1244,6 +1341,37 @@
         "date",
         "matured",
         "contract",
+        "6"
+      ]
+    },
+    {
+      "heading": "Items to Take Over the Phone (items-to-take-over-the-phone.pdf)",
+      "content": "Maturity Dates/ Matured Contracts ...............................................................................................................................................................................................6\nMiscellaneous: All Forms .....................................................................................................................................................................................................................6\nOutstanding Checks ................................................................................................................................................................................................................................7\nOvernight Requests.................................................................................................................................................................................................................................7\nPartial Withdrawals .................................................................................................................................................................................................................7\nPre-Authorized Credits (PACs) .........................................................................................................................................................................................8\nRefund Requests.......................................................................................................................................................................................................................................9\nRequired Minimum Distributions (RMD) ...................................................................................................................................................................9\nRush Reviews.......................................................................................................................................................................................................................................... 10\nSurrenders ........................................................................................................................................................................................................................... 10",
+      "source": {
+        "filename": "items-to-take-over-the-phone.pdf",
+        "title": "Items to Take Over the Phone",
+        "mediaType": "application/pdf",
+        "page": 1,
+        "chunkIndex": 3,
+        "isContentsPage": true,
+        "ragEligible": true
+      },
+      "headingTokens": [
+        "item",
+        "take",
+        "over",
+        "phone",
+        "item",
+        "take",
+        "over",
+        "phone",
+        "pdf"
+      ],
+      "contentTokens": [
+        "maturity",
+        "date",
+        "matured",
+        "contract",
         "6",
         "miscellaneou",
         "all",
@@ -1275,6 +1403,34 @@
         "review",
         "10",
         "surrender",
+        "10"
+      ]
+    },
+    {
+      "heading": "Items to Take Over the Phone (items-to-take-over-the-phone.pdf)",
+      "content": "Surrenders ........................................................................................................................................................................................................................... 10\nSystematic Withdrawals .................................................................................................................................................................................................... 10\nTransfer of Values (TOVs) ................................................................................................................................................................................................ 11\n72T / 72Q Payments .............................................................................................................................................................................................................. 11\nRevision History .................................................................................................................................................................................................................................... 12",
+      "source": {
+        "filename": "items-to-take-over-the-phone.pdf",
+        "title": "Items to Take Over the Phone",
+        "mediaType": "application/pdf",
+        "page": 1,
+        "chunkIndex": 4,
+        "isContentsPage": true,
+        "ragEligible": true
+      },
+      "headingTokens": [
+        "item",
+        "take",
+        "over",
+        "phone",
+        "item",
+        "take",
+        "over",
+        "phone",
+        "pdf"
+      ],
+      "contentTokens": [
+        "surrender",
         "10",
         "systematic",
         "withdrawal",
@@ -1299,7 +1455,9 @@
         "filename": "items-to-take-over-the-phone.pdf",
         "title": "Items to Take Over the Phone",
         "mediaType": "application/pdf",
-        "page": 2
+        "page": 2,
+        "chunkIndex": 0,
+        "ragEligible": true
       },
       "headingTokens": [
         "item",
@@ -1572,7 +1730,9 @@
         "filename": "items-to-take-over-the-phone.pdf",
         "title": "Items to Take Over the Phone",
         "mediaType": "application/pdf",
-        "page": 3
+        "page": 3,
+        "chunkIndex": 0,
+        "ragEligible": true
       },
       "headingTokens": [
         "item",
@@ -1728,7 +1888,9 @@
         "filename": "items-to-take-over-the-phone.pdf",
         "title": "Items to Take Over the Phone",
         "mediaType": "application/pdf",
-        "page": 4
+        "page": 4,
+        "chunkIndex": 0,
+        "ragEligible": true
       },
       "headingTokens": [
         "item",
@@ -1917,7 +2079,9 @@
         "filename": "items-to-take-over-the-phone.pdf",
         "title": "Items to Take Over the Phone",
         "mediaType": "application/pdf",
-        "page": 5
+        "page": 5,
+        "chunkIndex": 0,
+        "ragEligible": true
       },
       "headingTokens": [
         "item",
@@ -2135,7 +2299,9 @@
         "filename": "items-to-take-over-the-phone.pdf",
         "title": "Items to Take Over the Phone",
         "mediaType": "application/pdf",
-        "page": 6
+        "page": 6,
+        "chunkIndex": 0,
+        "ragEligible": true
       },
       "headingTokens": [
         "item",
@@ -2332,7 +2498,9 @@
         "filename": "items-to-take-over-the-phone.pdf",
         "title": "Items to Take Over the Phone",
         "mediaType": "application/pdf",
-        "page": 7
+        "page": 7,
+        "chunkIndex": 0,
+        "ragEligible": true
       },
       "headingTokens": [
         "item",
@@ -2527,7 +2695,9 @@
         "filename": "items-to-take-over-the-phone.pdf",
         "title": "Items to Take Over the Phone",
         "mediaType": "application/pdf",
-        "page": 8
+        "page": 8,
+        "chunkIndex": 0,
+        "ragEligible": true
       },
       "headingTokens": [
         "item",
@@ -2720,7 +2890,9 @@
         "filename": "items-to-take-over-the-phone.pdf",
         "title": "Items to Take Over the Phone",
         "mediaType": "application/pdf",
-        "page": 9
+        "page": 9,
+        "chunkIndex": 0,
+        "ragEligible": true
       },
       "headingTokens": [
         "item",
@@ -2914,7 +3086,9 @@
         "filename": "items-to-take-over-the-phone.pdf",
         "title": "Items to Take Over the Phone",
         "mediaType": "application/pdf",
-        "page": 10
+        "page": 10,
+        "chunkIndex": 0,
+        "ragEligible": true
       },
       "headingTokens": [
         "item",
@@ -3077,7 +3251,9 @@
         "filename": "items-to-take-over-the-phone.pdf",
         "title": "Items to Take Over the Phone",
         "mediaType": "application/pdf",
-        "page": 11
+        "page": 11,
+        "chunkIndex": 0,
+        "ragEligible": true
       },
       "headingTokens": [
         "item",
@@ -3258,7 +3434,9 @@
         "filename": "items-to-take-over-the-phone.pdf",
         "title": "Items to Take Over the Phone",
         "mediaType": "application/pdf",
-        "page": 12
+        "page": 12,
+        "chunkIndex": 0,
+        "ragEligible": true
       },
       "headingTokens": [
         "item",
@@ -3455,7 +3633,9 @@
       "source": {
         "filename": "policy-faq.md",
         "title": "Frequently Asked Questions",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 0,
+        "ragEligible": true
       },
       "headingTokens": [
         "frequently",
@@ -3477,7 +3657,9 @@
       "source": {
         "filename": "policy-faq.md",
         "title": "Frequently Asked Questions",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 1,
+        "ragEligible": true
       },
       "headingTokens": [
         "frequently",
@@ -3509,7 +3691,9 @@
       "source": {
         "filename": "policy-faq.md",
         "title": "Frequently Asked Questions",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 2,
+        "ragEligible": true
       },
       "headingTokens": [
         "frequently",
@@ -3543,7 +3727,9 @@
       "source": {
         "filename": "policy-faq.md",
         "title": "Frequently Asked Questions",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 3,
+        "ragEligible": true
       },
       "headingTokens": [
         "frequently",
@@ -3579,7 +3765,9 @@
       "source": {
         "filename": "policy-faq.md",
         "title": "Frequently Asked Questions",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 4,
+        "ragEligible": true
       },
       "headingTokens": [
         "frequently",
@@ -3618,7 +3806,9 @@
       "source": {
         "filename": "premium-payments.md",
         "title": "Premium Payments",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 0,
+        "ragEligible": true
       },
       "headingTokens": [
         "premium",
@@ -3650,7 +3840,9 @@
       "source": {
         "filename": "premium-payments.md",
         "title": "Premium Payments",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 1,
+        "ragEligible": true
       },
       "headingTokens": [
         "premium",
@@ -3681,7 +3873,9 @@
       "source": {
         "filename": "premium-payments.md",
         "title": "Premium Payments",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 2,
+        "ragEligible": true
       },
       "headingTokens": [
         "premium",
@@ -3713,7 +3907,9 @@
       "source": {
         "filename": "product-guide.md",
         "title": "SecureLife Plus Insurance",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 0,
+        "ragEligible": true
       },
       "headingTokens": [
         "securelife",
@@ -3747,7 +3943,9 @@
       "source": {
         "filename": "product-guide.md",
         "title": "SecureLife Plus Insurance",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 1,
+        "ragEligible": true
       },
       "headingTokens": [
         "securelife",
@@ -3785,7 +3983,9 @@
       "source": {
         "filename": "product-guide.md",
         "title": "SecureLife Plus Insurance",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 2,
+        "ragEligible": true
       },
       "headingTokens": [
         "securelife",
@@ -3814,7 +4014,9 @@
       "source": {
         "filename": "product-guide.md",
         "title": "SecureLife Plus Insurance",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 3,
+        "ragEligible": true
       },
       "headingTokens": [
         "securelife",
@@ -3841,12 +4043,15 @@
     },
     {
       "heading": "Transferring Calls to Another Area (transferring-calls-to-another-area.pdf)",
-      "content": "# Transferring Calls to Another Area\n\nBack to top 1\nTransferring Calls to Another Area\nDepartment: Customer Excellence - Operations\nContact(s): Manager or Training Team\nSee the end of the document for the revision history.\nIt is the responsibility of all employees to comply with all written procedures including the procedures documented\nherein. Printed copies or copies saved to personal drives are for reference only. Please refer to the electronic copy for the\nlatest version. Failure to comply may lead to disciplinary action, up to and including termination.\nPurpose: Customer Excellence works with internal employees as well as external\ncustomers on a daily basis. Please utilize these guidelines when transferring calls to your\ncoworkers in other departments and teams to make sure we are providing excellent\ncustomer service to everyone.\nTable of Contents\nConsiderations: ..................................................................................................................................................................................................................................... 1\nAgent Locator Program: ................................................................................................................................................................................................................... 2\nSales Transfers:..................................................................................................................................................................................................................................... 2\nAgency Transfers: ................................................................................................................................................................................................................................ 3\nCustomer Excellence Calls: ............................................................................................................................................................................................................. 4\nNew Business Transfers: ................................................................................................................................................................................................................. 4\nSolutions Transfers: ........................................................................................................................................................................................................................... 4\nClaims Transfers: ................................................................................................................................................................................................................................. 5\nResolutions: ............................................................................................................................................................................................................................................ 5\nSuitability Transfers: ......................................................................................................................................................................................................................... 5\nLife Policies: ............................................................................................................................................................................................................................................ 5\nFAST – FlexShield 10 ......................................................................................................................................................................................................................... 6\nRevision History:.................................................................................................................................................................................................................................. 6\t1\nConsiderations\n• Always verify the caller following standard Verification Requirements before\ntransferring.\n• For a comprehensive list of phone numbers, reference the Quick Contact Reference\nGuide.\n• For email addresses and further details, reference the Quick Contact Email List.\n• Refer to the Genesys Phone User Guide for Transfer directions.\n• For American National numbers and resources, reference the Contact List - ANICO",
+      "content": "# Transferring Calls to Another Area",
       "source": {
         "filename": "transferring-calls-to-another-area.pdf",
         "title": "Transferring Calls to Another Area",
         "mediaType": "application/pdf",
-        "page": 1
+        "page": 1,
+        "chunkIndex": 0,
+        "isContentsPage": true,
+        "ragEligible": true
       },
       "headingTokens": [
         "transferring",
@@ -3863,7 +4068,33 @@
         "transferring",
         "call",
         "another",
+        "area"
+      ]
+    },
+    {
+      "heading": "Transferring Calls to Another Area (transferring-calls-to-another-area.pdf)",
+      "content": "Back to top 1\nTransferring Calls to Another Area\nDepartment: Customer Excellence - Operations\nContact(s): Manager or Training Team\nSee the end of the document for the revision history.\nIt is the responsibility of all employees to comply with all written procedures including the procedures documented\nherein. Printed copies or copies saved to personal drives are for reference only. Please refer to the electronic copy for the\nlatest version. Failure to comply may lead to disciplinary action, up to and including termination.\nPurpose: Customer Excellence works with internal employees as well as external\ncustomers on a daily basis. Please utilize these guidelines when transferring calls to your\ncoworkers in other departments and teams to make sure we are providing excellent\ncustomer service to everyone.\nTable of Contents\nConsiderations: ..................................................................................................................................................................................................................................... 1\nAgent Locator Program: ................................................................................................................................................................................................................... 2\nSales Transfers:..................................................................................................................................................................................................................................... 2\nAgency Transfers: ................................................................................................................................................................................................................................ 3\nCustomer Excellence Calls: ............................................................................................................................................................................................................. 4\nNew Business Transfers: ................................................................................................................................................................................................................. 4",
+      "source": {
+        "filename": "transferring-calls-to-another-area.pdf",
+        "title": "Transferring Calls to Another Area",
+        "mediaType": "application/pdf",
+        "page": 1,
+        "chunkIndex": 1,
+        "isContentsPage": true,
+        "ragEligible": true
+      },
+      "headingTokens": [
+        "transferring",
+        "call",
+        "another",
         "area",
+        "transferring",
+        "call",
+        "another",
+        "area",
+        "pdf"
+      ],
+      "contentTokens": [
         "back",
         "top",
         "1",
@@ -3974,6 +4205,36 @@
         "new",
         "busines",
         "transfer",
+        "4"
+      ]
+    },
+    {
+      "heading": "Transferring Calls to Another Area (transferring-calls-to-another-area.pdf)",
+      "content": "New Business Transfers: ................................................................................................................................................................................................................. 4\nSolutions Transfers: ........................................................................................................................................................................................................................... 4\nClaims Transfers: ................................................................................................................................................................................................................................. 5\nResolutions: ............................................................................................................................................................................................................................................ 5\nSuitability Transfers: ......................................................................................................................................................................................................................... 5\nLife Policies: ............................................................................................................................................................................................................................................ 5\nFAST – FlexShield 10 ......................................................................................................................................................................................................................... 6\nRevision History:.................................................................................................................................................................................................................................. 6\t1\nConsiderations\n• Always verify the caller following standard Verification Requirements before\ntransferring.\n• For a comprehensive list of phone numbers, reference the Quick Contact Reference\nGuide.\n• For email addresses and further details, reference the Quick Contact Email List.\n• Refer to the Genesys Phone User Guide for Transfer directions.\n• For American National numbers and resources, reference the Contact List - ANICO",
+      "source": {
+        "filename": "transferring-calls-to-another-area.pdf",
+        "title": "Transferring Calls to Another Area",
+        "mediaType": "application/pdf",
+        "page": 1,
+        "chunkIndex": 2,
+        "isContentsPage": true,
+        "ragEligible": true
+      },
+      "headingTokens": [
+        "transferring",
+        "call",
+        "another",
+        "area",
+        "transferring",
+        "call",
+        "another",
+        "area",
+        "pdf"
+      ],
+      "contentTokens": [
+        "new",
+        "busines",
+        "transfer",
         "4",
         "solution",
         "transfer",
@@ -4049,7 +4310,9 @@
         "filename": "transferring-calls-to-another-area.pdf",
         "title": "Transferring Calls to Another Area",
         "mediaType": "application/pdf",
-        "page": 2
+        "page": 2,
+        "chunkIndex": 0,
+        "ragEligible": true
       },
       "headingTokens": [
         "transferring",
@@ -4309,7 +4572,9 @@
         "filename": "transferring-calls-to-another-area.pdf",
         "title": "Transferring Calls to Another Area",
         "mediaType": "application/pdf",
-        "page": 3
+        "page": 3,
+        "chunkIndex": 0,
+        "ragEligible": true
       },
       "headingTokens": [
         "transferring",
@@ -4553,7 +4818,9 @@
         "filename": "transferring-calls-to-another-area.pdf",
         "title": "Transferring Calls to Another Area",
         "mediaType": "application/pdf",
-        "page": 4
+        "page": 4,
+        "chunkIndex": 0,
+        "ragEligible": true
       },
       "headingTokens": [
         "transferring",
@@ -4770,7 +5037,9 @@
         "filename": "transferring-calls-to-another-area.pdf",
         "title": "Transferring Calls to Another Area",
         "mediaType": "application/pdf",
-        "page": 5
+        "page": 5,
+        "chunkIndex": 0,
+        "ragEligible": true
       },
       "headingTokens": [
         "transferring",
@@ -4988,12 +5257,14 @@
     },
     {
       "heading": "Transferring Calls to Another Area (transferring-calls-to-another-area.pdf)",
-      "content": "# Transferring Calls to Another Area\n\n6\nBack to Top\no Life insurance hours are Monday thru Thursday, 8:00am-5:00pm, Fridays\n8:00am-1:00pm via 888-647-1373.\n▪ If the Life group cannot be reached due to outside of business hours,\ntake a detailed message and email the life group.\n▪ Inform the caller a return phone call is generally returned between\n24-48 business hours. Do not reach out to the Life Group team\nmembers directly.\no During office hours, incoming calls to the Life Entrada line which are not\nanswered within 1 minute will route to a Life voicemail.\n• Life policies can be Company 01, Company 02, or Company 17.\no Life policies on Company 01 begin with a “L00.”\no Policies that begin with “L9” are Fidelity Investment policies, and clients\nshould call Fidelity at 800-343-3548 for assistance.\no Life Policies on Company 02 can be any different policy number type.\n▪ All Cancer policies will be Company 02.\n▪ All policies for Company 02 should be forwarded to the Life Group.\no Life policies on Company 17, also known as Entrada, can be a long series of\nnumbers.\n▪ All policies for Company 17 should be forwarded to the Life Group.\n• Life policies can be National Guard or Fire Fighter policies. Any mention of National\nGuard or Fire Fighters can be transferred to the Life Group.\n• All processing tasks for Life policies (individual or group) as well as Cancer policies.\nTheir group email is life@american-equity.com.\nFAST – FlexShield 10\n• Contract number includes an F\n• Pre-Production queue: FAST Pre Issue\n• Post-Production queue: FAST Post Issue\nRevision History\n05/13/2026 (added American National to the Considerations section on pg 1 with a link to the Contact List - ANICO)\n04/07/2026 (reformat)\n03/04/2025 (updated pg 4, Concierge agents have an access code if not recognized by Genesys the interaction will route\nto the main agent phone line)\n01/23/2025 (updated Agent Locator section)\n06/12/2024 (merged Sales Material Request for New Contracts and archived)\n06/05/2024 (merged Handling Life Policies document)\n04/22/2024 (added skill options for MFA transfers)\n04/08/2024 (added MFA calls transfer to Password Reset queue)\n02/20/2024 (added under Cust Excellence to assist concierge callers then send email to manager)\n10/19/2023 (replaced extension numbers with the Genesys queue name, added link to Genesys Phone Transfers\nprocedures)\n10/19/2023 (replaced agent website guidelines with MyPortal guidelines in the Sales & Agency sections; added that calls\nregarding missing policies in MyPortal should be transferred to Agency)\n03/22/2023 (removed note to transfer Stephens Lawsuit claims to New Business.)\n01/18/2023 (added additional Sales topics)",
+      "content": "# Transferring Calls to Another Area",
       "source": {
         "filename": "transferring-calls-to-another-area.pdf",
         "title": "Transferring Calls to Another Area",
         "mediaType": "application/pdf",
-        "page": 6
+        "page": 6,
+        "chunkIndex": 0,
+        "ragEligible": true
       },
       "headingTokens": [
         "transferring",
@@ -5010,7 +5281,32 @@
         "transferring",
         "call",
         "another",
+        "area"
+      ]
+    },
+    {
+      "heading": "Transferring Calls to Another Area (transferring-calls-to-another-area.pdf)",
+      "content": "6\nBack to Top\no Life insurance hours are Monday thru Thursday, 8:00am-5:00pm, Fridays\n8:00am-1:00pm via 888-647-1373.\n▪ If the Life group cannot be reached due to outside of business hours,\ntake a detailed message and email the life group.\n▪ Inform the caller a return phone call is generally returned between\n24-48 business hours. Do not reach out to the Life Group team\nmembers directly.\no During office hours, incoming calls to the Life Entrada line which are not\nanswered within 1 minute will route to a Life voicemail.\n• Life policies can be Company 01, Company 02, or Company 17.\no Life policies on Company 01 begin with a “L00.”\no Policies that begin with “L9” are Fidelity Investment policies, and clients\nshould call Fidelity at 800-343-3548 for assistance.\no Life Policies on Company 02 can be any different policy number type.\n▪ All Cancer policies will be Company 02.\n▪ All policies for Company 02 should be forwarded to the Life Group.\no Life policies on Company 17, also known as Entrada, can be a long series of\nnumbers.\n▪ All policies for Company 17 should be forwarded to the Life Group.\n• Life policies can be National Guard or Fire Fighter policies. Any mention of National\nGuard or Fire Fighters can be transferred to the Life Group.\n• All processing tasks for Life policies (individual or group) as well as Cancer policies.\nTheir group email is life@american-equity.com.\nFAST – FlexShield 10\n• Contract number includes an F\n• Pre-Production queue: FAST Pre Issue\n• Post-Production queue: FAST Post Issue\nRevision History\n05/13/2026 (added American National to the Considerations section on pg 1 with a link to the Contact List - ANICO)\n04/07/2026 (reformat)\n03/04/2025 (updated pg 4, Concierge agents have an access code if not recognized by Genesys the interaction will route\nto the main agent phone line)\n01/23/2025 (updated Agent Locator section)\n06/12/2024 (merged Sales Material Request for New Contracts and archived)\n06/05/2024 (merged Handling Life Policies document)\n04/22/2024 (added skill options for MFA transfers)\n04/08/2024 (added MFA calls transfer to Password Reset queue)\n02/20/2024 (added under Cust Excellence to assist concierge callers then send email to manager)\n10/19/2023 (replaced extension numbers with the Genesys queue name, added link to Genesys Phone Transfers\nprocedures)",
+      "source": {
+        "filename": "transferring-calls-to-another-area.pdf",
+        "title": "Transferring Calls to Another Area",
+        "mediaType": "application/pdf",
+        "page": 6,
+        "chunkIndex": 1,
+        "ragEligible": true
+      },
+      "headingTokens": [
+        "transferring",
+        "call",
+        "another",
         "area",
+        "transferring",
+        "call",
+        "another",
+        "area",
+        "pdf"
+      ],
+      "contentTokens": [
         "6",
         "back",
         "top",
@@ -5345,6 +5641,60 @@
         "genesy",
         "phone",
         "transfer",
+        "procedure"
+      ]
+    },
+    {
+      "heading": "Transferring Calls to Another Area (transferring-calls-to-another-area.pdf)",
+      "content": "02/20/2024 (added under Cust Excellence to assist concierge callers then send email to manager)\n10/19/2023 (replaced extension numbers with the Genesys queue name, added link to Genesys Phone Transfers\nprocedures)\n10/19/2023 (replaced agent website guidelines with MyPortal guidelines in the Sales & Agency sections; added that calls\nregarding missing policies in MyPortal should be transferred to Agency)\n03/22/2023 (removed note to transfer Stephens Lawsuit claims to New Business.)\n01/18/2023 (added additional Sales topics)",
+      "source": {
+        "filename": "transferring-calls-to-another-area.pdf",
+        "title": "Transferring Calls to Another Area",
+        "mediaType": "application/pdf",
+        "page": 6,
+        "chunkIndex": 2,
+        "ragEligible": true
+      },
+      "headingTokens": [
+        "transferring",
+        "call",
+        "another",
+        "area",
+        "transferring",
+        "call",
+        "another",
+        "area",
+        "pdf"
+      ],
+      "contentTokens": [
+        "02",
+        "20",
+        "2024",
+        "added",
+        "under",
+        "cust",
+        "excellence",
+        "assist",
+        "concierge",
+        "caller",
+        "then",
+        "send",
+        "email",
+        "manager",
+        "10",
+        "19",
+        "2023",
+        "replaced",
+        "extension",
+        "number",
+        "genesy",
+        "queue",
+        "name",
+        "added",
+        "link",
+        "genesy",
+        "phone",
+        "transfer",
         "procedure",
         "10",
         "19",
@@ -5396,7 +5746,9 @@
         "filename": "transferring-calls-to-another-area.pdf",
         "title": "Transferring Calls to Another Area",
         "mediaType": "application/pdf",
-        "page": 7
+        "page": 7,
+        "chunkIndex": 0,
+        "ragEligible": true
       },
       "headingTokens": [
         "transferring",
@@ -5566,7 +5918,9 @@
       "source": {
         "filename": "portal-navigation.md",
         "title": "Portal Navigation",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 0,
+        "ragEligible": false
       },
       "headingTokens": [
         "portal",
@@ -5586,7 +5940,9 @@
       "source": {
         "filename": "portal-navigation.md",
         "title": "Portal Navigation",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 1,
+        "ragEligible": false
       },
       "headingTokens": [
         "portal",
@@ -5632,7 +5988,9 @@
       "source": {
         "filename": "portal-navigation.md",
         "title": "Portal Navigation",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 2,
+        "ragEligible": false
       },
       "headingTokens": [
         "portal",
@@ -5676,7 +6034,9 @@
       "source": {
         "filename": "portal-navigation.md",
         "title": "Portal Navigation",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 3,
+        "ragEligible": false
       },
       "headingTokens": [
         "portal",
@@ -5719,7 +6079,9 @@
       "source": {
         "filename": "portal-navigation.md",
         "title": "Portal Navigation",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 4,
+        "ragEligible": false
       },
       "headingTokens": [
         "portal",
@@ -5772,7 +6134,9 @@
       "source": {
         "filename": "portal-navigation.md",
         "title": "Portal Navigation",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 5,
+        "ragEligible": false
       },
       "headingTokens": [
         "portal",
@@ -5823,7 +6187,9 @@
       "source": {
         "filename": "portal-navigation.md",
         "title": "Portal Navigation",
-        "mediaType": "text/markdown"
+        "mediaType": "text/markdown",
+        "chunkIndex": 6,
+        "ragEligible": false
       },
       "headingTokens": [
         "portal",

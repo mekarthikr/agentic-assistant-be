@@ -17,8 +17,8 @@ test("retrieves the configured banking link from Markdown knowledge", () => {
   const rag = new ApiDocumentationRag(navigationMarkdown);
 
   assert.equal(
-    rag.retrieveContext("Take me to banking"),
-    "Portal navigation result\nMessage:\nYou can access this page using the link below.\n\nLink Text:\nBanking\n\nURL:\nhttps://dev-myportal.american-equity.com/agent/user/profile?activeTab=banking",
+    rag.resolvePortalNavigation("Take me to banking")?.url,
+    "https://dev-myportal.american-equity.com/agent/user/profile?activeTab=banking",
   );
 });
 
@@ -68,10 +68,6 @@ test("does not resolve contract list requests as contract details navigation", (
   const rag = new ApiDocumentationRag(navigationMarkdown);
 
   assert.equal(rag.resolvePortalNavigation("show contract list"), undefined);
-  assert.equal(
-    rag.retrieveContext("show contract list").includes("missingParameter"),
-    false,
-  );
 });
 
 test("uses navigation only for explicit page, URL, link, or navigation requests", () => {
@@ -90,75 +86,10 @@ test("uses navigation only for explicit page, URL, link, or navigation requests"
   });
 });
 
-test("answers policy document requests from knowledge instead of contract navigation", () => {
+test("does not treat a policy document request as portal navigation", () => {
   const rag = new ApiDocumentationRag();
 
-  assert.equal(
-    rag.resolvePortalNavigation("Download policy document"),
-    undefined,
-  );
-  assert.deepEqual(rag.resolveKnowledgeAnswer("Download policy document"), {
-    answer: "Open the Policies page and select Download Policy Document.",
-  });
-  assert.match(
-    rag.retrieveContext("Download policy document"),
-    /Open the Policies page and select Download Policy Document\./,
-  );
-});
-
-test("returns policy document FAQ answer without inventing a link", async () => {
-  const provider: LLMProvider = {
-    modelInfo: { model: "test", contextWindow: 1_024 },
-    generate: async () => {
-      throw new Error("The model must not be called for direct KB answers.");
-    },
-    async *stream() {
-      throw new Error("The model must not be called for direct KB answers.");
-    },
-  };
-  const orchestrator = new AIOrchestrator(
-    new ConversationService(),
-    provider,
-    new ToolRegistry(),
-    new ApiDocumentationRag(),
-  );
-
-  assert.equal(
-    await orchestrator.chat("policy-document-test", "Download policy document"),
-    "Open the Policies page and select Download Policy Document.",
-  );
-});
-
-test("answers customer support requests from customer support knowledge", () => {
-  const rag = new ApiDocumentationRag();
-
-  assert.equal(
-    rag.resolveKnowledgeAnswer("Portal Login Issues")?.answer,
-    "Customer support is available through Phone, Email, Live Chat.\n\nBusiness hours: Monday to Friday 8:00 AM - 6:00 PM.\n\nCommon support topics: Policy Information, Premium Payments, Claims Status, Beneficiary Updates, Portal Login Issues.",
-  );
-});
-
-test("returns customer support answer without inventing a link", async () => {
-  const provider: LLMProvider = {
-    modelInfo: { model: "test", contextWindow: 1_024 },
-    generate: async () => {
-      throw new Error("The model must not be called for direct KB answers.");
-    },
-    async *stream() {
-      throw new Error("The model must not be called for direct KB answers.");
-    },
-  };
-  const orchestrator = new AIOrchestrator(
-    new ConversationService(),
-    provider,
-    new ToolRegistry(),
-    new ApiDocumentationRag(),
-  );
-
-  assert.equal(
-    await orchestrator.chat("customer-support-test", "Portal Login Issues"),
-    "Customer support is available through Phone, Email, Live Chat.\n\nBusiness hours: Monday to Friday 8:00 AM - 6:00 PM.\n\nCommon support topics: Policy Information, Premium Payments, Claims Status, Beneficiary Updates, Portal Login Issues.",
-  );
+  assert.equal(rag.resolvePortalNavigation("Download policy document"), undefined);
 });
 
 test("returns a labeled Markdown link without invoking the model", async () => {
@@ -258,4 +189,69 @@ test("does not reuse previous navigation context for a later data question", asy
     generatedRequests[0].instructions ?? "",
     /<knowledge_base_reference>[\s\S]*Banking/,
   );
+});
+
+test("returns document provenance when a response uses Chroma context", async () => {
+  const generatedRequests: Parameters<LLMProvider["generate"]>[0][] = [];
+  const provider: LLMProvider = {
+    modelInfo: { model: "test", contextWindow: 1_024 },
+    generate: async (request) => {
+      generatedRequests.push(request);
+      return {
+        text: "Complete the claim form and attach the required documents.",
+        toolCalls: [],
+        assistantMessage: {
+          role: "assistant",
+          content: "Complete the claim form and attach the required documents.",
+        },
+        usage: { inputTokens: 10, outputTokens: 8, totalTokens: 18 },
+        remainingTokens: null,
+      };
+    },
+    async *stream() {
+      throw new Error("stream is not used in this test.");
+    },
+  };
+  const knowledgeRetriever = {
+    retrieve: async () => [
+      {
+        heading: "Claims",
+        content: "Complete the claim form and attach the required documents.",
+        score: 0.9,
+        source: {
+          filename: "claims-guide.pdf",
+          title: "Claims Guide",
+          mediaType: "application/pdf",
+          page: 4,
+        },
+      },
+    ],
+  };
+  const orchestrator = new AIOrchestrator(
+    new ConversationService(),
+    provider,
+    new ToolRegistry(),
+    new ApiDocumentationRag(navigationMarkdown),
+    knowledgeRetriever,
+  );
+
+  const stream = orchestrator.streamChat("rag-source-test", "How do I file a claim?");
+  assert.equal(
+    (await stream.next()).value,
+    "Complete the claim form and attach the required documents.",
+  );
+  const completion = await stream.next();
+
+  assert.equal(completion.done, true);
+  assert.deepEqual(completion.value.sources, [
+    {
+      id: "claims-guide.pdf#page=4",
+      origin: "rag",
+      filename: "claims-guide.pdf",
+      title: "Claims Guide",
+      mediaType: "application/pdf",
+      page: 4,
+    },
+  ]);
+  assert.match(generatedRequests[0].instructions ?? "", /Claims Guide, page 4/);
 });

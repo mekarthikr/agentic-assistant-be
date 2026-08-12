@@ -6,7 +6,7 @@ import { CloudClient, type Collection, type Metadata } from "chromadb";
 
 import { env } from "@app/config";
 import { logError } from "@app/utils/error-logger";
-import generatedIndex from "./enterprise-api-rag.json" with { type: "json" };
+import { buildKnowledgeIndex } from "./rag-documents.mjs";
 import type {
   RetrievedDocumentationSection,
   RetrievedDocumentationSource,
@@ -30,11 +30,6 @@ interface IndexedSection {
   readonly source: RetrievedDocumentationSource;
 }
 
-interface GeneratedIndex {
-  readonly sourceHash: string;
-  readonly sections: readonly IndexedSection[];
-}
-
 export interface ReindexResult {
   readonly collection: string;
   readonly indexedSections: number;
@@ -42,19 +37,23 @@ export interface ReindexResult {
   readonly sourceHash: string;
 }
 
-const index = generatedIndex as GeneratedIndex;
-
 const toRecordId = (section: IndexedSection, position: number): string =>
-  `${section.source.filename}:${section.source.page ?? 0}:${position}`;
+  `${section.source.filename}:${section.source.page ?? 0}:${section.source.chunkIndex ?? position}`;
 
-const toMetadata = (section: IndexedSection, position: number): Metadata => ({
+const toMetadata = (
+  section: IndexedSection,
+  position: number,
+  sourceHash: string,
+): Metadata => ({
   heading: section.heading,
   filename: section.source.filename,
   title: section.source.title,
   mediaType: section.source.mediaType,
   page: section.source.page ?? 0,
+  chunkIndex: section.source.chunkIndex ?? position,
+  isContentsPage: section.source.isContentsPage ?? false,
   position,
-  sourceHash: index.sourceHash,
+  sourceHash,
 });
 
 const sourceFrom = (metadata: Metadata): RetrievedDocumentationSource => ({
@@ -62,6 +61,10 @@ const sourceFrom = (metadata: Metadata): RetrievedDocumentationSource => ({
   title: String(metadata.title),
   mediaType: String(metadata.mediaType),
   ...(Number(metadata.page) > 0 ? { page: Number(metadata.page) } : {}),
+  ...(Number(metadata.chunkIndex) >= 0
+    ? { chunkIndex: Number(metadata.chunkIndex) }
+    : {}),
+  ...(metadata.isContentsPage === true ? { isContentsPage: true } : {}),
 });
 
 /** Chroma Cloud-backed semantic retrieval and idempotent knowledge indexing. */
@@ -121,10 +124,7 @@ export class ChromaKnowledgeService {
         ];
       });
     } catch (error) {
-      logError(
-        "Chroma knowledge retrieval failed; using local fallback",
-        error,
-      );
+      logError("Chroma knowledge retrieval failed", error);
       return [];
     }
   }
@@ -151,29 +151,33 @@ export class ChromaKnowledgeService {
     this.collectionPromise ??= this.client.getOrCreateCollection({
       name: env.CHROMA_COLLECTION,
       embeddingFunction: this.embeddingFunction,
-      metadata: { sourceHash: index.sourceHash },
+      metadata: { purpose: "insurance-support-knowledge" },
     });
     return this.collectionPromise;
   }
 
   private async performReindex(): Promise<ReindexResult> {
+    const index = await buildKnowledgeIndex();
+    const ragSections = index.sections.filter(
+      ({ source }) => source.ragEligible,
+    );
     const collection = await this.getCollection();
-    const ids = index.sections.map(toRecordId);
+    const ids = ragSections.map(toRecordId);
     const current = await collection.get({ include: [] });
 
     for (
       let offset = 0;
-      offset < index.sections.length;
+      offset < ragSections.length;
       offset += INGEST_BATCH_SIZE
     ) {
-      const batch = index.sections.slice(offset, offset + INGEST_BATCH_SIZE);
+      const batch = ragSections.slice(offset, offset + INGEST_BATCH_SIZE);
       await collection.upsert({
         ids: batch.map((section, position) =>
           toRecordId(section, offset + position),
         ),
         documents: batch.map(({ content }) => content),
         metadatas: batch.map((section, position) =>
-          toMetadata(section, offset + position),
+          toMetadata(section, offset + position, index.sourceHash),
         ),
       });
     }

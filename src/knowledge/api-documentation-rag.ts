@@ -3,8 +3,6 @@ import generatedIndex from "./enterprise-api-rag.json" with { type: "json" };
 const DEFAULT_RESULT_LIMIT = 2;
 const MAX_CONTEXT_CHARACTERS = 7_000;
 const MINIMUM_RELEVANCE_SCORE = 1;
-const MINIMUM_PROCEDURE_RELEVANCE_SCORE = 3;
-const PROCEDURE_CONTEXT_RADIUS = 1;
 const TOKEN_PATTERN = /[a-z0-9]+/g;
 const STOP_WORDS = new Set([
   "a",
@@ -36,8 +34,6 @@ const CONTRACT_DETAILS_NAVIGATION_PATTERN =
   /\b(?:contract|policy)\s+details?\b|\bdetails?\s+(?:page|screen|link|navigation)\b|\b(?:open|navigate|go|take)\b[^.?!\n]*\b(?:contract|policy)\b/i;
 const POLICY_DOCUMENT_REQUEST_PATTERN =
   /\bpolicy\s+documents?\b|\bdownload\b[^.?!\n]*\bpolicy\b|\bpolicy\b[^.?!\n]*\bdownload\b/i;
-const CUSTOMER_SUPPORT_REQUEST_PATTERN =
-  /\bcustomer\s+support\b|\bsupport\s+(?:channels?|hours?|topics?)\b|\bportal\s+login(?:\s+issues?)?\b|\blogin\s+issues?\b/i;
 const PORTAL_NAVIGATION_ACTION_PATTERN =
   /\b(?:navigate|navigation|open)\b|\bgo\s+to\b|\btake\s+me\s+to\b/i;
 const PORTAL_NAVIGATION_LINK_PATTERN = /\b(?:url|link|page|screen)\b/i;
@@ -67,6 +63,9 @@ export interface RetrievedDocumentationSource {
   readonly title: string;
   readonly mediaType: string;
   readonly page?: number;
+  readonly chunkIndex?: number;
+  readonly isContentsPage?: boolean;
+  readonly ragEligible?: boolean;
 }
 
 export interface PortalNavigationKnowledgeResult {
@@ -74,10 +73,6 @@ export interface PortalNavigationKnowledgeResult {
   readonly message: string;
   readonly url?: string;
   readonly missingParameter?: string;
-}
-
-export interface KnowledgeBaseAnswer {
-  readonly answer: string;
 }
 
 interface DocumentationSection {
@@ -166,13 +161,6 @@ const isPortalNavigationSection = (content: string): boolean =>
   fieldValue(content, "Message") !== undefined &&
   fieldValue(content, "URL") !== undefined;
 
-const isOversizedPdfContentsPage = (
-  section: Pick<DocumentationSection, "content" | "source">,
-): boolean =>
-  section.source.mediaType === "application/pdf" &&
-  /\bTable of Contents\b/i.test(section.content) &&
-  section.content.length > 4_000;
-
 const queryContainsKeyword = (
   query: string,
   keywords: readonly string[],
@@ -184,63 +172,6 @@ const queryContainsKeyword = (
 const contractIdFrom = (query: string): string | undefined =>
   query.match(/\b\d+\b/)?.[0];
 
-const answerBodyFrom = (content: string): string =>
-  content
-    .replace(/^#{1,3}\s+.+\r?\n/, "")
-    .replace(/\r?\n---\s*$/, "")
-    .trim();
-
-const isCustomerSupportSection = (
-  section: Pick<DocumentationSection, "heading" | "content">,
-): boolean =>
-  /\bcustomer-support\.md\)/i.test(section.heading) ||
-  /^# Customer Support\b/i.test(section.content) ||
-  /^## (?:Support Channels|Business Hours|Common Support Topics)\b/i.test(
-    section.content,
-  );
-
-const customerSupportAnswerFrom = (
-  sections: readonly Pick<DocumentationSection, "heading" | "content">[],
-): string | undefined => {
-  const customerSupportSections = sections.filter(isCustomerSupportSection);
-  if (customerSupportSections.length === 0) return undefined;
-
-  const listItemsFrom = (content: string): string[] =>
-    content
-      .split(/\r?\n/)
-      .map((line) => line.match(/^-\s+(.+)$/)?.[1]?.trim())
-      .filter((item): item is string => Boolean(item));
-
-  const supportChannels = customerSupportSections.find(({ content }) =>
-    /^## Support Channels\b/i.test(content),
-  );
-  const businessHours = customerSupportSections.find(({ content }) =>
-    /^## Business Hours\b/i.test(content),
-  );
-  const commonTopics = customerSupportSections.find(({ content }) =>
-    /^## Common Support Topics\b/i.test(content),
-  );
-
-  const answerParts = [
-    supportChannels
-      ? `Customer support is available through ${listItemsFrom(supportChannels.content).join(", ")}.`
-      : undefined,
-    businessHours
-      ? `Business hours: ${answerBodyFrom(businessHours.content)
-          .replace(/\s+/g, " ")
-          .replace(/\u2013/g, "-")}.`
-      : undefined,
-    commonTopics
-      ? `Common support topics: ${listItemsFrom(commonTopics.content).join(", ")}.`
-      : undefined,
-  ].filter((part): part is string => Boolean(part));
-
-  return (
-    answerParts.length > 0
-      ? answerParts.join("\n\n")
-      : answerBodyFrom(customerSupportSections[0].content)
-  ).trim();
-};
 
 const isContractListRequest = (query: string): boolean =>
   CONTRACT_LIST_REQUEST_PATTERN.test(query) &&
@@ -275,7 +206,7 @@ const loadGeneratedIndex = (): readonly DocumentationSection[] => {
   const index = generatedIndex as GeneratedDocumentationIndex;
 
   if (
-    index.version !== 3 ||
+    index.version !== 4 ||
     !Array.isArray(index.sources) ||
     !Array.isArray(index.sections)
   ) {
@@ -303,12 +234,7 @@ const relevanceScore = (
     0,
   );
 
-/**
- * Small, local RAG index over enterprise API and product reference documents.
- *
- * The document is loaded and chunked once. Each chat turn retrieves only the
- * highest-scoring sections, keeping prompt context focused and deterministic.
- */
+/** Resolves deterministic portal navigation without calling the model. */
 export class ApiDocumentationRag {
   private readonly sections: readonly DocumentationSection[];
 
@@ -341,116 +267,6 @@ export class ApiDocumentationRag {
       .slice(0, limit);
   }
 
-  public retrieveContext(query: string, limit = DEFAULT_RESULT_LIMIT): string {
-    const portalNavigation = this.resolvePortalNavigation(query);
-    if (portalNavigation) {
-      if (portalNavigation.missingParameter) {
-        return `Portal navigation result\nmissingParameter: ${portalNavigation.missingParameter}`;
-      }
-      return `Portal navigation result\nMessage:\n${portalNavigation.message}\n\nLink Text:\n${portalNavigation.linkText}\n\nURL:\n${portalNavigation.url}`;
-    }
-
-    return this.formatContext(this.retrieveKnowledge(query, limit));
-  }
-
-  public retrieveKnowledge(
-    query: string,
-    limit = DEFAULT_RESULT_LIMIT,
-  ): RetrievedDocumentationSection[] {
-    return this.retrieve(query, this.sections.length)
-      .filter(({ content }) => !isPortalNavigationSection(content))
-      .slice(0, limit);
-  }
-
-  /** Retrieves a relevant PDF procedure with neighboring continuation pages. */
-  public retrieveProcedure(
-    query: string,
-    limit = DEFAULT_RESULT_LIMIT,
-  ): RetrievedDocumentationSection[] {
-    const queryTokens = expandQueryTokens(query);
-    const ranked = this.retrieve(query, this.sections.length).filter(
-      ({ content, source }) =>
-        !isPortalNavigationSection(content) &&
-        !isOversizedPdfContentsPage({ content, source }),
-    );
-    const bestMatch = ranked[0];
-    if (
-      !bestMatch ||
-      bestMatch.score < MINIMUM_PROCEDURE_RELEVANCE_SCORE ||
-      bestMatch.source.mediaType !== "application/pdf" ||
-      bestMatch.source.page === undefined
-    ) {
-      return [];
-    }
-
-    const pagesToInclude = new Set<number>();
-    for (const { source } of ranked
-      .filter(
-        ({ source }) =>
-          source.filename === bestMatch.source.filename &&
-          source.page !== undefined,
-      )
-      .slice(0, Math.max(limit, 1))) {
-      const page = source.page as number;
-      for (
-        let candidate = page - PROCEDURE_CONTEXT_RADIUS;
-        candidate <= page + PROCEDURE_CONTEXT_RADIUS;
-        candidate += 1
-      ) {
-        if (candidate > 0) pagesToInclude.add(candidate);
-      }
-    }
-
-    return this.sections
-      .filter(
-        (section) =>
-          !isOversizedPdfContentsPage(section) &&
-          section.source.filename === bestMatch.source.filename &&
-          section.source.page !== undefined &&
-          pagesToInclude.has(section.source.page),
-      )
-      .sort((left, right) => (left.source.page ?? 0) - (right.source.page ?? 0))
-      .map((section) => ({
-        heading: section.heading,
-        content: section.content,
-        score: relevanceScore(section, queryTokens),
-        source: section.source,
-      }));
-  }
-
-  /** Expands the best semantic PDF match with its local neighboring pages. */
-  public expandProcedureMatch(
-    query: string,
-    matches: readonly RetrievedDocumentationSection[],
-  ): RetrievedDocumentationSection[] {
-    const bestMatch = matches[0];
-    if (
-      !bestMatch ||
-      bestMatch.source.mediaType !== "application/pdf" ||
-      bestMatch.source.page === undefined
-    ) {
-      return [];
-    }
-
-    const queryTokens = expandQueryTokens(query);
-    const page = bestMatch.source.page as number;
-    return this.sections
-      .filter(
-        (section) =>
-          !isOversizedPdfContentsPage(section) &&
-          section.source.filename === bestMatch.source.filename &&
-          section.source.page !== undefined &&
-          Math.abs(section.source.page - page) <= PROCEDURE_CONTEXT_RADIUS,
-      )
-      .sort((left, right) => (left.source.page ?? 0) - (right.source.page ?? 0))
-      .map((section) => ({
-        heading: section.heading,
-        content: section.content,
-        score: relevanceScore(section, queryTokens),
-        source: section.source,
-      }));
-  }
-
   public formatContext(
     sections: readonly RetrievedDocumentationSection[],
   ): string {
@@ -467,32 +283,6 @@ export class ApiDocumentationRag {
       )
       .join("\n\n---\n\n")
       .slice(0, MAX_CONTEXT_CHARACTERS);
-  }
-
-  /** Resolves direct knowledge-base answers that must not be embellished. */
-  public resolveKnowledgeAnswer(
-    query: string,
-  ): KnowledgeBaseAnswer | undefined {
-    const sections = this.retrieve(query, this.sections.length).filter(
-      ({ content }) => !isPortalNavigationSection(content),
-    );
-
-    if (CUSTOMER_SUPPORT_REQUEST_PATTERN.test(query)) {
-      const answer = customerSupportAnswerFrom(this.sections);
-      return answer ? { answer } : undefined;
-    }
-
-    if (!POLICY_DOCUMENT_REQUEST_PATTERN.test(query)) return undefined;
-
-    const section = sections.find(({ content, heading }) =>
-      /download[\s\S]*policy\s+documents?|policy\s+documents?[\s\S]*download/i.test(
-        `${heading}\n${content}`,
-      ),
-    );
-    if (!section) return undefined;
-
-    const answer = answerBodyFrom(section.content);
-    return answer ? { answer } : undefined;
   }
 
   /** Resolves a portal-navigation entry from the indexed Markdown knowledge. */

@@ -14,6 +14,7 @@ import {
   chromaKnowledgeService,
   INSURANCE_AGENT_SYSTEM_PROMPT,
   NO_DOCUMENTED_SOLUTION_RESPONSE,
+  type RetrievedDocumentationSection,
   type RetrievedDocumentationSource,
 } from "@app/knowledge";
 import { ConversationService } from "./conversation.service";
@@ -39,6 +40,8 @@ const CLIENT_CONTRACT_DETAIL_PATTERN =
 const CLIENT_APPLICATION_DETAIL_PATTERN =
   /\b(?:application|approval|case|status|anticipated premium|start date|agent number|application link|contract number|product id|contact id|application name|tax type)\b/i;
 const PRODUCT_DETAIL_PATTERN = /\bproduct(?:\s+name)?\b/i;
+const PRODUCT_KNOWLEDGE_PATTERN =
+  /\bproduct\s+(?:features?|overview|information|details?)\b/i;
 const CLIENT_LIST_REQUEST_PATTERN = /\b(?:list|all|every)\b/i;
 // A policy document is portal/self-service knowledge, not a live contract
 // lookup. Keep it ahead of the broader `policy` record-detail matcher below.
@@ -50,8 +53,12 @@ const KNOWLEDGE_BASE_SELF_SERVICE_PATTERN =
   /\b(?:policy\s+documents?|(?:premium\s+)?grace\s+period|missed\s+premium|premium\s+payment\s+(?:methods?|options?|frequency)|auto\s*pay|beneficiar(?:y|ies)|file\s+(?:a\s+)?claim|claim\s+(?:documents?|processing|status)|customer\s+support|support\s+(?:channels?|hours?)|portal\s+login)\b/i;
 const DOCUMENTED_PROCEDURE_PATTERN =
   /\b(?:over\s+(?:the\s+)?(?:phone|chat)|spousal\s+consent|joint\s+owners?|beneficiary\s+changes?|electronic\s+fund\s+transfers?|EFTs?|annuitization|index\s+lock|lifetime\s+income\s+benefit|LIBR|maturity\s+date|outstanding\s+checks?|partial\s+withdrawals?|pre-authorized\s+credits?|PACs?|required\s+minimum\s+distributions?|RMDs?|rush\s+reviews?|surrenders?|systematic\s+withdrawals?|transfer\s+of\s+values?|TOVs?|72T|72Q|pending\s+suitability|transfer\s+(?:the\s+)?call|which\s+(?:team|queue|department))\b/i;
-const PROCEDURAL_INTENT_PATTERN =
-  /\b(?:how\s+(?:do|can|should|would)|what\s+(?:do|should|steps?|process)|can\s+(?:i|we|the\s+(?:agent|client|customer))|steps?|procedure|process|allowed|required|route|send|escalate|handle|resolve|fix)\b/i;
+const KNOWLEDGE_INTENT_PATTERN =
+  /\b(?:guide|process|procedure|steps?|requirements?|documents?|forms?|claims?|beneficiar(?:y|ies)|premium|payments?|withdrawals?|surrenders?|transfers?|suitability|support|products?|features?|polic(?:y|ies)|annuitization|consent|maturity|distributions?|EFTs?|RMDs?|PACs?)\b/i;
+
+interface KnowledgeRetriever {
+  retrieve(query: string): Promise<RetrievedDocumentationSection[]>;
+}
 
 export class AIOrchestrator {
   public constructor(
@@ -59,6 +66,8 @@ export class AIOrchestrator {
     private readonly provider: LLMProvider,
     private readonly toolRegistry: ToolRegistry,
     private readonly apiDocumentation = new ApiDocumentationRag(),
+    private readonly knowledgeRetriever: KnowledgeRetriever =
+      chromaKnowledgeService,
   ) {}
 
   public getModelInfo(): ModelInfo {
@@ -109,41 +118,20 @@ export class AIOrchestrator {
       return this.directResponse(text);
     }
 
-    const knowledgeAnswer =
-      this.apiDocumentation.resolveKnowledgeAnswer(prompt);
-    if (knowledgeAnswer) {
-      const text = knowledgeAnswer.answer;
-      this.conversationService.addAssistantMessage(conversationId, text);
-      return this.directResponse(text);
-    }
-
     const retrievalQuery = conversation.messages
       .slice(-RETRIEVAL_MESSAGE_LIMIT)
       .map(({ content }) => content)
       .join("\n");
-    const semanticSections =
-      await chromaKnowledgeService.retrieve(retrievalQuery);
-    const knowledgeSections =
-      semanticSections.length > 0
-        ? semanticSections
-        : this.apiDocumentation.retrieveKnowledge(retrievalQuery);
-    const procedureSections =
-      semanticSections.length > 0
-        ? this.apiDocumentation.expandProcedureMatch(
-            retrievalQuery,
-            semanticSections,
-          )
-        : this.apiDocumentation.retrieveProcedure(retrievalQuery);
-    const hasDocumentedProcedure =
-      procedureSections.length > 0 &&
-      (DOCUMENTED_PROCEDURE_PATTERN.test(prompt) ||
-        PROCEDURAL_INTENT_PATTERN.test(prompt));
-    const retrievedSections = hasDocumentedProcedure
-      ? procedureSections
-      : knowledgeSections;
-    const retrievedContext =
-      this.apiDocumentation.formatContext(retrievedSections);
-    const retrievedSources = retrievedSections.map(({ source }) => source);
+    const selectedToolNames = this.selectToolNames(prompt, options.userType);
+    const shouldUseRag =
+      selectedToolNames.length === 0 && KNOWLEDGE_INTENT_PATTERN.test(prompt);
+    const semanticSections = shouldUseRag
+      ? await this.knowledgeRetriever.retrieve(retrievalQuery)
+      : [];
+    const retrievedContext = this.apiDocumentation.formatContext(
+      semanticSections,
+    );
+    const retrievedSources = semanticSections.map(({ source }) => source);
 
     let response: LLMResponse & { readonly toolResults: readonly unknown[] };
     try {
@@ -156,7 +144,7 @@ export class AIOrchestrator {
         conversation.messages
           .slice(-HISTORY_MESSAGE_LIMIT)
           .map(({ role, content }) => ({ role, content })),
-        this.selectToolNames(prompt, options.userType, hasDocumentedProcedure),
+        selectedToolNames,
         options,
       );
     } catch (error) {
@@ -225,7 +213,7 @@ export class AIOrchestrator {
       const id = `${source.filename}${
         source.page === undefined ? "" : `#page=${source.page}`
       }`;
-      uniqueSources.set(id, { id, ...source });
+      uniqueSources.set(id, { id, origin: "rag", ...source });
     }
 
     return [...uniqueSources.values()];
@@ -330,18 +318,16 @@ export class AIOrchestrator {
   private selectToolNames(
     query: string,
     userType?: "agent" | "client",
-    hasDocumentedProcedure = false,
   ): readonly string[] {
     const hasIdentifier = RECORD_IDENTIFIER_PATTERN.test(query);
     const needsContracts = CONTRACT_PATTERN.test(query);
     const needsApplications = APPLICATION_PATTERN.test(query);
     const needsAmbiguousRecord = AMBIGUOUS_RECORD_PATTERN.test(query);
 
-    if (hasDocumentedProcedure) return [];
-
     if (userType === "client") {
       if (
         POLICY_DOCUMENT_PATTERN.test(query) ||
+        PRODUCT_KNOWLEDGE_PATTERN.test(query) ||
         KNOWLEDGE_BASE_SELF_SERVICE_PATTERN.test(query)
       ) {
         return [];
@@ -506,11 +492,11 @@ export class AIOrchestrator {
     return `${basePrompt}
 
 Use the following retrieved knowledge-base reference when it is relevant to the
-current request. It may describe product information or enterprise endpoints and
-fields. It is not live customer data; use an enterprise tool when the user needs
-an actual contract or application record. If this reference directly answers the
-question, answer only with information from it; do not supplement it with
-general insurance knowledge or suggest unavailable tools.
+current request. It may describe product information or a support procedure. It
+is not live customer data; use an enterprise tool when the user needs an actual
+contract or application record. If this reference directly answers the question,
+answer only with information from it; do not supplement it with general
+insurance knowledge or suggest unavailable tools.
 
 <knowledge_base_reference>
 ${retrievedContext}

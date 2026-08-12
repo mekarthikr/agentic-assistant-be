@@ -59,6 +59,7 @@ export interface ModelTokenUsage extends ModelInfo, LLMTokenUsage {
 }
 
 export interface ChatSource {
+  readonly origin: "rag";
   readonly id: string;
   readonly title: string;
   readonly filename: string;

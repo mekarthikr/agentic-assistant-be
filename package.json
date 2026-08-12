@@ -28,6 +28,9 @@
   "dependencies": {
     "@ai-sdk/groq": "^4.0.13",
     "@chroma-core/chroma-cloud-qwen": "^0.1.12",
+    "@langchain/core": "^1.2.5",
+    "@langchain/textsplitters": "^1.0.1",
+    "@napi-rs/canvas": "^1.0.5",
     "@vercel/functions": "^3.7.6",
     "ai": "^7.0.37",
     "chromadb": "^3.5.0",
