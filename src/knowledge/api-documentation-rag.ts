@@ -3,6 +3,8 @@ import generatedIndex from "./enterprise-api-rag.json" with { type: "json" };
 const DEFAULT_RESULT_LIMIT = 2;
 const MAX_CONTEXT_CHARACTERS = 7_000;
 const MINIMUM_RELEVANCE_SCORE = 1;
+const MINIMUM_PROCEDURE_RELEVANCE_SCORE = 3;
+const PROCEDURE_CONTEXT_RADIUS = 1;
 const TOKEN_PATTERN = /[a-z0-9]+/g;
 const STOP_WORDS = new Set([
   "a",
@@ -163,6 +165,13 @@ const isPortalNavigationSection = (content: string): boolean =>
   fieldValue(content, "Keywords") !== undefined &&
   fieldValue(content, "Message") !== undefined &&
   fieldValue(content, "URL") !== undefined;
+
+const isOversizedPdfContentsPage = (
+  section: Pick<DocumentationSection, "content" | "source">,
+): boolean =>
+  section.source.mediaType === "application/pdf" &&
+  /\bTable of Contents\b/i.test(section.content) &&
+  section.content.length > 4_000;
 
 const queryContainsKeyword = (
   query: string,
@@ -353,6 +362,95 @@ export class ApiDocumentationRag {
       .slice(0, limit);
   }
 
+  /** Retrieves a relevant PDF procedure with neighboring continuation pages. */
+  public retrieveProcedure(
+    query: string,
+    limit = DEFAULT_RESULT_LIMIT,
+  ): RetrievedDocumentationSection[] {
+    const queryTokens = expandQueryTokens(query);
+    const ranked = this.retrieve(query, this.sections.length).filter(
+      ({ content, source }) =>
+        !isPortalNavigationSection(content) &&
+        !isOversizedPdfContentsPage({ content, source }),
+    );
+    const bestMatch = ranked[0];
+    if (
+      !bestMatch ||
+      bestMatch.score < MINIMUM_PROCEDURE_RELEVANCE_SCORE ||
+      bestMatch.source.mediaType !== "application/pdf" ||
+      bestMatch.source.page === undefined
+    ) {
+      return [];
+    }
+
+    const pagesToInclude = new Set<number>();
+    for (const { source } of ranked
+      .filter(
+        ({ source }) =>
+          source.filename === bestMatch.source.filename &&
+          source.page !== undefined,
+      )
+      .slice(0, Math.max(limit, 1))) {
+      const page = source.page as number;
+      for (
+        let candidate = page - PROCEDURE_CONTEXT_RADIUS;
+        candidate <= page + PROCEDURE_CONTEXT_RADIUS;
+        candidate += 1
+      ) {
+        if (candidate > 0) pagesToInclude.add(candidate);
+      }
+    }
+
+    return this.sections
+      .filter(
+        (section) =>
+          !isOversizedPdfContentsPage(section) &&
+          section.source.filename === bestMatch.source.filename &&
+          section.source.page !== undefined &&
+          pagesToInclude.has(section.source.page),
+      )
+      .sort((left, right) => (left.source.page ?? 0) - (right.source.page ?? 0))
+      .map((section) => ({
+        heading: section.heading,
+        content: section.content,
+        score: relevanceScore(section, queryTokens),
+        source: section.source,
+      }));
+  }
+
+  /** Expands the best semantic PDF match with its local neighboring pages. */
+  public expandProcedureMatch(
+    query: string,
+    matches: readonly RetrievedDocumentationSection[],
+  ): RetrievedDocumentationSection[] {
+    const bestMatch = matches[0];
+    if (
+      !bestMatch ||
+      bestMatch.source.mediaType !== "application/pdf" ||
+      bestMatch.source.page === undefined
+    ) {
+      return [];
+    }
+
+    const queryTokens = expandQueryTokens(query);
+    const page = bestMatch.source.page as number;
+    return this.sections
+      .filter(
+        (section) =>
+          !isOversizedPdfContentsPage(section) &&
+          section.source.filename === bestMatch.source.filename &&
+          section.source.page !== undefined &&
+          Math.abs(section.source.page - page) <= PROCEDURE_CONTEXT_RADIUS,
+      )
+      .sort((left, right) => (left.source.page ?? 0) - (right.source.page ?? 0))
+      .map((section) => ({
+        heading: section.heading,
+        content: section.content,
+        score: relevanceScore(section, queryTokens),
+        source: section.source,
+      }));
+  }
+
   public formatContext(
     sections: readonly RetrievedDocumentationSection[],
   ): string {
@@ -362,7 +460,11 @@ export class ApiDocumentationRag {
     if (knowledgeSections.length === 0) return "";
 
     return knowledgeSections
-      .map(({ content }) => content)
+      .map(({ content, source }) =>
+        source.mediaType === "application/pdf"
+          ? `Source: ${source.title}, page ${source.page}\n${content}`
+          : content,
+      )
       .join("\n\n---\n\n")
       .slice(0, MAX_CONTEXT_CHARACTERS);
   }

@@ -5,6 +5,11 @@ export interface AppEnvironment {
   GROQ_MODEL: string;
   GROQ_MODEL_CONTEXT_WINDOW: number;
   ENTERPRISE_API_BASE_URL: string;
+  CHROMA_API_KEY?: string;
+  CHROMA_TENANT: string;
+  CHROMA_DATABASE: string;
+  CHROMA_COLLECTION: string;
+  RAG_INDEX_TOKEN?: string;
   SOCKET_AUTH_TOKEN?: string;
   WS_PATH: string;
   WS_MAX_PAYLOAD_BYTES: number;

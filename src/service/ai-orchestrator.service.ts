@@ -11,6 +11,7 @@ import {
 } from "@app/types";
 import {
   ApiDocumentationRag,
+  chromaKnowledgeService,
   INSURANCE_AGENT_SYSTEM_PROMPT,
   NO_DOCUMENTED_SOLUTION_RESPONSE,
   type RetrievedDocumentationSource,
@@ -49,6 +50,8 @@ const KNOWLEDGE_BASE_SELF_SERVICE_PATTERN =
   /\b(?:policy\s+documents?|(?:premium\s+)?grace\s+period|missed\s+premium|premium\s+payment\s+(?:methods?|options?|frequency)|auto\s*pay|beneficiar(?:y|ies)|file\s+(?:a\s+)?claim|claim\s+(?:documents?|processing|status)|customer\s+support|support\s+(?:channels?|hours?)|portal\s+login)\b/i;
 const DOCUMENTED_PROCEDURE_PATTERN =
   /\b(?:over\s+(?:the\s+)?(?:phone|chat)|spousal\s+consent|joint\s+owners?|beneficiary\s+changes?|electronic\s+fund\s+transfers?|EFTs?|annuitization|index\s+lock|lifetime\s+income\s+benefit|LIBR|maturity\s+date|outstanding\s+checks?|partial\s+withdrawals?|pre-authorized\s+credits?|PACs?|required\s+minimum\s+distributions?|RMDs?|rush\s+reviews?|surrenders?|systematic\s+withdrawals?|transfer\s+of\s+values?|TOVs?|72T|72Q|pending\s+suitability|transfer\s+(?:the\s+)?call|which\s+(?:team|queue|department))\b/i;
+const PROCEDURAL_INTENT_PATTERN =
+  /\b(?:how\s+(?:do|can|should|would)|what\s+(?:do|should|steps?|process)|can\s+(?:i|we|the\s+(?:agent|client|customer))|steps?|procedure|process|allowed|required|route|send|escalate|handle|resolve|fix)\b/i;
 
 export class AIOrchestrator {
   public constructor(
@@ -118,8 +121,26 @@ export class AIOrchestrator {
       .slice(-RETRIEVAL_MESSAGE_LIMIT)
       .map(({ content }) => content)
       .join("\n");
-    const retrievedSections =
-      this.apiDocumentation.retrieveKnowledge(retrievalQuery);
+    const semanticSections =
+      await chromaKnowledgeService.retrieve(retrievalQuery);
+    const knowledgeSections =
+      semanticSections.length > 0
+        ? semanticSections
+        : this.apiDocumentation.retrieveKnowledge(retrievalQuery);
+    const procedureSections =
+      semanticSections.length > 0
+        ? this.apiDocumentation.expandProcedureMatch(
+            retrievalQuery,
+            semanticSections,
+          )
+        : this.apiDocumentation.retrieveProcedure(retrievalQuery);
+    const hasDocumentedProcedure =
+      procedureSections.length > 0 &&
+      (DOCUMENTED_PROCEDURE_PATTERN.test(prompt) ||
+        PROCEDURAL_INTENT_PATTERN.test(prompt));
+    const retrievedSections = hasDocumentedProcedure
+      ? procedureSections
+      : knowledgeSections;
     const retrievedContext =
       this.apiDocumentation.formatContext(retrievedSections);
     const retrievedSources = retrievedSections.map(({ source }) => source);
@@ -135,7 +156,7 @@ export class AIOrchestrator {
         conversation.messages
           .slice(-HISTORY_MESSAGE_LIMIT)
           .map(({ role, content }) => ({ role, content })),
-        this.selectToolNames(prompt, options.userType),
+        this.selectToolNames(prompt, options.userType, hasDocumentedProcedure),
         options,
       );
     } catch (error) {
@@ -309,11 +330,14 @@ export class AIOrchestrator {
   private selectToolNames(
     query: string,
     userType?: "agent" | "client",
+    hasDocumentedProcedure = false,
   ): readonly string[] {
     const hasIdentifier = RECORD_IDENTIFIER_PATTERN.test(query);
     const needsContracts = CONTRACT_PATTERN.test(query);
     const needsApplications = APPLICATION_PATTERN.test(query);
     const needsAmbiguousRecord = AMBIGUOUS_RECORD_PATTERN.test(query);
+
+    if (hasDocumentedProcedure) return [];
 
     if (userType === "client") {
       if (
@@ -471,7 +495,11 @@ export class AIOrchestrator {
       userType === "client"
         ? `The current user is a client${clientName ? ` signed in as ${clientName}` : ""}. If they ask for their name, state their signed-in name and do not retrieve contracts or applications. Discuss only this client's contract and application information. Retrieve client records only when the client explicitly asks about their own records, such as 'my contracts', 'my product', or 'my application status'. The client's own application fields, including status, agent number, application link, product, premium, start date, contract number, product ID, contact ID, application name, and tax type, may be provided. When any application-related question returns exactly one application, always begin the response with exactly: 'You have only one application.' Then answer the client's question using that application's returned details. This rule includes questions about product ID, contact ID, status, agent number, contract number, application name, product, premium, start date, tax type, and application link. Never answer any of these fields with only its raw value when exactly one application was returned. For a question about one application field, state the requested value in a complete sentence and add the application product and current status when returned. When answering an application-status or agent-number question, use the returned application record and state the requested value, product, status, and contract number. Do not claim that application data is unavailable when the application tool returned a record. When a contract lookup returns more than one contract, never select one or give the details for just one. State how many contracts were found, list each contract number with its product and status, and ask the client to select a contract number or product before providing contract-specific details. For a question asking for contract numbers, list every returned contract number with its product and status, then ask which contract they want to discuss. For contract details without a selected contract, apply the same selection prompt rather than giving detailed information. Once the client selects a contract number or product, provide a concise labeled contract-details summary containing product, contract status, tax type, tax qualification, issued date, anniversary date, current value, and distribution company. Do not omit these returned fields. For an application-details question, give a concise labeled summary of the returned product, status, contract number, anticipated premium, start date, tax type, agent number, application name, product ID, contact ID, and application link. Never retrieve or summarize contracts, applications, or information about other clients. If a contract lookup returns no results, say 'No contract record is currently available.' If an application lookup returns no results, say 'No application record is currently available.' Do not mention the lookup identifier or application number, and do not ask the client for extra identifiers other than selecting one of multiple returned contracts. Present every human-readable name, label, and value in natural title or sentence case, even if the API returns it in all capitals. This includes tax types and tax qualifications: display NON-QUAL as 'Non-Qual', ROTH IRA as 'Roth Ira', and IRA as 'Ira'. Preserve exact identifiers, contract and application numbers, product IDs, URLs, monetary amounts, and dates.`
         : "The current user is an agent. You may assist with agent workflows, applications, and contracts. When the agent asks to show or list contracts or applications, retrieve the list and present every available returned record with its identifying number and key details; do not ask the agent to choose a specific record. For a single-record question, such as application status or contract details, ask for a contract number, application number, client name, or another identifying filter when the request does not include one. Present every human-readable name, label, and value in natural title or sentence case, even if the API returns it in all capitals. This includes tax types and tax qualifications: display NON-QUAL as 'Non-Qual', ROTH IRA as 'Roth Ira', and IRA as 'Ira'. Preserve exact identifiers, contract and application numbers, product IDs, URLs, monetary amounts, and dates.";
-    const basePrompt = `${INSURANCE_AGENT_SYSTEM_PROMPT}\n\n${audienceInstructions}`;
+    const procedureAudienceInstructions =
+      userType === "client"
+        ? "When using an operational procedure for a client, provide only the client-facing actions and requirements. Omit employee compliance warnings, queue mechanics, system names, and internal task or transfer instructions. If an employee or specialist must act, explain what the client must provide and that the appropriate team must complete that step; do not imply the client can perform an internal action."
+        : "When using an operational procedure for an agent, preserve the documented verification, authorization, consent, form, internal task, note, deadline, and routing steps that apply to the request.";
+    const basePrompt = `${INSURANCE_AGENT_SYSTEM_PROMPT}\n\n${audienceInstructions}\n\n${procedureAudienceInstructions}`;
 
     if (!retrievedContext) return basePrompt;
 

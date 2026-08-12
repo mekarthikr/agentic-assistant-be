@@ -86,6 +86,11 @@ module.exports = {
     minimize: false,
   },
   plugins: [
+    // Chroma dynamically probes its optional local embedding package. This
+    // deployment always uses the configured Chroma Cloud Qwen embedder.
+    new webpack.IgnorePlugin({
+      resourceRegExp: /^@chroma-core\/default-embed$/,
+    }),
     new webpack.DefinePlugin({
       "process.env.WS_NO_BUFFER_UTIL": JSON.stringify("1"),
       "process.env.WS_NO_UTF_8_VALIDATE": JSON.stringify("1"),

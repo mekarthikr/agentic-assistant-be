@@ -36,3 +36,30 @@ test("retrieves the correct routing procedure for suitability calls", () => {
     ),
   );
 });
+
+test("retrieves neighboring PDF pages so procedure conditions are not lost", () => {
+  const sections = rag.retrieveProcedure(
+    "How can a client change a beneficiary and when is spousal consent required?",
+  );
+
+  assert.ok(sections.length >= 2);
+  assert.ok(
+    sections.every(({ source }) => source.mediaType === "application/pdf"),
+  );
+  assert.ok(sections.some(({ source }) => source.page === 2));
+  assert.ok(sections.some(({ source }) => source.page === 3));
+
+  const context = rag.formatContext(sections);
+  assert.match(context, /spouse is not available/i);
+  assert.match(context, /Beneficiary Changes/i);
+  assert.match(context, /Source: Items to Take Over the Phone, page 3/i);
+});
+
+test("does not classify a weak PDF token match as a documented procedure", () => {
+  assert.deepEqual(
+    rag.retrieveProcedure(
+      "Please help me with an unrelated insurance question",
+    ),
+    [],
+  );
+});

@@ -27,8 +27,10 @@
   "type": "module",
   "dependencies": {
     "@ai-sdk/groq": "^4.0.13",
+    "@chroma-core/chroma-cloud-qwen": "^0.1.12",
     "@vercel/functions": "^3.7.6",
     "ai": "^7.0.37",
+    "chromadb": "^3.5.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",

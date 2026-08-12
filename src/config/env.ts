@@ -35,6 +35,12 @@ export const env: AppEnvironment = {
   ENTERPRISE_API_BASE_URL:
     process.env.ENTERPRISE_API_BASE_URL?.trim() ||
     "https://mock-api-server-seven.vercel.app/api/v1",
+  CHROMA_API_KEY: process.env.CHROMA_API_KEY?.trim(),
+  CHROMA_TENANT:
+    process.env.CHROMA_TENANT?.trim() || "40663c46-d625-4a0f-8749-5319e7d6dbba",
+  CHROMA_DATABASE: process.env.CHROMA_DATABASE?.trim() || "doc",
+  CHROMA_COLLECTION: process.env.CHROMA_COLLECTION?.trim() || "insurance-data",
+  RAG_INDEX_TOKEN: process.env.RAG_INDEX_TOKEN?.trim(),
   SOCKET_AUTH_TOKEN: socketAuthToken,
   WS_PATH: process.env.WS_PATH || "/ws",
   WS_MAX_PAYLOAD_BYTES: 64 * 1024,
