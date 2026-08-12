@@ -58,6 +58,19 @@ export interface ModelTokenUsage extends ModelInfo, LLMTokenUsage {
   readonly rateLimitRemainingTokens: number | null;
 }
 
+export interface ChatSource {
+  readonly id: string;
+  readonly title: string;
+  readonly filename: string;
+  readonly mediaType: string;
+  readonly page?: number;
+}
+
+export interface ChatCompletion {
+  readonly tokenUsage: ModelTokenUsage;
+  readonly sources: readonly ChatSource[];
+}
+
 export interface LLMResponse {
   readonly text: string;
   readonly toolCalls: readonly LLMToolCall[];

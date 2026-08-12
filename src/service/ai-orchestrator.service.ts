@@ -1,5 +1,7 @@
 import {
   type ChatOptions,
+  type ChatCompletion,
+  type ChatSource,
   EmptyPromptError,
   type LLMProvider,
   type LLMResponse,
@@ -10,14 +12,18 @@ import {
 import {
   ApiDocumentationRag,
   INSURANCE_AGENT_SYSTEM_PROMPT,
+  NO_DOCUMENTED_SOLUTION_RESPONSE,
+  type RetrievedDocumentationSource,
 } from "@app/knowledge";
 import { ConversationService } from "./conversation.service";
 import { ToolRegistry } from "./tool-registry.service";
 import { logError } from "@app/utils/error-logger";
+import { normalizeAssistantResponse } from "@app/utils/assistant-response";
 import type { ApiResponse, Contract } from "@app/types";
 
 const DEFAULT_MAX_TOOL_ROUNDS = 3;
 const HISTORY_MESSAGE_LIMIT = 6;
+const RETRIEVAL_MESSAGE_LIMIT = 2;
 const RECORD_IDENTIFIER_PATTERN = /\b\d{5,}\b/;
 const RECORD_IDENTIFIER_ONLY_PATTERN = /^\d{5,}$/;
 const CONTRACT_ID_REQUEST_MESSAGE = "Could you please provide the contract ID?";
@@ -41,6 +47,8 @@ const POLICY_DOCUMENT_PATTERN = /\bpolicy\s+documents?\b/i;
 // `premium`) so they never force a live enterprise tool call.
 const KNOWLEDGE_BASE_SELF_SERVICE_PATTERN =
   /\b(?:policy\s+documents?|(?:premium\s+)?grace\s+period|missed\s+premium|premium\s+payment\s+(?:methods?|options?|frequency)|auto\s*pay|beneficiar(?:y|ies)|file\s+(?:a\s+)?claim|claim\s+(?:documents?|processing|status)|customer\s+support|support\s+(?:channels?|hours?)|portal\s+login)\b/i;
+const DOCUMENTED_PROCEDURE_PATTERN =
+  /\b(?:over\s+(?:the\s+)?(?:phone|chat)|spousal\s+consent|joint\s+owners?|beneficiary\s+changes?|electronic\s+fund\s+transfers?|EFTs?|annuitization|index\s+lock|lifetime\s+income\s+benefit|LIBR|maturity\s+date|outstanding\s+checks?|partial\s+withdrawals?|pre-authorized\s+credits?|PACs?|required\s+minimum\s+distributions?|RMDs?|rush\s+reviews?|surrenders?|systematic\s+withdrawals?|transfer\s+of\s+values?|TOVs?|72T|72Q|pending\s+suitability|transfer\s+(?:the\s+)?call|which\s+(?:team|queue|department))\b/i;
 
 export class AIOrchestrator {
   public constructor(
@@ -67,7 +75,11 @@ export class AIOrchestrator {
     conversationId: string,
     userMessage: string,
     options: ChatOptions,
-  ): Promise<{ text: string; usage: ModelTokenUsage }> {
+  ): Promise<{
+    text: string;
+    usage: ModelTokenUsage;
+    sources: readonly ChatSource[];
+  }> {
     const prompt = this.validatePrompt(userMessage);
     const conversation = this.conversationService.addUserMessage(
       conversationId,
@@ -102,9 +114,18 @@ export class AIOrchestrator {
       return this.directResponse(text);
     }
 
+    const retrievalQuery = conversation.messages
+      .slice(-RETRIEVAL_MESSAGE_LIMIT)
+      .map(({ content }) => content)
+      .join("\n");
+    const retrievedSections =
+      this.apiDocumentation.retrieveKnowledge(retrievalQuery);
+    const retrievedContext =
+      this.apiDocumentation.formatContext(retrievedSections);
+    const retrievedSources = retrievedSections.map(({ source }) => source);
+
     let response: LLMResponse & { readonly toolResults: readonly unknown[] };
     try {
-      const retrievedContext = this.apiDocumentation.retrieveContext(prompt);
       response = await this.generateWithTools(
         this.buildSystemPrompt(
           retrievedContext,
@@ -129,20 +150,22 @@ export class AIOrchestrator {
       );
     }
 
-    const responseText = this.normalizeDisplayCasing(
-      this.formatClientProductSelection(
-        prompt,
-        response.text,
-        options.userType,
-        response.toolResults,
+    const assistantText = normalizeAssistantResponse(
+      this.normalizeDisplayCasing(
+        this.formatClientProductSelection(
+          prompt,
+          response.text,
+          options.userType,
+          response.toolResults,
+        ),
       ),
     );
-    this.validateResponse(responseText);
-    this.conversationService.addAssistantMessage(conversationId, responseText);
+    this.validateResponse(assistantText);
+    this.conversationService.addAssistantMessage(conversationId, assistantText);
     const { model, contextWindow } = this.provider.modelInfo;
     const contextTokensUsed = response.usage.inputTokens;
     return {
-      text: responseText,
+      text: assistantText,
       usage: {
         ...response.usage,
         model,
@@ -151,6 +174,10 @@ export class AIOrchestrator {
         contextTokensRemaining: Math.max(contextWindow - contextTokensUsed, 0),
         rateLimitRemainingTokens: response.remainingTokens,
       },
+      sources:
+        assistantText === NO_DOCUMENTED_SOLUTION_RESPONSE
+          ? []
+          : this.toChatSources(retrievedSources),
     };
   }
 
@@ -158,14 +185,29 @@ export class AIOrchestrator {
     conversationId: string,
     userMessage: string,
     options: ChatOptions = {},
-  ): AsyncGenerator<string, ModelTokenUsage> {
+  ): AsyncGenerator<string, ChatCompletion> {
     const prompt = this.validatePrompt(userMessage);
     // Tool calls require a complete model turn before their result can be
     // supplied. Reuse the tool-aware path so streaming conversations preserve
     // the same semantics; transports still receive the final response chunk.
     const response = await this.chatWithUsage(conversationId, prompt, options);
     yield response.text;
-    return response.usage;
+    return { tokenUsage: response.usage, sources: response.sources };
+  }
+
+  private toChatSources(
+    sources: readonly RetrievedDocumentationSource[],
+  ): readonly ChatSource[] {
+    const uniqueSources = new Map<string, ChatSource>();
+
+    for (const source of sources) {
+      const id = `${source.filename}${
+        source.page === undefined ? "" : `#page=${source.page}`
+      }`;
+      uniqueSources.set(id, { id, ...source });
+    }
+
+    return [...uniqueSources.values()];
   }
 
   private async generateWithTools(
@@ -245,6 +287,7 @@ export class AIOrchestrator {
   private directResponse(text: string): {
     text: string;
     usage: ModelTokenUsage;
+    sources: readonly ChatSource[];
   } {
     const { model, contextWindow } = this.provider.modelInfo;
     return {
@@ -259,6 +302,7 @@ export class AIOrchestrator {
         contextTokensRemaining: contextWindow,
         rateLimitRemainingTokens: null,
       },
+      sources: [],
     };
   }
 
@@ -307,6 +351,8 @@ export class AIOrchestrator {
       if (needsApplications && !needsContracts) return ["getApplication"];
       return ["getContract", "getApplication"];
     }
+
+    if (DOCUMENTED_PROCEDURE_PATTERN.test(query)) return [];
 
     if (needsContracts && !needsApplications) return ["searchContracts"];
     if (

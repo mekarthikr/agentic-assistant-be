@@ -1,7 +1,7 @@
 import generatedIndex from "./enterprise-api-rag.json" with { type: "json" };
 
-const DEFAULT_RESULT_LIMIT = 1;
-const MAX_CONTEXT_CHARACTERS = 3_500;
+const DEFAULT_RESULT_LIMIT = 2;
+const MAX_CONTEXT_CHARACTERS = 7_000;
 const MINIMUM_RELEVANCE_SCORE = 1;
 const TOKEN_PATTERN = /[a-z0-9]+/g;
 const STOP_WORDS = new Set([
@@ -57,6 +57,14 @@ export interface RetrievedDocumentationSection {
   readonly heading: string;
   readonly content: string;
   readonly score: number;
+  readonly source: RetrievedDocumentationSource;
+}
+
+export interface RetrievedDocumentationSource {
+  readonly filename: string;
+  readonly title: string;
+  readonly mediaType: string;
+  readonly page?: number;
 }
 
 export interface PortalNavigationKnowledgeResult {
@@ -75,6 +83,7 @@ interface DocumentationSection {
   readonly content: string;
   readonly headingTokens: readonly string[];
   readonly contentTokens: readonly string[];
+  readonly source: RetrievedDocumentationSource;
 }
 
 interface GeneratedDocumentationIndex {
@@ -122,6 +131,11 @@ const splitDocumentation = (markdown: string): DocumentationSection[] =>
         content,
         headingTokens: tokenize(heading),
         contentTokens: tokenize(content),
+        source: {
+          filename: "inline-document.md",
+          title: heading,
+          mediaType: "text/markdown",
+        },
       };
     });
 
@@ -252,7 +266,7 @@ const loadGeneratedIndex = (): readonly DocumentationSection[] => {
   const index = generatedIndex as GeneratedDocumentationIndex;
 
   if (
-    index.version !== 2 ||
+    index.version !== 3 ||
     !Array.isArray(index.sources) ||
     !Array.isArray(index.sections)
   ) {
@@ -308,6 +322,7 @@ export class ApiDocumentationRag {
         heading: section.heading,
         content: section.content,
         score: relevanceScore(section, queryTokens),
+        source: section.source,
       }))
       .filter(({ score }) => score >= MINIMUM_RELEVANCE_SCORE)
       .sort(
@@ -326,12 +341,27 @@ export class ApiDocumentationRag {
       return `Portal navigation result\nMessage:\n${portalNavigation.message}\n\nLink Text:\n${portalNavigation.linkText}\n\nURL:\n${portalNavigation.url}`;
     }
 
-    const sections = this.retrieve(query, this.sections.length)
+    return this.formatContext(this.retrieveKnowledge(query, limit));
+  }
+
+  public retrieveKnowledge(
+    query: string,
+    limit = DEFAULT_RESULT_LIMIT,
+  ): RetrievedDocumentationSection[] {
+    return this.retrieve(query, this.sections.length)
       .filter(({ content }) => !isPortalNavigationSection(content))
       .slice(0, limit);
-    if (sections.length === 0) return "";
+  }
 
-    return sections
+  public formatContext(
+    sections: readonly RetrievedDocumentationSection[],
+  ): string {
+    const knowledgeSections = sections.filter(
+      ({ content }) => !isPortalNavigationSection(content),
+    );
+    if (knowledgeSections.length === 0) return "";
+
+    return knowledgeSections
       .map(({ content }) => content)
       .join("\n\n---\n\n")
       .slice(0, MAX_CONTEXT_CHARACTERS);

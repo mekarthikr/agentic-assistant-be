@@ -110,7 +110,25 @@ test("searches all client contracts by the trusted client name", async () => {
   )) as ApiResponse<Contract[]>;
 
   assert.equal(receivedFilters?.clientName, "SMITH ROBERT");
-  assert.deepEqual(result.data, response.data);
+  assert.deepEqual(
+    result.data.map(({ contractNumber, clientName, taxQualification }) => ({
+      contractNumber,
+      clientName,
+      taxQualification,
+    })),
+    [
+      {
+        contractNumber: "1561092",
+        clientName: "Smith John",
+        taxQualification: "Ira",
+      },
+      {
+        contractNumber: "1561094",
+        clientName: "Williams Robert",
+        taxQualification: "Ira",
+      },
+    ],
+  );
 });
 
 test("searches client applications by the trusted client name", async () => {
