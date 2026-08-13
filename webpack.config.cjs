@@ -91,6 +91,10 @@ module.exports = {
     },
   },
   optimization: {
+    // pdfjs-dist is itself Webpack-bundled. Scope hoisting flattens its runtime
+    // into this ESM bundle and creates duplicate __webpack_module_cache__
+    // declarations, which Node rejects before the function can start.
+    concatenateModules: false,
     minimize: false,
   },
   plugins: [
