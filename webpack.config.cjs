@@ -4,20 +4,11 @@ const webpack = require("webpack");
 
 const outputRoot = path.resolve(__dirname, ".vercel/output");
 const functionDirectory = path.join(outputRoot, "functions/index.func");
-const knowledgeDirectory = path.join(functionDirectory, "knowledge");
 
 class VercelBuildOutputPlugin {
   apply(compiler) {
     compiler.hooks.afterEmit.tap("VercelBuildOutputPlugin", () => {
       fs.mkdirSync(outputRoot, { recursive: true });
-      fs.cpSync(path.resolve(__dirname, "src/knowledge"), knowledgeDirectory, {
-        recursive: true,
-        filter: (source) => {
-          const extension = path.extname(source);
-          return ["", ".md", ".pdf", ".mjs"].includes(extension);
-        },
-      });
-
       fs.writeFileSync(
         path.join(outputRoot, "config.json"),
         `${JSON.stringify(
@@ -91,10 +82,6 @@ module.exports = {
     },
   },
   optimization: {
-    // pdfjs-dist is itself Webpack-bundled. Scope hoisting flattens its runtime
-    // into this ESM bundle and creates duplicate __webpack_module_cache__
-    // declarations, which Node rejects before the function can start.
-    concatenateModules: false,
     minimize: false,
   },
   plugins: [

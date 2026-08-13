@@ -6,7 +6,7 @@ import { CloudClient, type Collection, type Metadata } from "chromadb";
 
 import { env } from "@app/config";
 import { logError } from "@app/utils/error-logger";
-import { buildKnowledgeIndex } from "./rag-documents.mjs";
+import generatedIndex from "./enterprise-api-rag.json" with { type: "json" };
 import type {
   RetrievedDocumentationSection,
   RetrievedDocumentationSource,
@@ -28,6 +28,11 @@ interface IndexedSection {
   readonly heading: string;
   readonly content: string;
   readonly source: RetrievedDocumentationSource;
+}
+
+interface GeneratedKnowledgeIndex {
+  readonly sourceHash: string;
+  readonly sections: readonly IndexedSection[];
 }
 
 export interface ReindexResult {
@@ -157,7 +162,9 @@ export class ChromaKnowledgeService {
   }
 
   private async performReindex(): Promise<ReindexResult> {
-    const index = await buildKnowledgeIndex();
+    // PDF parsing happens during `rag:generate`. Runtime indexing uploads the
+    // generated chunks so the serverless function never loads pdfjs/canvas.
+    const index = generatedIndex as GeneratedKnowledgeIndex;
     const ragSections = index.sections.filter(
       ({ source }) => source.ragEligible,
     );
