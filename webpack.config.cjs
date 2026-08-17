@@ -83,6 +83,9 @@ module.exports = {
     },
   },
   optimization: {
+    // pdfjs-dist ships its own webpack runtime. Scope hoisting can concatenate
+    // that runtime with ours and emit duplicate module-cache declarations.
+    concatenateModules: false,
     minimize: false,
   },
   plugins: [
