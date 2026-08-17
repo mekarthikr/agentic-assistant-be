@@ -13,7 +13,7 @@ const requireEnvironmentVariable = (name: string): string => {
 };
 
 const socketAuthToken = process.env.SOCKET_AUTH_TOKEN;
-const DEFAULT_GROQ_CONTEXT_WINDOW = 131_072;
+const DEFAULT_LLAMA_CONTEXT_WINDOW = 131_072;
 
 const parsePositiveInteger = (
   value: string | undefined,
@@ -26,11 +26,14 @@ const parsePositiveInteger = (
 /** Validated runtime configuration consumed by the HTTP and WebSocket servers. */
 export const env: AppEnvironment = {
   PORT: Number(process.env.PORT || "5000"),
-  GROQ_API_KEY: requireEnvironmentVariable("GROQ_API_KEY"),
-  GROQ_MODEL: process.env.GROQ_MODEL?.trim() || "openai/gpt-oss-20b",
-  GROQ_MODEL_CONTEXT_WINDOW: parsePositiveInteger(
-    process.env.GROQ_MODEL_CONTEXT_WINDOW,
-    DEFAULT_GROQ_CONTEXT_WINDOW,
+  LLAMA_API_KEY: requireEnvironmentVariable("LLAMA_API_KEY"),
+  LLAMA_API_BASE_URL:
+    process.env.LLAMA_API_BASE_URL?.trim() || "https://api.llama.com/compat/v1",
+  LLAMA_MODEL:
+    process.env.LLAMA_MODEL?.trim() || "Llama-4-Maverick-17B-128E-Instruct-FP8",
+  LLAMA_MODEL_CONTEXT_WINDOW: parsePositiveInteger(
+    process.env.LLAMA_MODEL_CONTEXT_WINDOW,
+    DEFAULT_LLAMA_CONTEXT_WINDOW,
   ),
   ENTERPRISE_API_BASE_URL:
     process.env.ENTERPRISE_API_BASE_URL?.trim() ||

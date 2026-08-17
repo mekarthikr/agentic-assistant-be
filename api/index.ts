@@ -2,8 +2,8 @@ import { experimental_upgradeWebSocket } from "@vercel/functions";
 import type { IncomingMessage, ServerResponse } from "node:http";
 
 import app from "@app/app";
-import { env, groqConfiguration, serviceContainer } from "@app/config";
-import { GroqProvider } from "@app/providers";
+import { env, metaLlamaConfiguration, serviceContainer } from "@app/config";
+import { MetaLlamaProvider } from "@app/providers";
 import {
   AIOrchestrator,
   ConversationService,
@@ -14,7 +14,7 @@ import { createEnterpriseTools } from "@app/tools/enterprise-tools";
 import { logError } from "@app/utils/error-logger";
 
 const conversationService = serviceContainer.get(ConversationService);
-const provider = new GroqProvider(groqConfiguration);
+const provider = new MetaLlamaProvider(metaLlamaConfiguration);
 const toolRegistry = new ToolRegistry(createEnterpriseTools());
 const orchestrator = new AIOrchestrator(
   conversationService,

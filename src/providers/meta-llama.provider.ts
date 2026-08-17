@@ -1,7 +1,7 @@
-import { createGroq, type GroqLanguageModelChatOptions } from "@ai-sdk/groq";
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { generateText, streamText, type AssistantModelMessage } from "ai";
 
-import type { GroqConfiguration } from "@app/config/groq";
+import type { MetaLlamaConfiguration } from "@app/config/meta-llama";
 import {
   TokenLimitError,
   isOutputParseError,
@@ -18,7 +18,9 @@ const requireTokenCount = (
   field: string,
 ): number => {
   if (value === undefined || !Number.isSafeInteger(value) || value < 0) {
-    throw new Error(`Groq response usage did not include a valid ${field}.`);
+    throw new Error(
+      `Meta Llama response usage did not include a valid ${field}.`,
+    );
   }
   return value;
 };
@@ -35,23 +37,29 @@ const getRemainingTokens = (
   return Number.isSafeInteger(remainingTokens) ? remainingTokens : null;
 };
 
-class GroqProviderError extends Error {
+class MetaLlamaProviderError extends Error {
   public constructor(operation: "generate" | "stream", cause: unknown) {
-    super(`Groq could not ${operation} a response.`, { cause });
-    this.name = "GroqProviderError";
+    super(`Meta Llama could not ${operation} a response.`, { cause });
+    this.name = "MetaLlamaProviderError";
   }
 }
 
-/** Groq adapter implemented against the provider-agnostic LLMProvider port. */
-export class GroqProvider implements LLMProvider {
-  private readonly client: ReturnType<typeof createGroq>;
+/** Meta Llama adapter implemented against the provider-agnostic LLMProvider port. */
+export class MetaLlamaProvider implements LLMProvider {
+  private readonly client: ReturnType<typeof createOpenAICompatible>;
   public readonly modelInfo;
 
   public constructor(
-    private readonly configuration: GroqConfiguration,
-    client?: ReturnType<typeof createGroq>,
+    private readonly configuration: MetaLlamaConfiguration,
+    client?: ReturnType<typeof createOpenAICompatible>,
   ) {
-    this.client = client ?? createGroq({ apiKey: configuration.apiKey });
+    this.client =
+      client ??
+      createOpenAICompatible({
+        name: "metaLlama",
+        apiKey: configuration.apiKey,
+        baseURL: configuration.baseUrl,
+      });
     this.modelInfo = {
       model: configuration.model,
       contextWindow: configuration.contextWindow,
@@ -82,11 +90,6 @@ identifier from the conversation when the schema requires one.`
           toolChoice,
           maxRetries: 1,
           temperature: 0,
-          providerOptions: {
-            groq: {
-              parallelToolCalls: false,
-            } satisfies GroqLanguageModelChatOptions,
-          },
           abortSignal: signal,
         });
 
@@ -96,7 +99,7 @@ identifier from the conversation when the schema requires one.`
       } catch (error) {
         if (!tools || !isOutputParseError(error)) throw error;
         logError(
-          "Groq tool output parsing failed; retrying with strict tool instructions",
+          "Meta Llama tool output parsing failed; retrying with strict tool instructions",
           error,
           {
             operation: "generate",
@@ -172,11 +175,6 @@ identifier from the conversation when the schema requires one.`
         toolChoice,
         maxRetries: 1,
         temperature: 0,
-        providerOptions: {
-          groq: {
-            parallelToolCalls: false,
-          } satisfies GroqLanguageModelChatOptions,
-        },
         abortSignal: signal,
       });
 
@@ -199,11 +197,11 @@ identifier from the conversation when the schema requires one.`
     signal?: AbortSignal,
   ): never {
     signal?.throwIfAborted();
-    if (error instanceof GroqProviderError) throw error;
-    logError("Groq provider request failed", error, {
+    if (error instanceof MetaLlamaProviderError) throw error;
+    logError("Meta Llama provider request failed", error, {
       operation,
       model: this.configuration.model,
     });
-    throw new GroqProviderError(operation, error);
+    throw new MetaLlamaProviderError(operation, error);
   }
 }

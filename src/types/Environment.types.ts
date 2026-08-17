@@ -1,9 +1,10 @@
 /** Validated backend configuration. */
 export interface AppEnvironment {
   PORT: number;
-  GROQ_API_KEY: string;
-  GROQ_MODEL: string;
-  GROQ_MODEL_CONTEXT_WINDOW: number;
+  LLAMA_API_KEY: string;
+  LLAMA_API_BASE_URL: string;
+  LLAMA_MODEL: string;
+  LLAMA_MODEL_CONTEXT_WINDOW: number;
   ENTERPRISE_API_BASE_URL: string;
   SOCKET_AUTH_TOKEN?: string;
   WS_PATH: string;

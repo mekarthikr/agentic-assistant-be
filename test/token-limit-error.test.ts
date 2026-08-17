@@ -13,7 +13,7 @@ import {
 test("detects an output token limit through wrapped provider errors", () => {
   const error = new ProviderError(
     "The AI provider could not generate a response.",
-    new Error("Groq failed", {
+    new Error("AI provider failed", {
       cause: new TokenLimitError("output"),
     }),
   );
@@ -59,7 +59,7 @@ test("extracts an HTTP-date Retry-After value", () => {
   assert.equal(isRateLimitError(new Error("Network unavailable.")), false);
 });
 
-test("detects Groq output parsing failures through provider wrappers", () => {
+test("detects output parsing failures through provider wrappers", () => {
   const error = new ProviderError("Provider failed", {
     statusCode: 400,
     responseBody: JSON.stringify({
@@ -74,7 +74,7 @@ test("detects Groq output parsing failures through provider wrappers", () => {
   assert.equal(isOutputParseError(new Error("Network unavailable.")), false);
 });
 
-test("detects Groq tool-call schema validation failures", () => {
+test("detects tool-call schema validation failures", () => {
   const error = {
     statusCode: 400,
     responseBody: JSON.stringify({

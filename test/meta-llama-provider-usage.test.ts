@@ -1,19 +1,21 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createGroq } from "@ai-sdk/groq";
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 
-import { GroqProvider } from "../src/providers/groq.provider";
+import { MetaLlamaProvider } from "../src/providers/meta-llama.provider";
 
-test("uses exact Groq usage and remaining-token response header values", async () => {
-  const client = createGroq({
+test("uses exact Meta Llama usage and remaining-token response header values", async () => {
+  const client = createOpenAICompatible({
+    name: "metaLlama",
     apiKey: "test-key",
+    baseURL: "https://api.llama.com/compat/v1",
     fetch: async () =>
       new Response(
         JSON.stringify({
           id: "chatcmpl-test",
           object: "chat.completion",
           created: 1_785_232_000,
-          model: "llama-3.1-8b-instant",
+          model: "Llama-4-Maverick-17B-128E-Instruct-FP8",
           choices: [
             {
               index: 0,
@@ -36,10 +38,11 @@ test("uses exact Groq usage and remaining-token response header values", async (
         },
       ),
   });
-  const provider = new GroqProvider(
+  const provider = new MetaLlamaProvider(
     {
       apiKey: "test-key",
-      model: "llama-3.1-8b-instant",
+      baseUrl: "https://api.llama.com/compat/v1",
+      model: "Llama-4-Maverick-17B-128E-Instruct-FP8",
       contextWindow: 131_072,
     },
     client,
