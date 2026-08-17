@@ -105,6 +105,9 @@ export class ChatSocketServer {
     this.connections.add(socket);
     socket.isAlive = true;
     socket.isAuthenticated = !env.SOCKET_AUTH_TOKEN;
+    socket.userId = socket.isAuthenticated
+      ? env.RAG_DEFAULT_USER_ID
+      : undefined;
     socket.requestCount = 0;
     socket.requestWindowStartedAt = Date.now();
     this.activeRequests.set(socket, new Map());
@@ -175,6 +178,7 @@ export class ChatSocketServer {
       }
 
       socket.isAuthenticated = true;
+      socket.userId = env.RAG_DEFAULT_USER_ID;
       clearTimeout(authTimer);
       this.sendReady(socket);
       return;
@@ -206,6 +210,8 @@ export class ChatSocketServer {
     const conversationId = payload.conversationId?.trim();
     const message = payload.message?.trim();
     const userType = payload.userType;
+    const ragMode = payload.ragMode ?? "hybrid";
+    const documentIds = payload.documentIds;
 
     if (!requestId || !conversationId || !message || !userType) {
       sendJson(socket, {
@@ -224,6 +230,33 @@ export class ChatSocketServer {
         requestId,
         code: "VALIDATION_ERROR",
         message: "userType must be agent or client.",
+      });
+      return;
+    }
+
+    if (ragMode !== "hybrid" && ragMode !== "document-only") {
+      sendJson(socket, {
+        type: "chat.error",
+        requestId,
+        code: "VALIDATION_ERROR",
+        message: "ragMode must be hybrid or document-only.",
+      });
+      return;
+    }
+
+    if (
+      documentIds !== undefined &&
+      (!Array.isArray(documentIds) ||
+        documentIds.length > 50 ||
+        documentIds.some(
+          (id) => typeof id !== "string" || !id.trim() || id.length > 200,
+        ))
+    ) {
+      sendJson(socket, {
+        type: "chat.error",
+        requestId,
+        code: "VALIDATION_ERROR",
+        message: "documentIds must contain valid document identifiers.",
       });
       return;
     }
@@ -261,6 +294,9 @@ export class ChatSocketServer {
         signal: abortController.signal,
         userType,
         clientName: userType === "client" ? CLIENT_NAME : undefined,
+        userId: socket.userId,
+        ragMode,
+        documentIds: documentIds?.map((id) => id.trim()),
       });
 
       let completion;

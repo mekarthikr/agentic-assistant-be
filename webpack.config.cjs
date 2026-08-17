@@ -86,6 +86,11 @@ module.exports = {
     minimize: false,
   },
   plugins: [
+    // Embeddings are supplied explicitly by EmbeddingService. Chroma's optional
+    // local default embedder is intentionally not installed or bundled.
+    new webpack.IgnorePlugin({
+      resourceRegExp: /^@chroma-core\/default-embed$/,
+    }),
     new webpack.DefinePlugin({
       "process.env.WS_NO_BUFFER_UTIL": JSON.stringify("1"),
       "process.env.WS_NO_UTF_8_VALIDATE": JSON.stringify("1"),
