@@ -22,8 +22,10 @@ and `DELETE /documents/:documentId` removes both its metadata and Chroma
 vectors. When `SOCKET_AUTH_TOKEN` is configured, HTTP requests use the same
 value as a Bearer token.
 
-Run a Chroma server on the configured host and port before uploading files.
-The `documents` collection is created automatically with cosine distance.
+When `CHROMA_API_KEY` is set, the backend connects to Chroma Cloud with
+`CloudClient`; otherwise, run a Chroma server on the configured host and port
+before uploading files. The `documents` collection is created automatically
+with cosine distance.
 Chunks are embedded once through Vercel AI Gateway using the configured
 `RAG_EMBEDDING_MODEL` (default `openai/text-embedding-3-small`). Questions use
 the same model and do not re-embed stored chunks. Local development requires
@@ -109,6 +111,8 @@ validation in application code.
 - `RAG_DEFAULT_USER_ID`: server-owned user identity mapped to the verified
   application token.
 - `CHROMA_HOST`, `CHROMA_PORT`, `CHROMA_SSL`: Chroma connection settings.
+- `CHROMA_API_KEY`: when configured, use `CloudClient` instead of the local
+  Chroma host settings.
 - `CHROMA_COLLECTION`: collection name; defaults to `documents`.
 - `CHROMA_TENANT`, `CHROMA_DATABASE`: optional Chroma tenant/database scope.
 - `RAG_TOP_K`: maximum retrieved chunks; defaults to `5`.

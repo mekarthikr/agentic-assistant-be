@@ -57,6 +57,7 @@ export const env: AppEnvironment = {
   CHROMA_HOST: process.env.CHROMA_HOST?.trim() || "localhost",
   CHROMA_PORT: parsePositiveInteger(process.env.CHROMA_PORT, 8000),
   CHROMA_SSL: process.env.CHROMA_SSL === "true",
+  CHROMA_API_KEY: process.env.CHROMA_API_KEY?.trim() || undefined,
   CHROMA_COLLECTION: process.env.CHROMA_COLLECTION?.trim() || "documents",
   CHROMA_TENANT: process.env.CHROMA_TENANT?.trim() || undefined,
   CHROMA_DATABASE: process.env.CHROMA_DATABASE?.trim() || undefined,

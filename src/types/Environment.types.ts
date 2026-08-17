@@ -14,6 +14,7 @@ export interface AppEnvironment {
   CHROMA_HOST: string;
   CHROMA_PORT: number;
   CHROMA_SSL: boolean;
+  CHROMA_API_KEY?: string;
   CHROMA_COLLECTION: string;
   CHROMA_TENANT?: string;
   CHROMA_DATABASE?: string;

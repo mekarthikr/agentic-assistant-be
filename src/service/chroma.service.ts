@@ -1,5 +1,6 @@
 import {
   ChromaClient,
+  CloudClient,
   type Collection,
   type Metadata,
   type Where,
@@ -23,13 +24,19 @@ export class ChromaService {
   public constructor(client?: ChromaClient) {
     this.client =
       client ??
-      new ChromaClient({
-        host: env.CHROMA_HOST,
-        port: env.CHROMA_PORT,
-        ssl: env.CHROMA_SSL,
-        ...(env.CHROMA_TENANT ? { tenant: env.CHROMA_TENANT } : {}),
-        ...(env.CHROMA_DATABASE ? { database: env.CHROMA_DATABASE } : {}),
-      });
+      (env.CHROMA_API_KEY
+        ? new CloudClient({
+            apiKey: env.CHROMA_API_KEY,
+            tenant: env.CHROMA_TENANT,
+            database: env.CHROMA_DATABASE,
+          })
+        : new ChromaClient({
+            host: env.CHROMA_HOST,
+            port: env.CHROMA_PORT,
+            ssl: env.CHROMA_SSL,
+            ...(env.CHROMA_TENANT ? { tenant: env.CHROMA_TENANT } : {}),
+            ...(env.CHROMA_DATABASE ? { database: env.CHROMA_DATABASE } : {}),
+          }));
   }
 
   public getCollection(): Promise<Collection> {
