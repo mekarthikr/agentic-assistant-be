@@ -10,6 +10,15 @@ class VercelBuildOutputPlugin {
     compiler.hooks.afterEmit.tap("VercelBuildOutputPlugin", () => {
       fs.mkdirSync(outputRoot, { recursive: true });
 
+      // pdfjs-dist resolves its native canvas adapter at runtime. Keep the
+      // platform-specific package installed on the build host with the
+      // function so Vercel can load the Linux binary after deployment.
+      fs.cpSync(
+        path.resolve(__dirname, "node_modules/@napi-rs"),
+        path.join(functionDirectory, "node_modules/@napi-rs"),
+        { recursive: true },
+      );
+
       fs.writeFileSync(
         path.join(outputRoot, "config.json"),
         `${JSON.stringify(
@@ -53,6 +62,13 @@ module.exports = {
     // Express resolves view engines dynamically; this backend does not use views.
     exprContextCritical: false,
     rules: [
+      {
+        test: /pdfjs-dist[\\/]legacy[\\/]build[\\/]pdf\.mjs$/,
+        // PDF.js uses import.meta.url as the base for createRequire. Preserve
+        // it so the deployed function resolves from /var/task, not the build
+        // machine's transient /vercel/path0 directory.
+        parser: { importMeta: false },
+      },
       {
         test: /\.tsx?$/,
         exclude: /node_modules/,
