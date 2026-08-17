@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 process.env.GROQ_API_KEY ??= "test-key";
+process.env.GEMINI_API_KEY ??= "test-key";
 
 const {
   DocumentChunkerService,

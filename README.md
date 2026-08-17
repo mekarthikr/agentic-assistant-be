@@ -26,11 +26,12 @@ When `CHROMA_API_KEY` is set, the backend connects to Chroma Cloud with
 `CloudClient`; otherwise, run a Chroma server on the configured host and port
 before uploading files. The `documents` collection is created automatically
 with cosine distance.
-Chunks are embedded once through Vercel AI Gateway using the configured
-`RAG_EMBEDDING_MODEL` (default `openai/text-embedding-3-small`). Questions use
-the same model and do not re-embed stored chunks. Local development requires
-`AI_GATEWAY_API_KEY`; Vercel deployments may use the platform's Gateway
-authentication.
+Chunks are embedded with Google Gemini using the configured
+`RAG_EMBEDDING_MODEL` (default `gemini-embedding-2`). Questions use the same
+model and do not re-embed stored chunks. Configure `GEMINI_API_KEY` locally and
+in each Vercel environment. Existing documents must be re-uploaded when
+changing embedding models; the default Gemini collection is
+`documents-gemini-embedding-2` to keep its vectors separate from older models.
 
 Document lifecycle state is stored in the SQLite database configured by
 `RAG_DATABASE_PATH`. The default local path is `.data/documents.sqlite`; the
@@ -52,6 +53,7 @@ the `@app` TypeScript alias. Import this repository in Vercel, keep the project
 root at the repository root, and configure:
 
 - `GROQ_API_KEY` (required)
+- `GEMINI_API_KEY` (required for document/query embeddings)
 - `GROQ_MODEL` (optional; defaults to `openai/gpt-oss-20b`)
 - `ENTERPRISE_API_BASE_URL` (optional)
 
@@ -113,11 +115,13 @@ validation in application code.
 - `CHROMA_HOST`, `CHROMA_PORT`, `CHROMA_SSL`: Chroma connection settings.
 - `CHROMA_API_KEY`: when configured, use `CloudClient` instead of the local
   Chroma host settings.
-- `CHROMA_COLLECTION`: collection name; defaults to `documents`.
+- `CHROMA_COLLECTION`: collection name; defaults to
+  `documents-gemini-embedding-2`.
 - `CHROMA_TENANT`, `CHROMA_DATABASE`: optional Chroma tenant/database scope.
 - `RAG_TOP_K`: maximum retrieved chunks; defaults to `5`.
-- `RAG_EMBEDDING_MODEL`: AI Gateway embedding model; defaults to
-  `openai/text-embedding-3-small`.
+- `GEMINI_API_KEY`: Google Gemini API key used for document/query embeddings.
+- `RAG_EMBEDDING_MODEL`: Gemini embedding model; defaults to
+  `gemini-embedding-2`.
 - `RAG_RELEVANCE_THRESHOLD`: maximum cosine distance; defaults to `0.45`.
 - `RAG_CHUNK_SIZE`, `RAG_CHUNK_OVERLAP`: character chunk settings; defaults to
   `700` and `100`.

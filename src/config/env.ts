@@ -40,6 +40,7 @@ const parseCosineDistance = (
 export const env: AppEnvironment = {
   PORT: Number(process.env.PORT || "5000"),
   GROQ_API_KEY: requireEnvironmentVariable("GROQ_API_KEY"),
+  GEMINI_API_KEY: requireEnvironmentVariable("GEMINI_API_KEY"),
   GROQ_MODEL: process.env.GROQ_MODEL?.trim() || "openai/gpt-oss-20b",
   GROQ_MODEL_CONTEXT_WINDOW: parsePositiveInteger(
     process.env.GROQ_MODEL_CONTEXT_WINDOW,
@@ -58,12 +59,13 @@ export const env: AppEnvironment = {
   CHROMA_PORT: parsePositiveInteger(process.env.CHROMA_PORT, 8000),
   CHROMA_SSL: process.env.CHROMA_SSL === "true",
   CHROMA_API_KEY: process.env.CHROMA_API_KEY?.trim() || undefined,
-  CHROMA_COLLECTION: process.env.CHROMA_COLLECTION?.trim() || "documents",
+  CHROMA_COLLECTION:
+    process.env.CHROMA_COLLECTION?.trim() || "documents-gemini-embedding-2",
   CHROMA_TENANT: process.env.CHROMA_TENANT?.trim() || undefined,
   CHROMA_DATABASE: process.env.CHROMA_DATABASE?.trim() || undefined,
   RAG_TOP_K: parsePositiveInteger(process.env.RAG_TOP_K, 5),
   RAG_EMBEDDING_MODEL:
-    process.env.RAG_EMBEDDING_MODEL?.trim() || "openai/text-embedding-3-small",
+    process.env.RAG_EMBEDDING_MODEL?.trim() || "gemini-embedding-2",
   RAG_RELEVANCE_THRESHOLD: parseCosineDistance(
     process.env.RAG_RELEVANCE_THRESHOLD,
     0.45,

@@ -27,6 +27,7 @@
   "type": "module",
   "dependencies": {
     "@ai-sdk/groq": "^4.0.13",
+    "@google/genai": "^2.17.1",
     "@vercel/functions": "^3.7.6",
     "ai": "^7.0.37",
     "chromadb": "^3.5.0",

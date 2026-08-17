@@ -1,10 +1,12 @@
-import { embed, embedMany } from "ai";
+import { GoogleGenAI } from "@google/genai";
 
 import { env } from "@app/config/env";
 
 interface EmbeddingGenerator {
   generate(texts: string[]): Promise<number[][]>;
 }
+
+const MAX_CONCURRENT_EMBEDDINGS = 5;
 
 /** One embedding implementation shared by ingestion and retrieval. */
 export class EmbeddingService {
@@ -16,14 +18,35 @@ export class EmbeddingService {
     model = env.RAG_EMBEDDING_MODEL,
   ) {
     this.model = model;
-    this.embeddingFunction = embeddingFunction ?? {
+    if (embeddingFunction) {
+      this.embeddingFunction = embeddingFunction;
+      return;
+    }
+
+    const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
+    this.embeddingFunction = {
       generate: async (texts) => {
-        if (texts.length === 1) {
-          const result = await embed({ model: this.model, value: texts[0] });
-          return [result.embedding];
-        }
-        const result = await embedMany({ model: this.model, values: texts });
-        return result.embeddings;
+        const embeddings = new Array<number[]>(texts.length);
+        let nextIndex = 0;
+        const workers = Array.from(
+          { length: Math.min(MAX_CONCURRENT_EMBEDDINGS, texts.length) },
+          async () => {
+            while (nextIndex < texts.length) {
+              const index = nextIndex++;
+              const response = await ai.models.embedContent({
+                model: this.model,
+                contents: texts[index],
+              });
+              const embedding = response.embeddings?.[0]?.values;
+              if (!embedding?.length) {
+                throw new Error("Gemini returned no embedding vector.");
+              }
+              embeddings[index] = embedding;
+            }
+          },
+        );
+        await Promise.all(workers);
+        return embeddings;
       },
     };
   }
