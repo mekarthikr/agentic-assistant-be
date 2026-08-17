@@ -18,6 +18,13 @@ class VercelBuildOutputPlugin {
         path.join(functionDirectory, "node_modules/@napi-rs"),
         { recursive: true },
       );
+      fs.copyFileSync(
+        path.resolve(
+          __dirname,
+          "node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs",
+        ),
+        path.join(functionDirectory, "pdf.worker.mjs"),
+      );
 
       fs.writeFileSync(
         path.join(outputRoot, "config.json"),
