@@ -15,7 +15,7 @@ The HTTP health check is available at `GET /health`. WebSocket chat uses
 
 ## Uploaded-document RAG
 
-The chatbot accepts PDF, DOCX, and TXT files at `POST /documents` as a
+The chatbot accepts PDF, DOCX, TXT, and Markdown files at `POST /documents` as a
 `multipart/form-data` field named `document`. `GET /documents` lists the
 authenticated user's documents, `PUT /documents/:documentId` re-indexes one,
 and `DELETE /documents/:documentId` removes both its metadata and Chroma

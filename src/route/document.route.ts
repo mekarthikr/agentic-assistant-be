@@ -46,7 +46,8 @@ const processUpload = async (
   if (!isSupportedDocumentName(request.file.originalname)) {
     response.status(415).json({
       success: false,
-      message: "Unsupported document type. Upload a PDF, DOCX, or TXT file.",
+      message:
+        "Unsupported document type. Upload a PDF, DOCX, TXT, or MD file.",
     });
     return;
   }

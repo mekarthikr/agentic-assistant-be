@@ -123,6 +123,24 @@ test("uploads and indexes a TXT document with stable Chroma IDs", async () => {
   assert.equal(fixture.chroma.chunks[0]?.section, "Vacation Policy");
 });
 
+test("uploads and indexes a Markdown document with heading metadata", async () => {
+  const fixture = createFixture();
+  const record = await uploadText(
+    fixture.documents,
+    "user-a",
+    "handbook.md",
+    "# Vacation Policy\n\nEmployees receive 24 paid vacation days each year.",
+  );
+
+  assert.equal(record.status, "ready");
+  assert.equal(fixture.chroma.chunks[0]?.id, `${record.id}_chunk_0`);
+  assert.equal(fixture.chroma.chunks[0]?.section, "Vacation Policy");
+  assert.match(
+    fixture.chroma.chunks[0]?.content ?? "",
+    /24 paid vacation days/i,
+  );
+});
+
 test("retrieves an exact answer-bearing chunk", async () => {
   const fixture = createFixture();
   await uploadText(
