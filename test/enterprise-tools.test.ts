@@ -226,6 +226,28 @@ test("routes client contract questions to the contract list only", () => {
   assert.deepEqual(selectToolNames("What is my name?", "client"), []);
 });
 
+test("routes application product searches to the applications tool", () => {
+  const orchestrator = new AIOrchestrator(
+    {} as never,
+    {} as never,
+    {} as never,
+  );
+  const selectToolNames = (
+    orchestrator as unknown as {
+      selectToolNames(query: string, userType: "agent"): readonly string[];
+    }
+  ).selectToolNames.bind(orchestrator);
+
+  assert.deepEqual(
+    selectToolNames("Find application for Estateshield product.", "agent"),
+    ["searchApplications"],
+  );
+  assert.deepEqual(
+    selectToolNames("Search applications for Estateshield.", "agent"),
+    ["searchApplications"],
+  );
+});
+
 test("formats a client multi-contract product answer from the returned records", () => {
   const orchestrator = new AIOrchestrator(
     {} as never,

@@ -214,6 +214,42 @@ test("uses a follow-up contract ID to complete pending navigation", async () => 
   );
 });
 
+test("reuses the latest contract ID for same-contract navigation", async () => {
+  const provider: LLMProvider = {
+    modelInfo: { model: "test", contextWindow: 1_024 },
+    generate: async () => {
+      throw new Error(
+        "The model must not be called for same-contract navigation.",
+      );
+    },
+    async *stream() {
+      throw new Error(
+        "The model must not be called for same-contract navigation.",
+      );
+    },
+  };
+  const orchestrator = new AIOrchestrator(
+    new ConversationService(),
+    provider,
+    new ToolRegistry(),
+    new ApiDocumentationRag(navigationMarkdown),
+  );
+
+  await orchestrator.chat(
+    "same-contract-navigation-test",
+    "i want to navigate to contract details page",
+  );
+  await orchestrator.chat("same-contract-navigation-test", "123456");
+
+  assert.equal(
+    await orchestrator.chat(
+      "same-contract-navigation-test",
+      "i want to navigate to beneficiary details of same contract",
+    ),
+    "You can access this page using the link below.\n\n[Beneficiaries](https://dev-myportal.american-equity.com/agent/book-business/contract-details/123456?activeTab=beneficiaries)",
+  );
+});
+
 test("does not reuse previous navigation context for a later data question", async () => {
   const generatedRequests: Parameters<LLMProvider["generate"]>[0][] = [];
   const provider: LLMProvider = {

@@ -23,17 +23,19 @@ import { normalizeAssistantResponse } from "@app/utils/assistant-response";
 import type { ApiResponse, Contract } from "@app/types";
 
 const DEFAULT_MAX_TOOL_ROUNDS = 3;
-const HISTORY_MESSAGE_LIMIT = 6;
+const HISTORY_MESSAGE_LIMIT = 4;
 const RETRIEVAL_MESSAGE_LIMIT = 2;
 const RECORD_IDENTIFIER_PATTERN = /\b\d{5,}\b/;
 const RECORD_IDENTIFIER_ONLY_PATTERN = /^\d{5,}$/;
+const RECORD_IDENTIFIER_CAPTURE_PATTERN = /\b\d{5,}\b/g;
 const CONTRACT_ID_REQUEST_MESSAGE = "Could you please provide the contract ID?";
+const SAME_CONTRACT_PATTERN = /\bsame\s+contract\b/i;
 const CONTRACT_PATTERN = /\b(?:annuit(?:y|ies)|contracts?|contrats?)\b/i;
 const APPLICATION_PATTERN = /\b(?:applications?|approvals?|cases?)\b/i;
 const AMBIGUOUS_RECORD_PATTERN = /\b(?:clients?|customers?|records?)\b/i;
 const RECORD_LOOKUP_INTENT_PATTERN =
   /\b(?:find|search|show|list|look\s*up|retrieve|get)\b/i;
-const LIST_RECORDS_PATTERN = /\b(?:show|list|display|retrieve)\b/i;
+const LIST_RECORDS_PATTERN = /\b(?:find|search|show|list|display|retrieve)\b/i;
 const CLIENT_CONTRACT_DETAIL_PATTERN =
   /\b(?:product|policy|account|current value|anniversary|premium|beneficiar(?:y|ies)|contract details?)\b/i;
 const CLIENT_APPLICATION_DETAIL_PATTERN =
@@ -100,6 +102,16 @@ export class AIOrchestrator {
     if (ragMode === "document-only" && !hasDocumentContext) {
       const text =
         "I couldn't find that information in the provided documents.";
+      this.conversationService.addAssistantMessage(conversationId, text);
+      return this.directResponse(text);
+    }
+
+    const contextualPortalNavigation = this.resolveContextualPortalNavigation(
+      conversation,
+      prompt,
+    );
+    if (!hasDocumentContext && contextualPortalNavigation?.url) {
+      const text = `${contextualPortalNavigation.message}\n\n[${contextualPortalNavigation.linkText}](${contextualPortalNavigation.url})`;
       this.conversationService.addAssistantMessage(conversationId, text);
       return this.directResponse(text);
     }
@@ -332,6 +344,41 @@ export class AIOrchestrator {
     );
   }
 
+  private resolveContextualPortalNavigation(
+    conversation: ReturnType<ConversationService["addUserMessage"]>,
+    prompt: string,
+  ) {
+    if (
+      !SAME_CONTRACT_PATTERN.test(prompt) ||
+      RECORD_IDENTIFIER_PATTERN.test(prompt)
+    ) {
+      return undefined;
+    }
+
+    const contractId = this.latestContractIdFrom(conversation);
+    if (!contractId) return undefined;
+
+    return this.apiDocumentation.resolvePortalNavigation(
+      `${prompt} ${contractId}`,
+    );
+  }
+
+  private latestContractIdFrom(
+    conversation: ReturnType<ConversationService["addUserMessage"]>,
+  ): string | undefined {
+    for (let index = conversation.messages.length - 2; index >= 0; index -= 1) {
+      const matches = [
+        ...conversation.messages[index].content.matchAll(
+          RECORD_IDENTIFIER_CAPTURE_PATTERN,
+        ),
+      ];
+      const latestMatch = matches.at(-1);
+      if (latestMatch) return latestMatch[0];
+    }
+
+    return undefined;
+  }
+
   private directResponse(text: string): {
     text: string;
     usage: ModelTokenUsage;
@@ -541,12 +588,9 @@ ${documentContext}
 
     return `${basePrompt}
 
-Use the following retrieved knowledge-base reference when it is relevant to the
-current request. It may describe product information or enterprise endpoints and
-fields. It is not live customer data; use an enterprise tool when the user needs
-an actual contract or application record. If this reference directly answers the
-question, answer only with information from it; do not supplement it with
-general insurance knowledge or suggest unavailable tools.
+Use the retrieved knowledge-base reference below only when relevant. It is not
+live customer data. If it answers the request, answer only with facts from it.
+Do not add outside knowledge, unsupported links, or unavailable tools.
 
 <knowledge_base_reference>
 ${retrievedContext}
