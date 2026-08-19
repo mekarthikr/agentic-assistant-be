@@ -234,10 +234,7 @@ test("routes application product searches to the applications tool", () => {
   );
   const selectToolNames = (
     orchestrator as unknown as {
-      selectToolNames(
-        query: string,
-        userType: "agent",
-      ): readonly string[];
+      selectToolNames(query: string, userType: "agent"): readonly string[];
     }
   ).selectToolNames.bind(orchestrator);
 
@@ -264,7 +261,10 @@ test("adds headings to application and contract list responses", () => {
   ).formatRecordListHeading.bind(orchestrator);
 
   assert.equal(
-    format("Show all submitted applications.", "Application 1561438 is submitted."),
+    format(
+      "Show all submitted applications.",
+      "Application 1561438 is submitted.",
+    ),
     "Here are the Submitted Applications:\n\nApplication 1561438 is submitted.",
   );
   assert.equal(

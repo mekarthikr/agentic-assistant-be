@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 
-import { healthRoutes } from "@app/route";
+import { documentRoutes, healthRoutes } from "@app/route";
 import { logError } from "@app/utils/error-logger";
 
 /** Configured Express application shared by the HTTP server and tests. */
@@ -14,6 +14,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/health", healthRoutes);
+app.use("/documents", documentRoutes);
 
 app.use((_req, res) => {
   res.status(404).json({ success: false, message: "Route not found." });

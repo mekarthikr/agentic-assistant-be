@@ -64,6 +64,8 @@ export interface ChatSource {
   readonly filename: string;
   readonly mediaType: string;
   readonly page?: number;
+  readonly documentId?: string;
+  readonly section?: string;
 }
 
 export interface ChatCompletion {
@@ -93,6 +95,10 @@ export interface ChatOptions {
   readonly userType?: "agent" | "client";
   /** Trusted identity used to scope client data access. */
   readonly clientName?: string;
+  /** Identity resolved by trusted server-side authentication. */
+  readonly userId?: string;
+  readonly ragMode?: import("./rag.types").RagMode;
+  readonly documentIds?: readonly string[];
   /** Safety limit for consecutive model-to-tool rounds in one chat turn. */
   readonly maxToolRounds?: number;
 }

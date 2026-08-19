@@ -10,6 +10,22 @@ class VercelBuildOutputPlugin {
     compiler.hooks.afterEmit.tap("VercelBuildOutputPlugin", () => {
       fs.mkdirSync(outputRoot, { recursive: true });
 
+      // pdfjs-dist resolves its native canvas adapter at runtime. Keep the
+      // platform-specific package installed on the build host with the
+      // function so Vercel can load the Linux binary after deployment.
+      fs.cpSync(
+        path.resolve(__dirname, "node_modules/@napi-rs"),
+        path.join(functionDirectory, "node_modules/@napi-rs"),
+        { recursive: true },
+      );
+      fs.copyFileSync(
+        path.resolve(
+          __dirname,
+          "node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs",
+        ),
+        path.join(functionDirectory, "pdf.worker.mjs"),
+      );
+
       fs.writeFileSync(
         path.join(outputRoot, "config.json"),
         `${JSON.stringify(
@@ -54,6 +70,13 @@ module.exports = {
     exprContextCritical: false,
     rules: [
       {
+        test: /pdfjs-dist[\\/]legacy[\\/]build[\\/]pdf\.mjs$/,
+        // PDF.js uses import.meta.url as the base for createRequire. Preserve
+        // it so the deployed function resolves from /var/task, not the build
+        // machine's transient /vercel/path0 directory.
+        parser: { importMeta: false },
+      },
+      {
         test: /\.tsx?$/,
         exclude: /node_modules/,
         use: {
@@ -83,9 +106,17 @@ module.exports = {
     },
   },
   optimization: {
+    // pdfjs-dist ships its own webpack runtime. Scope hoisting can concatenate
+    // that runtime with ours and emit duplicate module-cache declarations.
+    concatenateModules: false,
     minimize: false,
   },
   plugins: [
+    // Embeddings are supplied explicitly by EmbeddingService. Chroma's optional
+    // local default embedder is intentionally not installed or bundled.
+    new webpack.IgnorePlugin({
+      resourceRegExp: /^@chroma-core\/default-embed$/,
+    }),
     new webpack.DefinePlugin({
       "process.env.WS_NO_BUFFER_UTIL": JSON.stringify("1"),
       "process.env.WS_NO_UTF_8_VALIDATE": JSON.stringify("1"),

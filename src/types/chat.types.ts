@@ -11,6 +11,8 @@ interface ChatSendMessage {
   conversationId: string;
   message: string;
   userType: "agent" | "client";
+  ragMode?: import("./rag.types").RagMode;
+  documentIds?: string[];
 }
 
 interface ChatCancelMessage {
@@ -29,6 +31,7 @@ export type ClientMessage =
 export type LiveSocket = WebSocket & {
   isAlive: boolean;
   isAuthenticated: boolean;
+  userId?: string;
   requestCount: number;
   requestWindowStartedAt: number;
 };

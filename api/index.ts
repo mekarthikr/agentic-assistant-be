@@ -3,6 +3,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 
 import app from "@app/app";
 import { env, groqConfiguration, serviceContainer } from "@app/config";
+import { ragService } from "@app/config/rag";
 import { GroqProvider } from "@app/providers";
 import {
   AIOrchestrator,
@@ -20,6 +21,8 @@ const orchestrator = new AIOrchestrator(
   conversationService,
   provider,
   toolRegistry,
+  undefined,
+  ragService,
 );
 const socketServer = new ChatSocketServer(orchestrator);
 
