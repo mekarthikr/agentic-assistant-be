@@ -248,6 +248,45 @@ test("routes application product searches to the applications tool", () => {
   );
 });
 
+test("adds headings to application and contract list responses", () => {
+  const orchestrator = new AIOrchestrator(
+    {} as never,
+    {} as never,
+    {} as never,
+  );
+  const format = (
+    orchestrator as unknown as {
+      formatRecordListHeading(query: string, response: string): string;
+    }
+  ).formatRecordListHeading.bind(orchestrator);
+
+  assert.equal(
+    format(
+      "Show all submitted applications.",
+      "Application 1561438 is submitted.",
+    ),
+    "Here are the Submitted Applications:\n\nApplication 1561438 is submitted.",
+  );
+  assert.equal(
+    format(
+      "Find all pending applications.",
+      "**Pending (In Progress) Applications**\n\n- Application 1561438 is in progress.",
+    ),
+    "Here are the Pending (In Progress) Applications:\n\n- Application 1561438 is in progress.",
+  );
+  assert.equal(
+    format(
+      "Find all non-qualified contracts.",
+      "Non-Qualified Contracts\n\nContract 1561091 is active.",
+    ),
+    "Following contracts are Non-Qualified:\n\nContract 1561091 is active.",
+  );
+  assert.equal(
+    format("List contracts.", "Contract 1561092 is active."),
+    "Following contracts are:\n\nContract 1561092 is active.",
+  );
+});
+
 test("formats a client multi-contract product answer from the returned records", () => {
   const orchestrator = new AIOrchestrator(
     {} as never,

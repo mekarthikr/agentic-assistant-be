@@ -36,6 +36,20 @@ const AMBIGUOUS_RECORD_PATTERN = /\b(?:clients?|customers?|records?)\b/i;
 const RECORD_LOOKUP_INTENT_PATTERN =
   /\b(?:find|search|show|list|look\s*up|retrieve|get)\b/i;
 const LIST_RECORDS_PATTERN = /\b(?:find|search|show|list|display|retrieve)\b/i;
+const APPLICATION_STATUS_LIST_PATTERNS = [
+  { pattern: /\bpending\b/i, label: "Pending (In Progress)" },
+  { pattern: /\bsubmitted\b/i, label: "Submitted" },
+  { pattern: /\bin[\s-]?progress\b/i, label: "In-Progress" },
+  { pattern: /\bapproved\b/i, label: "Approved" },
+  { pattern: /\brejected\b/i, label: "Rejected" },
+] as const;
+const CONTRACT_LIST_QUALIFIER_PATTERNS = [
+  { pattern: /\bnon[\s-]?qualified\b/i, label: "Non-Qualified" },
+  { pattern: /\bqualified\b/i, label: "Qualified" },
+  { pattern: /\bsurrendered\b/i, label: "Surrendered" },
+  { pattern: /\binactive\b/i, label: "Inactive" },
+  { pattern: /\bactive\b/i, label: "Active" },
+] as const;
 const CLIENT_CONTRACT_DETAIL_PATTERN =
   /\b(?:product|policy|account|current value|anniversary|premium|beneficiar(?:y|ies)|contract details?)\b/i;
 const CLIENT_APPLICATION_DETAIL_PATTERN =
@@ -188,11 +202,14 @@ export class AIOrchestrator {
 
     const assistantText = normalizeAssistantResponse(
       this.normalizeDisplayCasing(
-        this.formatClientProductSelection(
+        this.formatRecordListHeading(
           prompt,
-          response.text,
-          options.userType,
-          response.toolResults,
+          this.formatClientProductSelection(
+            prompt,
+            response.text,
+            options.userType,
+            response.toolResults,
+          ),
         ),
       ),
     );
@@ -484,6 +501,44 @@ export class AIOrchestrator {
         "$1Non-Qual",
       )
       .replace(/(tax qualification(?:\s+is|\s*[:=-])\s*)IRA\b/gi, "$1Ira");
+  }
+
+  private formatRecordListHeading(query: string, response: string): string {
+    if (!LIST_RECORDS_PATTERN.test(query)) return response;
+
+    if (APPLICATION_PATTERN.test(query)) {
+      const status = APPLICATION_STATUS_LIST_PATTERNS.find(({ pattern }) =>
+        pattern.test(query),
+      );
+      const heading = status
+        ? `Here are the ${status.label} Applications:`
+        : "List of applications is:";
+      const body = response.replace(
+        /^\s*\*\*[^*\n]*\bapplications\b[^*\n]*\*\*\s*\n\s*/i,
+        "",
+      );
+      return body.trimStart().startsWith(heading)
+        ? body
+        : `${heading}\n\n${body}`;
+    }
+
+    if (CONTRACT_PATTERN.test(query)) {
+      const qualifier = CONTRACT_LIST_QUALIFIER_PATTERNS.find(({ pattern }) =>
+        pattern.test(query),
+      );
+      const heading = `Following contracts are${
+        qualifier ? ` ${qualifier.label}` : ""
+      }:`;
+      const body = response.replace(
+        /^\s*(?:\*\*)?[^:\n]*\bcontracts\b[^:\n]*(?:\*\*)?\s*\n\s*\n/i,
+        "",
+      );
+      return body.trimStart().startsWith(heading)
+        ? body
+        : `${heading}\n\n${body}`;
+    }
+
+    return response;
   }
 
   private formatClientProductSelection(
