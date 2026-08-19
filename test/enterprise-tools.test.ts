@@ -265,7 +265,14 @@ test("adds headings to application and contract list responses", () => {
 
   assert.equal(
     format("Show all submitted applications.", "Application 1561438 is submitted."),
-    "List of Submitted applications is:\n\nApplication 1561438 is submitted.",
+    "List of Submitted Applications:\n\nApplication 1561438 is submitted.",
+  );
+  assert.equal(
+    format(
+      "Find all pending applications.",
+      "**Pending (In Progress) Applications**\n\n- Application 1561438 is in progress.",
+    ),
+    "List of Pending (In Progress) Applications:\n\n- Application 1561438 is in progress.",
   );
   assert.equal(
     format("Find all non-qualified contracts.", "Contract 1561091 is active."),

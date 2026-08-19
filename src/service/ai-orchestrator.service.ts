@@ -36,6 +36,7 @@ const RECORD_LOOKUP_INTENT_PATTERN =
   /\b(?:find|search|show|list|look\s*up|retrieve|get)\b/i;
 const LIST_RECORDS_PATTERN = /\b(?:find|search|show|list|display|retrieve)\b/i;
 const APPLICATION_STATUS_LIST_PATTERNS = [
+  { pattern: /\bpending\b/i, label: "Pending (In Progress)" },
   { pattern: /\bsubmitted\b/i, label: "Submitted" },
   { pattern: /\bin[\s-]?progress\b/i, label: "In-Progress" },
   { pattern: /\bapproved\b/i, label: "Approved" },
@@ -461,10 +462,16 @@ export class AIOrchestrator {
       const status = APPLICATION_STATUS_LIST_PATTERNS.find(({ pattern }) =>
         pattern.test(query),
       );
-      const heading = `List of ${status ? `${status.label} ` : ""}applications is:`;
-      return response.trimStart().startsWith(heading)
-        ? response
-        : `${heading}\n\n${response}`;
+      const heading = status
+        ? `List of ${status.label} Applications:`
+        : "List of applications is:";
+      const body = response.replace(
+        /^\s*\*\*[^*\n]*\bapplications\b[^*\n]*\*\*\s*\n\s*/i,
+        "",
+      );
+      return body.trimStart().startsWith(heading)
+        ? body
+        : `${heading}\n\n${body}`;
     }
 
     if (CONTRACT_PATTERN.test(query)) {
