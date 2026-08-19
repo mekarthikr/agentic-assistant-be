@@ -481,9 +481,13 @@ export class AIOrchestrator {
       const heading = `Following contracts are${
         qualifier ? ` ${qualifier.label}` : ""
       }:`;
-      return response.trimStart().startsWith(heading)
-        ? response
-        : `${heading}\n\n${response}`;
+      const body = response.replace(
+        /^\s*(?:\*\*)?[^:\n]*\bcontracts\b[^:\n]*(?:\*\*)?\s*\n\s*\n/i,
+        "",
+      );
+      return body.trimStart().startsWith(heading)
+        ? body
+        : `${heading}\n\n${body}`;
     }
 
     return response;
