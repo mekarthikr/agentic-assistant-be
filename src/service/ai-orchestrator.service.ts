@@ -174,6 +174,10 @@ export class AIOrchestrator {
         options,
       );
     } catch (error) {
+      this.conversationService.discardPendingUserMessage(
+        conversationId,
+        prompt,
+      );
       this.throwIfAborted(options.signal);
       logError("AI orchestration failed", error, {
         conversationId,

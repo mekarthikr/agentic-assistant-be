@@ -49,6 +49,29 @@ export class ConversationService {
     return this.addMessage(id, "assistant", content);
   }
 
+  /** Removes a user turn that did not receive an assistant response. */
+  public discardPendingUserMessage(id: string, content: string): boolean {
+    const conversationId = this.validateConversationId(id);
+    const conversation = this.conversations.get(conversationId);
+    const pendingMessage = conversation?.messages.at(-1);
+
+    if (
+      !conversation ||
+      pendingMessage?.role !== "user" ||
+      pendingMessage.content !== content
+    ) {
+      return false;
+    }
+
+    const messages = conversation.messages.slice(0, -1);
+    this.conversations.set(conversationId, {
+      ...conversation,
+      messages,
+      updatedAt: messages.at(-1)?.createdAt ?? conversation.createdAt,
+    });
+    return true;
+  }
+
   public deleteConversation(id: string): boolean {
     return this.conversations.delete(this.validateConversationId(id));
   }
