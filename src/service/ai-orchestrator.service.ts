@@ -510,11 +510,14 @@ export class AIOrchestrator {
       const status = APPLICATION_STATUS_LIST_PATTERNS.find(({ pattern }) =>
         pattern.test(query),
       );
+      const product = this.productFromListQuery(query);
       const heading = status
         ? `Here are the ${status.label} Applications:`
-        : "List of applications is:";
+        : product
+          ? `Here are the Applications for the product ${product}:`
+          : "List of applications is:";
       const body = response.replace(
-        /^\s*\*\*[^*\n]*\bapplications\b[^*\n]*\*\*\s*\n\s*/i,
+        /^\s*(?:\*\*)?[^\n]*\bapplications\b[^\n]*?(?::)?(?:\*\*)?\s*(?:\n\s*)+/i,
         "",
       );
       return body.trimStart().startsWith(heading)
@@ -526,11 +529,12 @@ export class AIOrchestrator {
       const qualifier = CONTRACT_LIST_QUALIFIER_PATTERNS.find(({ pattern }) =>
         pattern.test(query),
       );
-      const heading = `Following contracts are${
-        qualifier ? ` ${qualifier.label}` : ""
-      }:`;
+      const product = this.productFromListQuery(query);
+      const heading = product
+        ? `Following contracts are for the product ${product}:`
+        : `Following contracts are${qualifier ? ` ${qualifier.label}` : ""}:`;
       const body = response.replace(
-        /^\s*(?:\*\*)?[^:\n]*\bcontracts\b[^:\n]*(?:\*\*)?\s*\n\s*\n/i,
+        /^\s*(?:\*\*)?[^\n]*\bcontracts\b[^\n]*?(?::)?(?:\*\*)?\s*(?:\n\s*)+/i,
         "",
       );
       return body.trimStart().startsWith(heading)
@@ -539,6 +543,19 @@ export class AIOrchestrator {
     }
 
     return response;
+  }
+
+  private productFromListQuery(query: string): string | undefined {
+    const value = query.match(
+      /\bproduct(?:\s+name)?\s+(?:is\s+)?(.+?)(?=\s+(?:contracts?|applications?|policies?)\b|[.?!]|$)/i,
+    )?.[1];
+    if (!value) return undefined;
+
+    return value
+      .trim()
+      .replace(/^['"]|['"]$/g, "")
+      .toLowerCase()
+      .replace(/\b[a-z]/g, (letter) => letter.toUpperCase());
   }
 
   private formatClientProductSelection(

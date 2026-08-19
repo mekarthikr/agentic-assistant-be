@@ -282,6 +282,13 @@ test("adds headings to application and contract list responses", () => {
     "Following contracts are Non-Qualified:\n\nContract 1561091 is active.",
   );
   assert.equal(
+    format(
+      "Find contracts for product Guaranteeshield.",
+      "The following contracts are for the product Guaranteeshield:\n\nContract 1561440 is active.",
+    ),
+    "Following contracts are for the product Guaranteeshield:\n\nContract 1561440 is active.",
+  );
+  assert.equal(
     format("List contracts.", "Contract 1561092 is active."),
     "Following contracts are:\n\nContract 1561092 is active.",
   );
