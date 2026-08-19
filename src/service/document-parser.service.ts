@@ -5,7 +5,7 @@ import { PDFParse } from "pdf-parse";
 
 import type { ParsedDocumentSection } from "@app/types";
 
-const SUPPORTED_EXTENSIONS = new Set([".pdf", ".docx", ".txt", ".md"]);
+const SUPPORTED_EXTENSIONS = new Set([".pdf", ".docx", ".txt"]);
 const normalize = (text: string): string =>
   text
     .replace(/\r\n?/g, "\n")
@@ -44,7 +44,7 @@ export class DocumentParserService {
     const extension = extname(input.name).toLowerCase();
     if (!SUPPORTED_EXTENSIONS.has(extension)) {
       throw new Error(
-        "Unsupported document type. Upload a PDF, DOCX, TXT, or MD file.",
+        "Unsupported document type. Upload a PDF, DOCX, or TXT file.",
       );
     }
 
