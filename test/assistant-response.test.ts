@@ -38,3 +38,22 @@ test("instructs the model to choose clean Markdown formatting dynamically", () =
   assert.match(INSURANCE_AGENT_SYSTEM_PROMPT, /Do not add a generic/);
   assert.match(INSURANCE_AGENT_SYSTEM_PROMPT, /descriptive Markdown link/);
 });
+
+test("requires one count-aware introduction without per-result repetition", () => {
+  assert.match(
+    INSURANCE_AGENT_SYSTEM_PROMPT,
+    /Begin every response with exactly one natural, complete introductory sentence/,
+  );
+  assert.match(
+    INSURANCE_AGENT_SYSTEM_PROMPT,
+    /correct zero, singular, or plural/,
+  );
+  assert.match(
+    INSURANCE_AGENT_SYSTEM_PROMPT,
+    /only once at the very beginning/,
+  );
+  assert.match(
+    INSURANCE_AGENT_SYSTEM_PROMPT,
+    /each result must begin with its identifying content/,
+  );
+});
