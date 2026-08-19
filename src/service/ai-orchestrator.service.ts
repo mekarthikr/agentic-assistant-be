@@ -463,7 +463,7 @@ export class AIOrchestrator {
         pattern.test(query),
       );
       const heading = status
-        ? `List of ${status.label} Applications:`
+        ? `Here are the ${status.label} Applications:`
         : "List of applications is:";
       const body = response.replace(
         /^\s*\*\*[^*\n]*\bapplications\b[^*\n]*\*\*\s*\n\s*/i,
