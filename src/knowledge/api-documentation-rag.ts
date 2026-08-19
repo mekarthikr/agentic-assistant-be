@@ -1,7 +1,7 @@
 import generatedIndex from "./enterprise-api-rag.json" with { type: "json" };
 
 const DEFAULT_RESULT_LIMIT = 2;
-const MAX_CONTEXT_CHARACTERS = 7_000;
+const MAX_CONTEXT_CHARACTERS = 3_500;
 const MINIMUM_RELEVANCE_SCORE = 1;
 const TOKEN_PATTERN = /[a-z0-9]+/g;
 const STOP_WORDS = new Set([
@@ -361,8 +361,12 @@ export class ApiDocumentationRag {
     );
     if (knowledgeSections.length === 0) return "";
 
+    const maxSectionCharacters = Math.floor(
+      MAX_CONTEXT_CHARACTERS / knowledgeSections.length,
+    );
+
     return knowledgeSections
-      .map(({ content }) => content)
+      .map(({ content }) => content.slice(0, maxSectionCharacters))
       .join("\n\n---\n\n")
       .slice(0, MAX_CONTEXT_CHARACTERS);
   }
