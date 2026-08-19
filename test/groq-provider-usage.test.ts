@@ -13,7 +13,7 @@ test("uses exact Groq usage and remaining-token response header values", async (
           id: "chatcmpl-test",
           object: "chat.completion",
           created: 1_785_232_000,
-          model: "llama-3.1-8b-instant",
+          model: "openai/gpt-oss-20b",
           choices: [
             {
               index: 0,
@@ -39,7 +39,7 @@ test("uses exact Groq usage and remaining-token response header values", async (
   const provider = new GroqProvider(
     {
       apiKey: "test-key",
-      model: "llama-3.1-8b-instant",
+      model: "openai/gpt-oss-20b",
       contextWindow: 131_072,
     },
     client,
