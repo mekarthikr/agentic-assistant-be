@@ -224,6 +224,10 @@ test("routes client contract questions to the contract list only", () => {
     "searchContracts",
   ]);
   assert.deepEqual(selectToolNames("What is my name?", "client"), []);
+  assert.deepEqual(
+    selectToolNames("What happens if I miss my premium payment?", "client"),
+    [],
+  );
 });
 
 test("routes application product searches to the applications tool", () => {

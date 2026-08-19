@@ -48,7 +48,7 @@ const POLICY_DOCUMENT_PATTERN = /\bpolicy\s+documents?\b/i;
 // Check them before the broader client record-detail patterns (for example,
 // `premium`) so they never force a live enterprise tool call.
 const KNOWLEDGE_BASE_SELF_SERVICE_PATTERN =
-  /\b(?:policy\s+documents?|(?:premium\s+)?grace\s+period|missed\s+premium|premium\s+payment\s+(?:methods?|options?|frequency)|auto\s*pay|beneficiar(?:y|ies)|file\s+(?:a\s+)?claim|claim\s+(?:documents?|processing|status)|customer\s+support|support\s+(?:channels?|hours?)|portal\s+login)\b/i;
+  /\b(?:policy\s+documents?|(?:premium\s+)?grace\s+period|(?:miss(?:ed|ing)?|late|overdue)\s+(?:(?:my|a|the)\s+)?premium(?:\s+payments?)?|premium\s+payment\s+(?:methods?|options?|frequency)|auto\s*pay|beneficiar(?:y|ies)|file\s+(?:a\s+)?claim|claim\s+(?:documents?|processing|status)|customer\s+support|support\s+(?:channels?|hours?)|portal\s+login)\b/i;
 const DOCUMENTED_PROCEDURE_PATTERN =
   /\b(?:over\s+(?:the\s+)?(?:phone|chat)|spousal\s+consent|joint\s+owners?|beneficiary\s+changes?|electronic\s+fund\s+transfers?|EFTs?|annuitization|index\s+lock|lifetime\s+income\s+benefit|LIBR|maturity\s+date|outstanding\s+checks?|partial\s+withdrawals?|pre-authorized\s+credits?|PACs?|required\s+minimum\s+distributions?|RMDs?|rush\s+reviews?|surrenders?|systematic\s+withdrawals?|transfer\s+of\s+values?|TOVs?|72T|72Q|pending\s+suitability|transfer\s+(?:the\s+)?call|which\s+(?:team|queue|department))\b/i;
 
