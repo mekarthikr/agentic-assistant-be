@@ -224,6 +224,10 @@ test("routes client contract questions to the contract list only", () => {
     "searchContracts",
   ]);
   assert.deepEqual(selectToolNames("What is my name?", "client"), []);
+  assert.deepEqual(
+    selectToolNames("What happens if I miss my premium payment?", "client"),
+    [],
+  );
 });
 
 test("routes application product searches to the applications tool", () => {
@@ -246,91 +250,4 @@ test("routes application product searches to the applications tool", () => {
     selectToolNames("Search applications for Estateshield.", "agent"),
     ["searchApplications"],
   );
-});
-
-test("adds headings to application and contract list responses", () => {
-  const orchestrator = new AIOrchestrator(
-    {} as never,
-    {} as never,
-    {} as never,
-  );
-  const format = (
-    orchestrator as unknown as {
-      formatRecordListHeading(query: string, response: string): string;
-    }
-  ).formatRecordListHeading.bind(orchestrator);
-
-  assert.equal(
-    format(
-      "Show all submitted applications.",
-      "Application 1561438 is submitted.",
-    ),
-    "Here are the Submitted Applications:\n\nApplication 1561438 is submitted.",
-  );
-  assert.equal(
-    format(
-      "Find all pending applications.",
-      "**Pending (In Progress) Applications**\n\n- Application 1561438 is in progress.",
-    ),
-    "Here are the Pending (In Progress) Applications:\n\n- Application 1561438 is in progress.",
-  );
-  assert.equal(
-    format(
-      "Find all non-qualified contracts.",
-      "Non-Qualified Contracts\n\nContract 1561091 is active.",
-    ),
-    "Following contracts are Non-Qualified:\n\nContract 1561091 is active.",
-  );
-  assert.equal(
-    format(
-      "Find contracts for product Guaranteeshield.",
-      "The following contracts are for the product Guaranteeshield:\n\nContract 1561440 is active.",
-    ),
-    "Following contracts are for the product Guaranteeshield:\n\nContract 1561440 is active.",
-  );
-  assert.equal(
-    format("List contracts.", "Contract 1561092 is active."),
-    "Following contracts are:\n\nContract 1561092 is active.",
-  );
-});
-
-test("formats a client multi-contract product answer from the returned records", () => {
-  const orchestrator = new AIOrchestrator(
-    {} as never,
-    {} as never,
-    {} as never,
-  );
-  const format = (
-    orchestrator as unknown as {
-      formatClientProductSelection(
-        query: string,
-        response: string,
-        userType: "client",
-        results: readonly unknown[],
-      ): string;
-    }
-  ).formatClientProductSelection.bind(orchestrator);
-
-  const result = format(
-    "What is my product name?",
-    "You have two contracts.",
-    "client",
-    [
-      {
-        success: true,
-        message: "Request successful",
-        data: contracts.map((contract) => ({
-          ...contract,
-          productName: contract.productName.toUpperCase(),
-        })),
-        timestamp: "2026-08-04T00:00:00.000Z",
-      },
-    ],
-  );
-
-  assert.match(result, /^You have three contracts\./);
-  assert.match(result, /- Product A/);
-  assert.match(result, /- Product B/);
-  assert.match(result, /- Product C/);
-  assert.doesNotMatch(result, /PRODUCT A/);
 });

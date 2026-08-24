@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { normalizeAssistantResponse } from "../src/utils/assistant-response";
+import { INSURANCE_AGENT_SYSTEM_PROMPT } from "../src/knowledge";
 
 test("removes internal knowledge-source attribution from responses", () => {
   assert.equal(
@@ -28,5 +29,31 @@ test("leaves a direct response unchanged", () => {
   assert.equal(
     normalizeAssistantResponse("Ask the Claims team to review the request."),
     "Ask the Claims team to review the request.",
+  );
+});
+
+test("instructs the model to choose clean Markdown formatting dynamically", () => {
+  assert.match(INSURANCE_AGENT_SYSTEM_PROMPT, /GitHub-Flavored Markdown/);
+  assert.match(INSURANCE_AGENT_SYSTEM_PROMPT, /structure dynamically/);
+  assert.match(INSURANCE_AGENT_SYSTEM_PROMPT, /Do not add a generic/);
+  assert.match(INSURANCE_AGENT_SYSTEM_PROMPT, /descriptive Markdown link/);
+});
+
+test("requires one count-aware introduction without per-result repetition", () => {
+  assert.match(
+    INSURANCE_AGENT_SYSTEM_PROMPT,
+    /Begin every response with exactly one natural, complete introductory sentence/,
+  );
+  assert.match(
+    INSURANCE_AGENT_SYSTEM_PROMPT,
+    /correct zero, singular, or plural/,
+  );
+  assert.match(
+    INSURANCE_AGENT_SYSTEM_PROMPT,
+    /only once at the very beginning/,
+  );
+  assert.match(
+    INSURANCE_AGENT_SYSTEM_PROMPT,
+    /each result must begin with its identifying content/,
   );
 });

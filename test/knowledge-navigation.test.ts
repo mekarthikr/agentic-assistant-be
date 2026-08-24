@@ -106,6 +106,15 @@ test("answers policy document requests from knowledge instead of contract naviga
   );
 });
 
+test("retrieves missed-payment guidance for natural client wording", () => {
+  const rag = new ApiDocumentationRag();
+
+  assert.match(
+    rag.retrieveContext("What happens if I miss my premium payment?"),
+    /If payment is not received within the grace period, the policy may lapse\./,
+  );
+});
+
 test("returns policy document FAQ answer without inventing a link", async () => {
   const provider: LLMProvider = {
     modelInfo: { model: "test", contextWindow: 1_024 },

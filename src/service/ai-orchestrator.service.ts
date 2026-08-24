@@ -20,7 +20,6 @@ import { ToolRegistry } from "./tool-registry.service";
 import type { RagService } from "./rag.service";
 import { logError } from "@app/utils/error-logger";
 import { normalizeAssistantResponse } from "@app/utils/assistant-response";
-import type { ApiResponse, Contract } from "@app/types";
 
 const DEFAULT_MAX_TOOL_ROUNDS = 3;
 const HISTORY_MESSAGE_LIMIT = 4;
@@ -36,20 +35,6 @@ const AMBIGUOUS_RECORD_PATTERN = /\b(?:clients?|customers?|records?)\b/i;
 const RECORD_LOOKUP_INTENT_PATTERN =
   /\b(?:find|search|show|list|look\s*up|retrieve|get)\b/i;
 const LIST_RECORDS_PATTERN = /\b(?:find|search|show|list|display|retrieve)\b/i;
-const APPLICATION_STATUS_LIST_PATTERNS = [
-  { pattern: /\bpending\b/i, label: "Pending (In Progress)" },
-  { pattern: /\bsubmitted\b/i, label: "Submitted" },
-  { pattern: /\bin[\s-]?progress\b/i, label: "In-Progress" },
-  { pattern: /\bapproved\b/i, label: "Approved" },
-  { pattern: /\brejected\b/i, label: "Rejected" },
-] as const;
-const CONTRACT_LIST_QUALIFIER_PATTERNS = [
-  { pattern: /\bnon[\s-]?qualified\b/i, label: "Non-Qualified" },
-  { pattern: /\bqualified\b/i, label: "Qualified" },
-  { pattern: /\bsurrendered\b/i, label: "Surrendered" },
-  { pattern: /\binactive\b/i, label: "Inactive" },
-  { pattern: /\bactive\b/i, label: "Active" },
-] as const;
 const CLIENT_CONTRACT_DETAIL_PATTERN =
   /\b(?:product|policy|account|current value|anniversary|premium|beneficiar(?:y|ies)|contract details?)\b/i;
 const CLIENT_APPLICATION_DETAIL_PATTERN =
@@ -63,7 +48,7 @@ const POLICY_DOCUMENT_PATTERN = /\bpolicy\s+documents?\b/i;
 // Check them before the broader client record-detail patterns (for example,
 // `premium`) so they never force a live enterprise tool call.
 const KNOWLEDGE_BASE_SELF_SERVICE_PATTERN =
-  /\b(?:policy\s+documents?|(?:premium\s+)?grace\s+period|missed\s+premium|premium\s+payment\s+(?:methods?|options?|frequency)|auto\s*pay|beneficiar(?:y|ies)|file\s+(?:a\s+)?claim|claim\s+(?:documents?|processing|status)|customer\s+support|support\s+(?:channels?|hours?)|portal\s+login)\b/i;
+  /\b(?:policy\s+documents?|(?:premium\s+)?grace\s+period|(?:miss(?:ed|ing)?|late|overdue)\s+(?:(?:my|a|the)\s+)?premium(?:\s+payments?)?|premium\s+payment\s+(?:methods?|options?|frequency)|auto\s*pay|beneficiar(?:y|ies)|file\s+(?:a\s+)?claim|claim\s+(?:documents?|processing|status)|customer\s+support|support\s+(?:channels?|hours?)|portal\s+login)\b/i;
 const DOCUMENTED_PROCEDURE_PATTERN =
   /\b(?:over\s+(?:the\s+)?(?:phone|chat)|spousal\s+consent|joint\s+owners?|beneficiary\s+changes?|electronic\s+fund\s+transfers?|EFTs?|annuitization|index\s+lock|lifetime\s+income\s+benefit|LIBR|maturity\s+date|outstanding\s+checks?|partial\s+withdrawals?|pre-authorized\s+credits?|PACs?|required\s+minimum\s+distributions?|RMDs?|rush\s+reviews?|surrenders?|systematic\s+withdrawals?|transfer\s+of\s+values?|TOVs?|72T|72Q|pending\s+suitability|transfer\s+(?:the\s+)?call|which\s+(?:team|queue|department))\b/i;
 
@@ -189,6 +174,10 @@ export class AIOrchestrator {
         options,
       );
     } catch (error) {
+      this.conversationService.discardPendingUserMessage(
+        conversationId,
+        prompt,
+      );
       this.throwIfAborted(options.signal);
       logError("AI orchestration failed", error, {
         conversationId,
@@ -201,17 +190,7 @@ export class AIOrchestrator {
     }
 
     const assistantText = normalizeAssistantResponse(
-      this.normalizeDisplayCasing(
-        this.formatRecordListHeading(
-          prompt,
-          this.formatClientProductSelection(
-            prompt,
-            response.text,
-            options.userType,
-            response.toolResults,
-          ),
-        ),
-      ),
+      this.normalizeDisplayCasing(response.text),
     );
     this.validateResponse(assistantText);
     this.conversationService.addAssistantMessage(conversationId, assistantText);
@@ -501,132 +480,6 @@ export class AIOrchestrator {
         "$1Non-Qual",
       )
       .replace(/(tax qualification(?:\s+is|\s*[:=-])\s*)IRA\b/gi, "$1Ira");
-  }
-
-  private formatRecordListHeading(query: string, response: string): string {
-    if (!LIST_RECORDS_PATTERN.test(query)) return response;
-
-    if (APPLICATION_PATTERN.test(query)) {
-      const status = APPLICATION_STATUS_LIST_PATTERNS.find(({ pattern }) =>
-        pattern.test(query),
-      );
-      const product = this.productFromListQuery(query);
-      const heading = status
-        ? `Here are the ${status.label} Applications:`
-        : product
-          ? `Here are the Applications for the product ${product}:`
-          : "List of applications is:";
-      const body = response.replace(
-        /^\s*(?:\*\*)?[^\n]*\bapplications\b[^\n]*?(?::)?(?:\*\*)?\s*(?:\n\s*)+/i,
-        "",
-      );
-      return body.trimStart().startsWith(heading)
-        ? body
-        : `${heading}\n\n${body}`;
-    }
-
-    if (CONTRACT_PATTERN.test(query)) {
-      const qualifier = CONTRACT_LIST_QUALIFIER_PATTERNS.find(({ pattern }) =>
-        pattern.test(query),
-      );
-      const product = this.productFromListQuery(query);
-      const heading = product
-        ? `Following contracts are for the product ${product}:`
-        : `Following contracts are${qualifier ? ` ${qualifier.label}` : ""}:`;
-      const body = response.replace(
-        /^\s*(?:\*\*)?[^\n]*\bcontracts\b[^\n]*?(?::)?(?:\*\*)?\s*(?:\n\s*)+/i,
-        "",
-      );
-      return body.trimStart().startsWith(heading)
-        ? body
-        : `${heading}\n\n${body}`;
-    }
-
-    return response;
-  }
-
-  private productFromListQuery(query: string): string | undefined {
-    const value = query.match(
-      /\bproduct(?:\s+name)?\s+(?:is\s+)?(.+?)(?=\s+(?:contracts?|applications?|policies?)\b|[.?!]|$)/i,
-    )?.[1];
-    if (!value) return undefined;
-
-    return value
-      .trim()
-      .replace(/^['"]|['"]$/g, "")
-      .toLowerCase()
-      .replace(/\b[a-z]/g, (letter) => letter.toUpperCase());
-  }
-
-  private formatClientProductSelection(
-    query: string,
-    response: string,
-    userType: ChatOptions["userType"],
-    toolResults: readonly unknown[],
-  ): string {
-    if (userType !== "client" || !PRODUCT_DETAIL_PATTERN.test(query)) {
-      return response;
-    }
-
-    const contracts = toolResults.flatMap((result) => {
-      if (!this.isContractListResponse(result)) return [];
-      return result.data;
-    });
-    if (contracts.length < 2) return response;
-
-    const count = this.contractCountLabel(contracts.length);
-    const products = contracts.map(({ productName }) =>
-      productName
-        .toLowerCase()
-        .replace(/\b[a-z]/g, (letter) => letter.toUpperCase()),
-    );
-
-    return `You have ${count} contracts. Here are the product names for each contract:\n\n${products.map((product) => `- ${product}`).join("\n")}\n\nPlease select a contract number or product name to view more details.`;
-  }
-
-  private isContractListResponse(
-    value: unknown,
-  ): value is ApiResponse<Contract[]> {
-    if (!value || typeof value !== "object") return false;
-    const data = (value as { data?: unknown }).data;
-    return (
-      Array.isArray(data) &&
-      data.every(
-        (item) =>
-          Boolean(item) &&
-          typeof item === "object" &&
-          typeof (item as { productName?: unknown }).productName === "string" &&
-          typeof (item as { contractNumber?: unknown }).contractNumber ===
-            "string",
-      )
-    );
-  }
-
-  private contractCountLabel(count: number): string {
-    const labels = [
-      "zero",
-      "one",
-      "two",
-      "three",
-      "four",
-      "five",
-      "six",
-      "seven",
-      "eight",
-      "nine",
-      "ten",
-      "eleven",
-      "twelve",
-      "thirteen",
-      "fourteen",
-      "fifteen",
-      "sixteen",
-      "seventeen",
-      "eighteen",
-      "nineteen",
-      "twenty",
-    ];
-    return labels[count] ?? String(count);
   }
 
   private buildSystemPrompt(
